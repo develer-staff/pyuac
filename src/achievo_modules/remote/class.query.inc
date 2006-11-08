@@ -1,0 +1,147 @@
+<?php
+
+function isTime($time)
+{
+	list ($h, $m) = split (":", $time);
+
+	if (!$h)
+		return false;
+
+	if (!ctype_digit($h))
+		return false;
+
+	if ($m && !ctype_digit($m))
+		return false;
+
+	if ($h < 0 || $h >= 24)
+		return false;
+
+	if ($m < 0 || $m >= 60)
+		return false;
+
+	return true;
+}
+
+function smartLike($field, $s)
+{
+	return "$field LIKE '$s%'";
+}
+
+function tokenize($s)
+{
+	// Ttrim extra spaces
+	$s = preg_replace("/\s+/", " ", $s);
+	$s = trim($s);
+
+	return split (" ", $s);
+}
+
+class query extends atkNode
+{
+	function query()
+	{
+		$this->setSecurityAlias("timereg.hours");
+	}
+
+	function action_search()
+	{
+		/*
+		 * The input string must be in the following form:
+		 * project [phase [activity [hours [comment]]]]
+		 *
+		 * This is an example of input string and its meaning:
+		 *
+		 * String  = the big project planning development 10:15 initial structure
+		 *           --------------- -------- ----------- ----- -----------------
+		 * Meaning =     project      phase    activity   hours      comment
+		 *
+		 */
+
+		global $g_user, $g_db;
+
+		$string = $this->m_postvars['input'];
+
+		$tokens = tokenize($string);
+
+		// Fill an array with all the alternatives
+		for ($prj_len = 1; $prj_len <= sizeof($tokens); ++$prj_len)
+		{
+			for ($phase_len = 0; $phase_len <= sizeof($tokens) - $prj_len; ++$phase_len)
+			{
+				for ($activity_len = 0; $activity_len <= sizeof($tokens) - ($prj_len + $phase_len); ++$activity_len)
+				{
+					$prj = join(" ", array_slice($tokens, 0, $prj_len)); 
+					$phase = join(" ", array_slice($tokens, $prj_len, $phase_len));
+					$activity = join(" ", array_slice($tokens, $prj_len + $phase_len, $activity_len));
+					$hours = join(" ", array_slice($tokens, $prj_len + $phase_len + $activity_len, 1));
+					$comment = join(" ", array_slice($tokens, $prj_len + $phase_len + $activity_len + 1));
+
+					// Filter out some invalid record to reduce the sql query
+					if ($hours and !isTime($hours))
+					{
+						#echo "$hours not a time\n";
+						continue;
+					}
+
+					$guesses[] = array (
+						"input_prj"      => $prj,
+						"input_phase"    => $phase,
+						"input_activity" => $activity,
+						"hours"          => $hours,
+						"comment"        => $comment);
+				}
+			}
+		}
+
+		foreach ($guesses as $k => $g)
+		{
+			$sql .= "
+				SELECT
+					$k AS k, 
+					project.name AS project_name,
+					phase.name AS phase_name,
+					activity.name AS activity_name, 
+					project.id AS project_id, 
+					phase.id AS phase_id, 
+					activity.id AS activity_id 
+				FROM
+					project
+					JOIN phase ON project.id = phase.projectid 
+					JOIN phase_activity ON phase.id = phase_activity.phaseid 
+					JOIN activity ON phase_activity.activityid = activity.id 
+					JOIN project_person ON project.id = project_person.projectid 
+				WHERE 
+					project.status = 'active' AND
+					project_person.personid = " . $g_user["id"] . " AND 
+					(
+					(" . smartLike("project.name", $guesses[$k]["input_prj"]) . ") AND 
+					(" . smartLike("phase.name", $guesses[$k]["input_phase"]) . ") AND 
+					(" . smartLike("activity.name", $guesses[$k]["input_activity"]) . ")
+					)";
+
+			if ($k != sizeof($guesses) - 1)
+				$sql .= " UNION ";
+		}
+
+		$result = $g_db->getRows($sql);
+
+		// Merge $result and $guesses
+		foreach ($result as $i => $r)
+		{
+			$k = $result[$i]["k"];
+			$result[$i] = array_merge($result[$i], $guesses[$k]);
+		}
+
+		foreach ($result as $r)
+		{
+			foreach ($r as $item)
+			{
+				echo "$item\t";
+			}
+			echo "\n";
+		}
+
+		exit;
+	}
+}
+?>

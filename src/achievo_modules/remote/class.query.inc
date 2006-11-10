@@ -29,7 +29,7 @@ function smartLike($field, $s)
 
 function tokenize($s)
 {
-	// Ttrim extra spaces
+	// Trim extra spaces
 	$s = preg_replace("/\s+/", " ", $s);
 	$s = trim($s);
 

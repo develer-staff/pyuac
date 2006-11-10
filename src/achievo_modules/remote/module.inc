@@ -1,5 +1,5 @@
 <?php
-
+//TODO: sistemare i permessi... una volta capiti...
 	class mod_remote extends atkModule
 	{
 	    function getNodes()

@@ -1,5 +1,6 @@
 <?php
 
+//TODO: serve ancora? Anche se faccio il loging ogni volta con index.php per evitare i timeout?
 class secure extends atkNode
 {
 	function secure()

@@ -1,4 +1,5 @@
 <?php
+include_once (moduleDir("remote")."class.timereg.inc");
 
 function isTime($time)
 {
@@ -24,7 +25,7 @@ function isTime($time)
 
 function smartLike($field, $s)
 {
-	return "$field LIKE '$s%'";
+	return "LOWER($field) LIKE LOWER('$s%')";
 }
 
 function tokenize($s)
@@ -40,11 +41,13 @@ class query extends atkNode
 {
 	function query()
 	{
-		$this->setSecurityAlias("timereg.hours");
+		$this->atkNode("query");
+		$this->setSecurityAlias("remote.timereg");
 	}
 
 	function action_search()
 	{
+		atkdebug("Action search");
 		/*
 		 * The input string must be in the following form:
 		 * project [phase [activity [hours [comment]]]]
@@ -57,7 +60,9 @@ class query extends atkNode
 		 *
 		 */
 
-		global $g_user, $g_db;
+		global $g_user;
+		
+		$db = &atkGetDb();
 
 		$string = $this->m_postvars['input'];
 
@@ -123,23 +128,16 @@ class query extends atkNode
 				$sql .= " UNION ";
 		}
 
-		$result = $g_db->getRows($sql);
+		$results = $db->getRows($sql);
 
 		// Merge $result and $guesses
-		foreach ($result as $i => $r)
+		foreach ($results as $i => $r)
 		{
-			$k = $result[$i]["k"];
-			$result[$i] = array_merge($result[$i], $guesses[$k]);
+			$k = $results[$i]["k"];
+			$results[$i] = array_merge($results[$i], $guesses[$k]);
 		}
-
-		foreach ($result as $r)
-		{
-			foreach ($r as $item)
-			{
-				echo "$item\t";
-			}
-			echo "\n";
-		}
+		
+		echo make_xml("OK", $results);
 
 		exit;
 	}

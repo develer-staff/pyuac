@@ -1,0 +1,79 @@
+<ui version="4.0" >
+ <author>naufraghi@develer.com</author>
+ <class>TimeregWindow</class>
+ <widget class="QMainWindow" name="TimeregWindow" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>518</width>
+    <height>573</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Time Registration</string>
+  </property>
+  <widget class="QWidget" name="centralwidget" >
+   <layout class="QVBoxLayout" >
+    <property name="margin" >
+     <number>9</number>
+    </property>
+    <property name="spacing" >
+     <number>6</number>
+    </property>
+    <item>
+     <layout class="QHBoxLayout" >
+      <property name="margin" >
+       <number>0</number>
+      </property>
+      <property name="spacing" >
+       <number>6</number>
+      </property>
+      <item>
+       <widget class="QDateEdit" name="datedTimeregDate" />
+      </item>
+      <item>
+       <widget class="QListWidget" name="lstTimeregDay" />
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QLineEdit" name="lined_project_smartcode" />
+    </item>
+    <item>
+     <widget class="QTextBrowser" name="txtbrProjectSummary" />
+    </item>
+    <item>
+     <widget class="QTextEdit" name="txtedRegSummary" />
+    </item>
+    <item>
+     <layout class="QHBoxLayout" >
+      <property name="margin" >
+       <number>0</number>
+      </property>
+      <property name="spacing" >
+       <number>6</number>
+      </property>
+      <item>
+       <widget class="QPushButton" name="btdDelete" >
+        <property name="text" >
+         <string>Delete</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnSave" >
+        <property name="text" >
+         <string>Save</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusBar" />
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

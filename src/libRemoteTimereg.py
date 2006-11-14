@@ -71,6 +71,8 @@ class RemoteTimereg:
         res = []
         for project in eprojects:
             res.append(AchievoProject(project))
+        if __debug__:
+            print res
         return res
     def timereport(self, date):
         page = self.urldispatch("timereport", date=date)
@@ -78,6 +80,8 @@ class RemoteTimereg:
         res = []
         for timereg in etimeregs:
             res.append(AchievoTimereg(timereg))
+        if __debug__:
+            print res
         return res
     
 class AchievoProject:
@@ -98,9 +102,9 @@ class AchievoTimereg:
     
 if __name__ == "__main__":
     rl = RemoteTimereg("http://www.develer.com/~naufraghi/achievo/", "matteo", "matteo99")
-    print rl.whoami() and "Login OK" or "Login Error!"
-    print rl.search("pr")
-    print rl.search("pr me")
-    print rl.search("pr me an")
-    print rl.timereport("2006-11-7")
-    print rl.timereport(["2006-11-7","2006-11-8"])
+    rl.whoami() and "Login OK" or "Login Error!"
+    rl.search("pr")
+    rl.search("pr me")
+    rl.search("pr me an")
+    rl.timereport("2006-11-7")
+    rl.timereport(["2006-11-7","2006-11-8"])

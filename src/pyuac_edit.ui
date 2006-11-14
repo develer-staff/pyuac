@@ -6,74 +6,191 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>518</width>
-    <height>573</height>
+    <width>609</width>
+    <height>489</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>Time Registration</string>
   </property>
+  <property name="windowIcon" >
+   <iconset>../../../../../usr/share/pixmaps/gnome-set-time.png</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget" >
-   <layout class="QVBoxLayout" >
+   <layout class="QGridLayout" >
     <property name="margin" >
      <number>9</number>
     </property>
     <property name="spacing" >
      <number>6</number>
     </property>
-    <item>
-     <layout class="QHBoxLayout" >
-      <property name="margin" >
-       <number>0</number>
+    <item row="6" column="1" colspan="4" >
+     <widget class="QPushButton" name="btnSave" >
+      <property name="enabled" >
+       <bool>false</bool>
       </property>
-      <property name="spacing" >
-       <number>6</number>
+      <property name="text" >
+       <string>&amp;Save</string>
       </property>
-      <item>
-       <widget class="QDateEdit" name="datedTimeregDate" />
-      </item>
-      <item>
-       <widget class="QListWidget" name="lstTimeregDay" />
-      </item>
-     </layout>
+     </widget>
     </item>
-    <item>
-     <widget class="QLineEdit" name="lined_project_smartcode" />
-    </item>
-    <item>
-     <widget class="QTextBrowser" name="txtbrProjectSummary" />
-    </item>
-    <item>
-     <widget class="QTextEdit" name="txtedRegSummary" />
-    </item>
-    <item>
-     <layout class="QHBoxLayout" >
-      <property name="margin" >
-       <number>0</number>
+    <item row="1" column="0" colspan="5" >
+     <widget class="QComboBox" name="comboSmartQuery" >
+      <property name="editable" >
+       <bool>true</bool>
       </property>
-      <property name="spacing" >
-       <number>6</number>
+     </widget>
+    </item>
+    <item row="2" column="0" >
+     <widget class="QLabel" name="labelDate" >
+      <property name="text" >
+       <string>&amp;Date</string>
       </property>
-      <item>
-       <widget class="QPushButton" name="btdDelete" >
-        <property name="text" >
-         <string>Delete</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnSave" >
-        <property name="text" >
-         <string>Save</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
+      <property name="buddy" >
+       <cstring>dateTimeregDate</cstring>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="3" colspan="2" >
+     <widget class="QLabel" name="labelActivity" >
+      <property name="enabled" >
+       <bool>false</bool>
+      </property>
+      <property name="text" >
+       <string>&amp;Activity</string>
+      </property>
+      <property name="buddy" >
+       <cstring>comboActivity</cstring>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0" >
+     <widget class="QDateEdit" name="dateTimeregDate" >
+      <property name="dateTime" >
+       <datetime>
+        <hour>0</hour>
+        <minute>0</minute>
+        <second>0</second>
+        <year>2006</year>
+        <month>1</month>
+        <day>1</day>
+       </datetime>
+      </property>
+      <property name="displayFormat" >
+       <string>ddd dd/MMM/yyyy</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="3" colspan="2" >
+     <widget class="QComboBox" name="comboActivity" />
+    </item>
+    <item row="3" column="1" colspan="2" >
+     <widget class="QComboBox" name="comboProjectPhase" >
+      <property name="editable" >
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="4" >
+     <widget class="QTimeEdit" name="timeTimeWorked" >
+      <property name="displayFormat" >
+       <string>HH:mm</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="0" colspan="5" >
+     <widget class="QTextEdit" name="txtRegSummary" >
+      <property name="autoFormatting" >
+       <set>QTextEdit::AutoNone</set>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="0" >
+     <widget class="QPushButton" name="btnDelete" >
+      <property name="enabled" >
+       <bool>false</bool>
+      </property>
+      <property name="text" >
+       <string>Delete</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0" >
+     <widget class="QLabel" name="labelComment" >
+      <property name="enabled" >
+       <bool>false</bool>
+      </property>
+      <property name="text" >
+       <string>&amp;Comment</string>
+      </property>
+      <property name="buddy" >
+       <cstring>txtRegSummary</cstring>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="3" >
+     <widget class="QLabel" name="labelTimeWorked" >
+      <property name="enabled" >
+       <bool>false</bool>
+      </property>
+      <property name="text" >
+       <string>&amp;Time worked</string>
+      </property>
+      <property name="buddy" >
+       <cstring>timeTimeWorked</cstring>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0" colspan="2" >
+     <widget class="QLabel" name="labelSmartQuery" >
+      <property name="text" >
+       <string>Insert S&amp;mart query here:</string>
+      </property>
+      <property name="textFormat" >
+       <enum>Qt::PlainText</enum>
+      </property>
+      <property name="buddy" >
+       <cstring>comboSmartQuery</cstring>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2" colspan="2" >
+     <widget class="QLabel" name="labelSmartQueryExample" >
+      <property name="text" >
+       <string>&lt;b>project&lt;/b> [phase [activity [hh:mm [comment]]]]]</string>
+      </property>
+      <property name="textFormat" >
+       <enum>Qt::AutoText</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1" colspan="2" >
+     <widget class="QLabel" name="labelProjectPhase" >
+      <property name="enabled" >
+       <bool>false</bool>
+      </property>
+      <property name="text" >
+       <string>&amp;Project / Phase</string>
+      </property>
+      <property name="buddy" >
+       <cstring>comboProjectPhase</cstring>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
   <widget class="QStatusBar" name="statusBar" />
  </widget>
+ <tabstops>
+  <tabstop>comboSmartQuery</tabstop>
+  <tabstop>txtRegSummary</tabstop>
+  <tabstop>btnSave</tabstop>
+  <tabstop>comboProjectPhase</tabstop>
+  <tabstop>comboActivity</tabstop>
+  <tabstop>timeTimeWorked</tabstop>
+  <tabstop>dateTimeregDate</tabstop>
+  <tabstop>btnDelete</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

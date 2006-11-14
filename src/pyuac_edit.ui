@@ -54,7 +54,7 @@
     <item row="2" column="3" colspan="2" >
      <widget class="QLabel" name="labelActivity" >
       <property name="enabled" >
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <property name="text" >
        <string>&amp;Activity</string>
@@ -99,7 +99,7 @@
      </widget>
     </item>
     <item row="5" column="0" colspan="5" >
-     <widget class="QTextEdit" name="txtRegSummary" >
+     <widget class="QTextEdit" name="txtComment" >
       <property name="autoFormatting" >
        <set>QTextEdit::AutoNone</set>
       </property>
@@ -118,20 +118,20 @@
     <item row="4" column="0" >
      <widget class="QLabel" name="labelComment" >
       <property name="enabled" >
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <property name="text" >
        <string>&amp;Comment</string>
       </property>
       <property name="buddy" >
-       <cstring>txtRegSummary</cstring>
+       <cstring>txtComment</cstring>
       </property>
      </widget>
     </item>
     <item row="4" column="3" >
      <widget class="QLabel" name="labelTimeWorked" >
       <property name="enabled" >
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <property name="text" >
        <string>&amp;Time worked</string>
@@ -167,7 +167,7 @@
     <item row="2" column="1" colspan="2" >
      <widget class="QLabel" name="labelProjectPhase" >
       <property name="enabled" >
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <property name="text" >
        <string>&amp;Project / Phase</string>
@@ -183,7 +183,7 @@
  </widget>
  <tabstops>
   <tabstop>comboSmartQuery</tabstop>
-  <tabstop>txtRegSummary</tabstop>
+  <tabstop>txtComment</tabstop>
   <tabstop>btnSave</tabstop>
   <tabstop>comboProjectPhase</tabstop>
   <tabstop>comboActivity</tabstop>

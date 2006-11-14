@@ -61,6 +61,12 @@ class query extends atkNode
 		 *
 		 */
 
+		/*
+		 * TODO: In realtà "search" non ha interessa a conoscere ore e commento
+		 * quello interessa solo alla funzione di inserimento.
+		 * Quindi quei due campi andrebbero gestiti lato client ed inviati a
+		 * timereg una volta controllati.
+		*/
 		global $g_user;
 		
 		$db = &atkGetDb();

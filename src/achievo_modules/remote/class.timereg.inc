@@ -43,8 +43,8 @@ class timereg extends atkNode
 	function timereg()
 	{
 		$this->atkNode("timereg");
-        $hoursnode = &atkGetNode("timereg.hours");
-        $hoursnode->m_postvars = $this->m_postvars; // Share postvars.
+		$hoursnode = &atkGetNode("timereg.hours");
+		$hoursnode->m_postvars = $this->m_postvars; // Share postvars.
 	}
 
 	function action_save()

@@ -8,7 +8,7 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import urllib, urllib2
+import urllib, urllib2, re
 try:
     from xml.etree import ElementTree as ET
 except ImportError:
@@ -139,6 +139,17 @@ class AchievoTimereg:
     def __str__(self):
         return "%s" % self.record.get("remark")
     
+def parseSmartQuery(squery):
+    getsq = re.compile("""
+        (?P<project>[^ ]+)\ *
+        (?P<phase>[^ ]+|)\ *
+        (?P<activity>[^ ]+|)\ *
+        (?P<hours>\d{1,2}:\d{1,2}|)\ *
+        (?P<comment>.*|)
+        """, re.VERBOSE)
+    return getsq.search(squery).groupdict()
+        
+
 if __name__ == "__main__":
     rl = RemoteTimereg("http://www.develer.com/~naufraghi/achievo/", "matteo", "matteo99")
     rl.whoami() and "Login OK" or "Login Error!"

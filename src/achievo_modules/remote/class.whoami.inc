@@ -1,7 +1,6 @@
 <?php
 include_once (moduleDir("remote")."class.timereg.inc");
 
-//TODO: serve ancora? Anche se faccio il loging ogni volta con index.php per evitare i timeout?
 class whoami extends atkNode
 {
 	function whoami()

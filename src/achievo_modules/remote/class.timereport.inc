@@ -28,7 +28,7 @@ class timereport extends atkNode
 				AND userid = " . $g_user["id"] . " ORDER BY activitydate DESC";
 		$results = $db->getRows($sql);
 
-		echo make_xml("OK", $results, "remark");
+		echo make_xml("OK", $results);
 		exit;
 	}
 }

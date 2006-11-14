@@ -15,14 +15,14 @@ function is_valid_date($date)
 function make_xml($msg, $results, $bodykey="")
 {
 	$res  = '<?xml version="1.0" encoding="ISO-8859-1"?>'."\n";
-	$res .= '<response mgs="'.htmlspecialchars($msg).'" len="'.count($results).'">'."\n";
+	$res .= '<response msg="'.htmlspecialchars($msg).'" len="'.count($results).'">'."\n";
 	foreach ($results as $r)
 	{
 		$res .= "<record";
 		foreach ($r as $key=>$value)
 		{
 			if ($key != $bodykey)
-				$res .= ' '.$key.'="'.$value.'"';
+				$res .= ' '.htmlspecialchars($key).'="'.htmlspecialchars($value).'"';
 		}
 		if (array_key_exists($bodykey, $r))
 		{

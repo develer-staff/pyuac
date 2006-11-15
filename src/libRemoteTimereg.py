@@ -28,6 +28,10 @@ class RemoteTimereg:
         self._loginurl = urllib.basejoin(self._achievouri, "index.php")
         self._dispatchurl = urllib.basejoin(self._achievouri, "dispatch.php")
         self._login()
+
+        self._smartquery = self.parseSmartQuery("")
+        self._projects = []
+        self.search("%")
         
     def _login(self, user=None, password=None):
         """
@@ -36,7 +40,8 @@ class RemoteTimereg:
         if user is not None and password is not None:
             self.user = user
             self.password = password
-        auth = urllib.urlencode({"auth_user":self.user,"auth_pw":self.password})
+        auth = urllib.urlencode({"auth_user": self.user,
+                                 "auth_pw": self.password})
         self._setupAuth()
         #refresh Achievo session
         urllib2.urlopen(self._loginurl, auth).read()
@@ -52,6 +57,8 @@ class RemoteTimereg:
         auth_handler = urllib2.HTTPBasicAuthHandler(passman)
         cookie_handler = urllib2.HTTPCookieProcessor()
         opener = urllib2.build_opener(auth_handler, cookie_handler)
+        #installa come opener di default per urllib2
+        #FIXME: e se fosse multithread con due auth diverse?
         urllib2.install_opener(opener)
         
     def urlDispatch(self, node, action="search", **kwargs):
@@ -60,7 +67,8 @@ class RemoteTimereg:
         """
         params = {"atknodetype": "remote.%s" % node,
                   "atkaction": action}
-        #This is the way PHP accepts arrays, without [] it gets only the last value.
+        #This is the way PHP accepts arrays,
+        #without [] it gets only the last value.
         for key, val in kwargs.items():
             if type(val) == list:
                 del kwargs[key]
@@ -70,8 +78,8 @@ class RemoteTimereg:
             print "########### Dispatch:", qstring
         try:
             return urllib2.urlopen(self._dispatchurl, qstring).read()
-        #TODO: scoprire che eccezione solleva...
-        #      oppure no tanto richiamo la stessa funzione subito
+        #FIXME: scoprire che eccezione solleva...
+        #       oppure no tanto richiamo la stessa funzione subito
         except: 
             self._login() #Achievo session timeout?
             return urllib2.urlopen(self._dispatchurl, qstring).read()
@@ -82,23 +90,50 @@ class RemoteTimereg:
         """
         page = self._login()
         elogin = ET.fromstring(page)
-        if elogin.find("record").get('name') == self.user:
+        if elogin.find("record").get("name") == self.user:
             return self.user
         else:
             return False
-        
-    def search(self, input):
+
+    def parseSmartQuery(self, smartquery):
+        getsq = re.compile("""
+            (?P<project>[^ ]+|)\ *
+            (?P<phase>[^ ]+|)\ *
+            (?P<activity>[^ ]+|)\ *
+            (?P<hours>\d{1,2}:\d{1,2}|)\ *
+            (?P<comment>.*|)
+            """, re.VERBOSE)
+        return getsq.search(smartquery).groupdict()
+         
+    def search(self, smartquery):
         """
         Ottiene la lista dei progetti/fasi/attività coerenti
         con la smart-string inviata
         """
-        page = self.urlDispatch("query", input="%"+input)
-        eprojects = ET.fromstring(page)
-        res = []
-        for project in eprojects:
-            res.append(AchievoProject(project))
+        #Se vuota converte in "trova tutto"
+        # % permette la ricerca anche all'interno del nome del progetto
+        #FIXME: nel sever, SQL INJECT?
         if __debug__:
-            print res
+            import time
+            time.sleep(1)
+        _smartquery = self.parseSmartQuery(smartquery)
+        _ppa = " ".join(map(_smartquery.get,
+                            ["project", "phase", "activity"]))
+        _old_ppa = " ".join(map(self._smartquery.get,
+                            ["project", "phase", "activity"]))
+        self._smartquery = _smartquery
+        # Fa la query al server solo se la parte
+        # "project", "phase", "activity" è cambiata
+        if _ppa != _old_ppa:
+            page = self.urlDispatch("query", input="%"+_ppa)
+            self._projects = ET.fromstring(page)
+        res = []
+        for project in self._projects:
+            project.set("hours", _smartquery["hours"])
+            project.set("comment", _smartquery["comment"])
+            res.append(project)
+        if __debug__:
+            print map(ET.tostring, res)
         return res
     
     def timeReport(self, date):
@@ -110,49 +145,15 @@ class RemoteTimereg:
         etimeregs = ET.fromstring(page)
         res = []
         for timereg in etimeregs:
-            res.append(AchievoTimereg(timereg))
+            res.append(timereg)
         if __debug__:
-            print res
+            print map(ET.tostring, res)
         return res
     
-class AchievoProject:
-    """
-    Classe di utilità per la smart-search
-    """
-    def __init__(self, record):
-        self.record = record
-    def __repr__(self):
-        return ET.tostring(self.record)
-    def __str__(self):
-        return "%(project_name)s (%(phase_name)s) %(activity_name)s" % dict(self.record.items())
-
-class AchievoTimereg:
-    """
-    Classe di utilità per il timeReport
-    """
-    #TODO: Valutare se le due classi sono destinate a differenziarsi
-    #      o se conviene unificarle
-    def __init__(self, record):
-        self.record = record
-    def __repr__(self):
-        return ET.tostring(self.record)
-    def __str__(self):
-        return "%s" % self.record.get("remark")
-    
-def parseSmartQuery(squery):
-    getsq = re.compile("""
-        (?P<project>[^ ]+)\ *
-        (?P<phase>[^ ]+|)\ *
-        (?P<activity>[^ ]+|)\ *
-        (?P<hours>\d{1,2}:\d{1,2}|)\ *
-        (?P<comment>.*|)
-        """, re.VERBOSE)
-    return getsq.search(squery).groupdict()
-        
-
 if __name__ == "__main__":
-    rl = RemoteTimereg("http://www.develer.com/~naufraghi/achievo/", "matteo", "matteo99")
-    rl.whoami() and "Login OK" or "Login Error!"
+    rl = RemoteTimereg("http://www.develer.com/~naufraghi/achievo/",
+                       "matteo", "matteo99")
+    print rl.whoami() and "Login OK" or "Login Error!"
     rl.search("pr")
     rl.search("pr me")
     rl.search("pr me an")

@@ -8,14 +8,20 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import sys
+import sys, time
 from PyQt4 import uic
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-import libRemoteTimereg
+try:
+    from xml.etree import ElementTree as ET
+except ImportError:
+    try:
+        from elementtree import ElementTree as ET
+    except ImportError:
+        raise ImportError, "ElementTree (or py2.5) needed"
 
-EVENT_WORKDONE = QEvent.Type(QEvent.User + 1)
+import libRemoteTimereg
 
 class TimeregApplication(QApplication):
     def __init__(self, args):
@@ -28,11 +34,10 @@ class TimeregApplication(QApplication):
 class TimeregWindow(QMainWindow):
     def __init__(self, achievouri, user, password):
         QMainWindow.__init__(self)
+        self.auth = [achievouri, user, password]
         self.ui = uic.loadUi("pyuac_edit.ui", self)
-        self.rt = libRemoteTimereg.RemoteTimereg(achievouri, user, password)
-        self.worker = Worker(self.rt.search, self)
-        self.worker.start()
-
+        self.rt = QProcess(self)
+ 
         self.projects = []
         
         self._connectSlots()
@@ -46,13 +51,28 @@ class TimeregWindow(QMainWindow):
         self.connect(self.ui.comboSmartQuery,
                      SIGNAL("editTextChanged(QString)"),
                      self._slotSmartQueryChanged)
+        self.connect(self.rt,
+                     SIGNAL("finished(int)"),
+                     self._smartUpdateGui)
 
     def _slotSmartQueryChanged(self):
-        smartquery = unicode(self.ui.comboSmartQuery.lineEdit().text())
-        self.worker.process(smartquery)
+        if self.rt.state() != self.rt.NotRunning:
+            self.rt.terminate()
+        self.rt.start("./pyuac_cli.py", self.auth+["--"])
+        if __debug__:
+            qDebug("_slotSmartQueryChanged, %s" % self.rt.state())
+        smartquery = unicode("search %"+self.ui.comboSmartQuery.lineEdit().text()+"\n")
+        self.rt.write(smartquery.encode("UTF-8"))
                     
-    def _smartUpdateGui(self, projects):
-        self.projects = projects
+    def _smartUpdateGui(self):
+        if __debug__:
+            qDebug("_smartUpdateGui")
+        msg = str(self.rt.readAllStandardOutput()).decode("UTF-8")
+        if msg == "":
+            if __debug__:
+                qDebug("No Output!")
+            return
+        self.projects = ET.fromstring(msg)
         self.ui.comboProjectPhase.clear()
         self.ui.comboActivity.clear()
         projphases = set()
@@ -66,46 +86,13 @@ class TimeregWindow(QMainWindow):
         self.ui.labelActivity.setEnabled(self.ui.comboActivity.count() != 1)
         if len(self.projects) == 1:
             p = self.projects[0]
-            d = self.ui.timeTimeWorked.dateTimeFromText(p.get("hours"))
+            rTime = libRemoteTimereg.timeRound(p.get("input_hours"))
+            d = self.ui.timeTimeWorked.dateTimeFromText(rTime)
             zero = self.ui.timeTimeWorked.dateTimeFromText("0:00")
             self.ui.timeTimeWorked.setDateTime(d)
             self.ui.labelTimeWorked.setEnabled(d > zero)
-            self.ui.labelComment.setEnabled(p.get("comment") != "")
-            self.ui.txtComment.setPlainText(p.get("comment"))
-
-    def customEvent(self, event):
-        if event.type() == EVENT_WORKDONE:
-            self._smartUpdateGui(event.msg)
-
-class WorkDoneEvent(QEvent):
-    def __init__(self, msg):
-        QEvent.__init__(self, EVENT_WORKDONE)
-        self.msg = msg
-
-class Worker(QThread):
-    def __init__(self, action, receiver):
-        QThread.__init__(self)
-        self.action = action
-        self.receiver = receiver
-        self.stopped = False
-        self.towork = False
-        self._args = []
-        self._kwargs = {}
-    def process(self, *args, **kwargs):
-        self.towork = True
-        self._args = args
-        self._kwargs = kwargs
-    def work(self):
-        res = self.action(*self._args, **self._kwargs)
-        event = WorkDoneEvent(res)
-        QCoreApplication.postEvent(self.receiver, event)
-    def stop(self):
-        self.stopped = True
-    def run(self):
-        while not self.stopped:
-            if self.towork:
-                self.work()
-                self.towork = False
+            self.ui.labelComment.setEnabled(p.get("input_remark") != "")
+            self.ui.txtComment.setPlainText(p.get("input_remark"))
 
 if __name__ == "__main__":
     app = TimeregApplication(sys.argv)

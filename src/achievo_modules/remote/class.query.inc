@@ -32,7 +32,6 @@ function tokenize($s)
 {
 	// Trim extra spaces
 	$s = preg_replace("/\s+/", " ", $s);
-	$s = str_replace("(","",str_replace(")","",$s));
 	$s = trim($s);
 
 	return split (" ", $s);
@@ -86,7 +85,7 @@ class query extends atkNode
 					$phase = join(" ", array_slice($tokens, $prj_len, $phase_len));
 					$activity = join(" ", array_slice($tokens, $prj_len + $phase_len, $activity_len));
 					$hours = join(" ", array_slice($tokens, $prj_len + $phase_len + $activity_len, 1));
-					$comment = join(" ", array_slice($tokens, $prj_len + $phase_len + $activity_len + 1));
+					$remark = join(" ", array_slice($tokens, $prj_len + $phase_len + $activity_len + 1));
 
 					// Filter out some invalid record to reduce the sql query
 					if ($hours and !isTime($hours))
@@ -99,8 +98,8 @@ class query extends atkNode
 						"input_prj"      => $prj,
 						"input_phase"    => $phase,
 						"input_activity" => $activity,
-						"hours"          => $hours,
-						"comment"        => $comment);
+						"input_hours"    => $hours,
+						"input_remark"   => $remark);
 				}
 			}
 		}

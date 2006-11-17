@@ -60,13 +60,14 @@ class timereg extends atkNode
 			$error = $error || (is_array($record[$key]) && count($record[$key]['atkerror']) > 0);
 
 		if ($error)
-		{
-			echo "Err: $error";
+        {
+            echo make_xml("Err", $error);
 		}
 		else
 		{
 			$hoursnode->addDb($record, true, "add");
-			echo "OK";
+			echo make_xml("OK", "add");
+
 		}
 		exit;
 	}

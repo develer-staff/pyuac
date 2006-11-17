@@ -8,7 +8,7 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import urllib, urllib2, re
+import urllib, urllib2, re, time, datetime
 try:
     from xml.etree import ElementTree as ET
 except ImportError:
@@ -16,6 +16,25 @@ except ImportError:
         from elementtree import ElementTree as ET
     except ImportError:
         raise ImportError, "ElementTree (or py2.5) needed"
+
+def timeRound(inTime, stepTime=15):
+    """
+    Arrotonda la stringa hh:mm alla risoluzione inviata
+    e restituisce un oggetto timedelta:
+
+    >>> timeRound("2:44")
+    '02:45'
+    >>> timeRound("13:10", 20)
+    '13:20'
+    """
+    inTime_tuple = time.strptime(inTime, "%H:%M")
+    step = datetime.timedelta(minutes=stepTime)
+    if step == datetime.timedelta():
+        step = datetime.timedelta(minutes=1)
+    pre = datetime.timedelta(hours=inTime_tuple.tm_hour,
+                             minutes=inTime_tuple.tm_min)
+    res = int(round(pre.seconds/float(step.seconds))*step.seconds)
+    return "%02d:%02d" % (res/3600, (res%3600)/60)
 
 class RemoteTimereg:
     def __init__(self, achievouri, user, password):
@@ -31,7 +50,7 @@ class RemoteTimereg:
 
         self._smartquery = self.parseSmartQuery("")
         self._projects = []
-        self.search("%")
+        #self.search("%")
         
     def _login(self, user=None, password=None):
         """
@@ -76,13 +95,7 @@ class RemoteTimereg:
         qstring = urllib.urlencode(params.items() + kwargs.items(), doseq=True)
         if __debug__:
             print "########### Dispatch:", qstring
-        try:
-            return urllib2.urlopen(self._dispatchurl, qstring).read()
-        #FIXME: scoprire che eccezione solleva...
-        #       oppure no tanto richiamo la stessa funzione subito
-        except: 
-            self._login() #Achievo session timeout?
-            return urllib2.urlopen(self._dispatchurl, qstring).read()
+        return urllib2.urlopen(self._dispatchurl, qstring).read()
         
     def whoami(self):
         """
@@ -91,17 +104,17 @@ class RemoteTimereg:
         page = self._login()
         elogin = ET.fromstring(page)
         if elogin.find("record").get("name") == self.user:
-            return self.user
+            return elogin
         else:
             return False
 
     def parseSmartQuery(self, smartquery):
         getsq = re.compile("""
-            (?P<project>[^ ]+|)\ *
-            (?P<phase>[^ ]+|)\ *
-            (?P<activity>[^ ]+|)\ *
-            (?P<hours>\d{1,2}:\d{1,2}|)\ *
-            (?P<comment>.*|)
+            (?P<input_project>[^ ]+|)\ *
+            (?P<input_phase>[^ ]+|)\ *
+            (?P<input_activity>[^ ]+|)\ *
+            (?P<input_hours>\d{1,2}:\d{1,2}|)\ *
+            (?P<input_remark>.*|)
             """, re.VERBOSE)
         return getsq.search(smartquery).groupdict()
          
@@ -118,23 +131,21 @@ class RemoteTimereg:
             time.sleep(1)
         _smartquery = self.parseSmartQuery(smartquery)
         _ppa = " ".join(map(_smartquery.get,
-                            ["project", "phase", "activity"]))
+                            ["input_project", "input_phase", "input_activity"]))
         _old_ppa = " ".join(map(self._smartquery.get,
-                            ["project", "phase", "activity"]))
+                            ["input_project", "input_phase", "input_activity"]))
         self._smartquery = _smartquery
         # Fa la query al server solo se la parte
         # "project", "phase", "activity" è cambiata
         if _ppa != _old_ppa:
-            page = self.urlDispatch("query", input="%"+_ppa)
+            page = self.urlDispatch("query", input=_ppa)
             self._projects = ET.fromstring(page)
-        res = []
         for project in self._projects:
-            project.set("hours", _smartquery["hours"])
-            project.set("comment", _smartquery["comment"])
-            res.append(project)
+            project.set("input_hours", _smartquery["input_hours"])
+            project.set("input_remark", _smartquery["input_remark"])
         if __debug__:
-            print map(ET.tostring, res)
-        return res
+            print ET.tostring(self._projects)
+        return self._projects
     
     def timeReport(self, date):
         """
@@ -143,13 +154,42 @@ class RemoteTimereg:
         """
         page = self.urlDispatch("timereport", date=date)
         etimeregs = ET.fromstring(page)
-        res = []
-        for timereg in etimeregs:
-            res.append(timereg)
         if __debug__:
-            print map(ET.tostring, res)
-        return res
+            print ET.tostring(etimeregs)
+        return etimeregs
+
+    def timeReg(self, aTimereg):
+        pass
     
+
+example_save = """
+curl -v -b cookie -c cookie \
+-d atknodetype=timereg.hours \
+-d atkaction=save \
+-d activityid=0 \
+-d projectid=1 \
+-d phaseid=3 \
+-d time[hours]=4 \
+-d time[minutes]=0 \
+-d activitydate=20050515 \
+-d entrydate=20050515 \
+-d remark=remarkfoo \
+-d userid=person.id=0 \
+http://localhost/dispatch.php
+"""
+
+class AchievoTimereg:
+    def __init__(self):
+        self.activityid = None
+        self.projectid = None
+        self.phaseid = None
+        self.time_hours = None
+        self.time_minutes = None
+        self.activitydate = None
+        self.entrydate = None
+        self.remark = None
+        self.userid = None
+
 if __name__ == "__main__":
     rl = RemoteTimereg("http://www.develer.com/~naufraghi/achievo/",
                        "matteo", "matteo99")

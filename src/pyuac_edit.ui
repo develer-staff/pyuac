@@ -53,9 +53,6 @@
     </item>
     <item row="2" column="3" colspan="2" >
      <widget class="QLabel" name="labelActivity" >
-      <property name="enabled" >
-       <bool>true</bool>
-      </property>
       <property name="text" >
        <string>&amp;Activity</string>
       </property>
@@ -66,16 +63,6 @@
     </item>
     <item row="3" column="0" >
      <widget class="QDateEdit" name="dateTimeregDate" >
-      <property name="dateTime" >
-       <datetime>
-        <hour>0</hour>
-        <minute>0</minute>
-        <second>0</second>
-        <year>2006</year>
-        <month>1</month>
-        <day>1</day>
-       </datetime>
-      </property>
       <property name="displayFormat" >
        <string>ddd dd/MMM/yyyy</string>
       </property>
@@ -99,11 +86,7 @@
      </widget>
     </item>
     <item row="5" column="0" colspan="5" >
-     <widget class="QTextEdit" name="txtComment" >
-      <property name="autoFormatting" >
-       <set>QTextEdit::AutoNone</set>
-      </property>
-     </widget>
+     <widget class="QTextEdit" name="txtRemark" />
     </item>
     <item row="6" column="0" >
      <widget class="QPushButton" name="btnDelete" >
@@ -116,23 +99,17 @@
      </widget>
     </item>
     <item row="4" column="0" >
-     <widget class="QLabel" name="labelComment" >
-      <property name="enabled" >
-       <bool>true</bool>
-      </property>
+     <widget class="QLabel" name="labelRemark" >
       <property name="text" >
-       <string>&amp;Comment</string>
+       <string>&amp;Remark</string>
       </property>
       <property name="buddy" >
-       <cstring>txtComment</cstring>
+       <cstring>txtRemark</cstring>
       </property>
      </widget>
     </item>
     <item row="4" column="3" >
      <widget class="QLabel" name="labelTimeWorked" >
-      <property name="enabled" >
-       <bool>true</bool>
-      </property>
       <property name="text" >
        <string>&amp;Time worked</string>
       </property>
@@ -145,9 +122,6 @@
      <widget class="QLabel" name="labelSmartQuery" >
       <property name="text" >
        <string>Insert S&amp;mart query here:</string>
-      </property>
-      <property name="textFormat" >
-       <enum>Qt::PlainText</enum>
       </property>
       <property name="buddy" >
        <cstring>comboSmartQuery</cstring>
@@ -166,9 +140,6 @@
     </item>
     <item row="2" column="1" colspan="2" >
      <widget class="QLabel" name="labelProjectPhase" >
-      <property name="enabled" >
-       <bool>true</bool>
-      </property>
       <property name="text" >
        <string>&amp;Project / Phase</string>
       </property>
@@ -183,7 +154,7 @@
  </widget>
  <tabstops>
   <tabstop>comboSmartQuery</tabstop>
-  <tabstop>txtComment</tabstop>
+  <tabstop>txtRemark</tabstop>
   <tabstop>btnSave</tabstop>
   <tabstop>comboProjectPhase</tabstop>
   <tabstop>comboActivity</tabstop>

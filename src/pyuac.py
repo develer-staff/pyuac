@@ -39,7 +39,7 @@ class TimeregWindow(QMainWindow):
         self.rt = QProcess(self)
  
         self.projects = []
-        
+        self._lastquery = ""
         self._connectSlots()
         self._setupGui()
 
@@ -56,13 +56,16 @@ class TimeregWindow(QMainWindow):
                      self._smartUpdateGui)
 
     def _slotSmartQueryChanged(self):
-        if self.rt.state() != self.rt.NotRunning:
-            self.rt.terminate()
-        self.rt.start("./pyuac_cli.py", self.auth+["--"])
         if __debug__:
             qDebug("_slotSmartQueryChanged, %s" % self.rt.state())
-        smartquery = unicode("search %"+self.ui.comboSmartQuery.lineEdit().text()+"\n")
-        self.rt.write(smartquery.encode("UTF-8"))
+        smartquery = unicode("search?smartquery=%"+self.ui.comboSmartQuery.lineEdit().text()+"\n")
+        if self.rt.state() != self.rt.NotRunning:
+            QTimer.singleShot(500, self._slotSmartQueryChanged)
+        else:
+            if smartquery != self._lastquery:
+                self.rt.start("./pyuac_cli.py", self.auth+["--"])
+                self.rt.write(smartquery.encode("UTF-8"))
+                self._lastquery = smartquery
                     
     def _smartUpdateGui(self):
         if __debug__:
@@ -72,7 +75,10 @@ class TimeregWindow(QMainWindow):
             if __debug__:
                 qDebug("No Output!")
             return
-        self.projects = ET.fromstring(msg)
+        try:
+            self.projects = ET.fromstring(msg)
+        except libRemoteTimereg.ExpatError:
+            print msg
         self.ui.comboProjectPhase.clear()
         self.ui.comboActivity.clear()
         projphases = set()
@@ -86,13 +92,13 @@ class TimeregWindow(QMainWindow):
         self.ui.labelActivity.setEnabled(self.ui.comboActivity.count() != 1)
         if len(self.projects) == 1:
             p = self.projects[0]
-            rTime = libRemoteTimereg.timeRound(p.get("input_hours"))
-            d = self.ui.timeTimeWorked.dateTimeFromText(rTime)
+            d = self.ui.timeTimeWorked.dateTimeFromText(p.get("input_hours"))
             zero = self.ui.timeTimeWorked.dateTimeFromText("0:00")
             self.ui.timeTimeWorked.setDateTime(d)
             self.ui.labelTimeWorked.setEnabled(d > zero)
-            self.ui.labelComment.setEnabled(p.get("input_remark") != "")
-            self.ui.txtComment.setPlainText(p.get("input_remark"))
+            self.ui.labelRoundTime.setText(p.get("hmtime"))
+            self.ui.labelRemark.setEnabled(p.get("input_remark") != "")
+            self.ui.txtRemark.setPlainText(p.get("input_remark"))
 
 if __name__ == "__main__":
     app = TimeregApplication(sys.argv)

@@ -36,7 +36,8 @@ def checkParams(params):
 def serve(params, oneshot=False):
     actions = {"q": "Quit",
                "search": "Search the project",
-               "whoami": "Returns login info"               
+               "whoami": "Returns login info",
+               "timereg": "Register worked time"
             }
     try:
         rt = libRemoteTimereg.RemoteTimereg(*params)

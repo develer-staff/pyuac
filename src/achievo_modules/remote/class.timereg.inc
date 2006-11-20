@@ -61,13 +61,12 @@ class timereg extends atkNode
 
 		if ($error)
         {
-            echo make_xml("Err", $error);
+            echo make_xml("Err", array(array("message" => print_r($record, True))));
 		}
 		else
 		{
 			$hoursnode->addDb($record, true, "add");
 			echo make_xml("OK", "add");
-
 		}
 		exit;
 	}

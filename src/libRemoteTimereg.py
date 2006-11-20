@@ -8,7 +8,8 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import urllib, urllib2, re, time, datetime
+import urllib, urllib2, re, time, datetime, sys
+from xml.parsers.expat import ExpatError
 try:
     from xml.etree import ElementTree as ET
 except ImportError:
@@ -16,6 +17,8 @@ except ImportError:
         from elementtree import ElementTree as ET
     except ImportError:
         raise ImportError, "ElementTree (or py2.5) needed"
+
+err = sys.stderr.write
 
 def timeRound(inTime, stepTime=15):
     """
@@ -37,19 +40,27 @@ def timeRound(inTime, stepTime=15):
     return "%02d:%02d" % (res/3600, (res%3600)/60)
 
 class RemoteTimereg:
+    """
+    RemoteTimereg si interfaccia (in modo sincrono) con il modulo Achievo "remote".
+    Sia server che client sono fondamentalmente stateles, l'unico stato è
+    l'aver fatto login, condizionw obbligatoria per compiere qualsiasi funzione.
+    I metodi accettano parametri standard e restituiscono un oggetto ElementTree.
+    """
     def __init__(self, achievouri, user, password):
         """
         Classe di interfaccia per il modulo Achievo "remote"
         """
         self.user = user
+        self.userid = 0
         self.password = password
         self._achievouri = achievouri
         self._loginurl = urllib.basejoin(self._achievouri, "index.php")
         self._dispatchurl = urllib.basejoin(self._achievouri, "dispatch.php")
-        self._login()
 
         self._smartquery = self.parseSmartQuery("")
         self._projects = []
+        
+        self.whoami()
         #self.search("%")
         
     def _login(self, user=None, password=None):
@@ -64,7 +75,7 @@ class RemoteTimereg:
         self._setupAuth()
         #refresh Achievo session
         urllib2.urlopen(self._loginurl, auth).read()
-        return self.urlDispatch("whoami")
+        return self._urlDispatch("whoami")
     
     def _setupAuth(self):
         """
@@ -80,7 +91,7 @@ class RemoteTimereg:
         #FIXME: e se fosse multithread con due auth diverse?
         urllib2.install_opener(opener)
         
-    def urlDispatch(self, node, action="search", **kwargs):
+    def _urlDispatch(self, node, action="search", **kwargs):
         """
         Invoca il dispatch.php di Achievo
         """
@@ -95,18 +106,20 @@ class RemoteTimereg:
         qstring = urllib.urlencode(params.items() + kwargs.items(), doseq=True)
         if __debug__:
             print "########### Dispatch:", qstring
-        return urllib2.urlopen(self._dispatchurl, qstring).read()
-        
+        page = urllib2.urlopen(self._dispatchurl, qstring).read()
+        if __debug__:
+            err(page)
+        return page
+
     def whoami(self):
         """
         Restituisce il nome utente della sessione attiva
         """
         page = self._login()
         elogin = ET.fromstring(page)
-        if elogin.find("record").get("name") == self.user:
-            return elogin
-        else:
-            return False
+        if self.userid == 0:
+            self.userid = elogin[0].get("id")
+        return elogin
 
     def parseSmartQuery(self, smartquery):
         getsq = re.compile("""
@@ -121,12 +134,14 @@ class RemoteTimereg:
     def search(self, smartquery):
         """
         Ottiene la lista dei progetti/fasi/attività coerenti
-        con la smart-string inviata
+        con la smart-string inviata,
+        restituisce un AchievoTimereg
         """
         #Se vuota converte in "trova tutto"
         # % permette la ricerca anche all'interno del nome del progetto
         #FIXME: nel sever, SQL INJECT?
         if __debug__:
+            #simula la latenza di internet
             import time
             time.sleep(1)
         _smartquery = self.parseSmartQuery(smartquery)
@@ -138,62 +153,72 @@ class RemoteTimereg:
         # Fa la query al server solo se la parte
         # "project", "phase", "activity" è cambiata
         if _ppa != _old_ppa:
-            page = self.urlDispatch("query", input=_ppa)
+            page = self._urlDispatch("query", input=_ppa)
             self._projects = ET.fromstring(page)
-        for project in self._projects:
-            project.set("input_hours", _smartquery["input_hours"])
-            project.set("input_remark", _smartquery["input_remark"])
-        if __debug__:
-            print ET.tostring(self._projects)
+        if len(self._projects) == 1:
+            self._prepareTimereg()
         return self._projects
+
+    def _prepareTimereg(self):
+        """
+        Se ho un solo progetto, posso riempire tutti i campi necessari alla
+        registrazione delle ore lavorate.
+        """
+        project = self._projects[0]
+        project.set("input_hours", self._smartquery["input_hours"])
+        project.set("input_remark", self._smartquery["input_remark"])
+        project.set("hmtime",  timeRound(self._smartquery["input_hours"] or "0:00"))
     
-    def timeReport(self, date):
+    def timereport(self, date):
         """
         Ottiene la lista delle ore registrate nei giorni
         passati nel parametro date
         """
-        page = self.urlDispatch("timereport", date=date)
-        etimeregs = ET.fromstring(page)
-        if __debug__:
-            print ET.tostring(etimeregs)
-        return etimeregs
+        page = self._urlDispatch("timereport", date=date)
+        etimerep = ET.fromstring(page)
+        return etimerep
 
-    def timeReg(self, aTimereg):
-        pass
-    
+    def timereg(self, prjid, actid, phaid, hmtime, date, remark):
+        args = {"projectid": prjid,
+                "activityid": actid,
+                "phaseid": phaid,
+                "time[hours]": hmtime.split(":")[0],
+                "time[minutes]": hmtime.split(":")[1],
+                "activitydate": date,
+                "entrydate": time.strftime("%Y%m%d", time.gmtime()),
+                "remark": remark,
+                "userid": "person.id=%s" % self.userid}
+        page = self._urlDispatch("timereg", action="save", **args)
+        etimereg = ET.fromstring(page)
+        return etimereg
 
 example_save = """
 curl -v -b cookie -c cookie \
--d atknodetype=timereg.hours \
--d atkaction=save \
--d activityid=0 \
--d projectid=1 \
--d phaseid=3 \
--d time[hours]=4 \
--d time[minutes]=0 \
--d activitydate=20050515 \
--d entrydate=20050515 \
--d remark=remarkfoo \
--d userid=person.id=0 \
-http://localhost/dispatch.php
-"""
+        -d auth_user=matteo -d auth_pw=matteo99 \
+        http://www.develer.com/~naufraghi/achievo/index.php
 
-class AchievoTimereg:
-    def __init__(self):
-        self.activityid = None
-        self.projectid = None
-        self.phaseid = None
-        self.time_hours = None
-        self.time_minutes = None
-        self.activitydate = None
-        self.entrydate = None
-        self.remark = None
-        self.userid = None
+curl -v -b cookie -c cookie \
+-d atknodetype=remote.timereg \
+-d atkaction=save \
+-d activityid=2 \
+-d projectid=6 \
+-d phaseid=6 \
+-d time[hours]=5 \
+-d time[minutes]=15 \
+-d activitydate=20061117 \
+-d entrydate=20061117 \
+-d remark=remarkfoo%20popo%20popop%20opopop \
+-d userid=person.id=1 \
+http://www.develer.com/~naufraghi/achievo/dispatch.php
+
+curl -v -b cookie -c cookie \
+        http://www.develer.com/~naufraghi/achievo/index.php?atklogout=1
+"""
 
 if __name__ == "__main__":
     rl = RemoteTimereg("http://www.develer.com/~naufraghi/achievo/",
                        "matteo", "matteo99")
-    print rl.whoami() and "Login OK" or "Login Error!"
+    rl.whoami()
     rl.search("pr")
     rl.search("pr me")
     rl.search("pr me an")

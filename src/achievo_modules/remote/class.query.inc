@@ -112,9 +112,9 @@ class query extends atkNode
 					project.name AS project_name,
 					phase.name AS phase_name,
 					activity.name AS activity_name, 
-					project.id AS project_id, 
-					phase.id AS phase_id, 
-					activity.id AS activity_id 
+					project.id AS projectid, 
+					phase.id AS phaseid, 
+					activity.id AS activityid 
 				FROM
 					project
 					JOIN phase ON project.id = phase.projectid 

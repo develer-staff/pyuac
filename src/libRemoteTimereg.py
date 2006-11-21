@@ -167,6 +167,7 @@ class RemoteTimereg:
         project = self._projects[0]
         project.set("input_hours", self._smartquery["input_hours"])
         project.set("input_remark", self._smartquery["input_remark"])
+        project.set("remark", self._smartquery["input_remark"])
         project.set("hmtime",  timeRound(self._smartquery["input_hours"] or "0:00"))
     
     def timereport(self, date):
@@ -178,13 +179,13 @@ class RemoteTimereg:
         etimerep = ET.fromstring(page)
         return etimerep
 
-    def timereg(self, prjid, actid, phaid, hmtime, date, remark):
-        args = {"projectid": prjid,
-                "activityid": actid,
-                "phaseid": phaid,
+    def timereg(self, projectid, activityid, phaseid, hmtime, activitydate, remark):
+        args = {"projectid": projectid,
+                "activityid": activityid,
+                "phaseid": phaseid,
                 "time[hours]": hmtime.split(":")[0],
                 "time[minutes]": hmtime.split(":")[1],
-                "activitydate": date,
+                "activitydate": activitydate,
                 "entrydate": time.strftime("%Y%m%d", time.gmtime()),
                 "remark": remark,
                 "userid": "person.id=%s" % self.userid}

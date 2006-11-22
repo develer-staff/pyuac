@@ -143,7 +143,7 @@ class query extends atkNode
 			$results[$i] = array_merge($results[$i], $guesses[$k]);
 		}
 		
-		echo make_xml("OK", $results);
+		echo make_xml("query", "OK", $results);
 
 		exit;
 	}

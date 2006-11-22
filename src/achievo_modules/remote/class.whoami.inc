@@ -13,7 +13,7 @@ class whoami extends atkNode
 	{
 		atkdebug("Action search");
 		$user = getUser();
-		echo make_xml("OK", array(array('id'=>$user['id'], 'name'=>$user['name'])));
+		echo make_xml("whoami", "OK", array(array('id'=>$user['id'], 'name'=>$user['name'])));
 		exit;
 	}
 }

@@ -12,10 +12,10 @@ function is_valid_date($date)
 	return (ereg("([0-9]{4}).([0-9]{1,2}).([0-9]{1,2})", $date));
 }
 
-function make_xml($msg, $results, $bodykey="")
+function make_xml($node, $msg, $results, $bodykey="")
 {
 	$res  = '<?xml version="1.0" encoding="ISO-8859-1"?>'."\n";
-	$res .= '<response msg="'.htmlspecialchars($msg).'" len="'.count($results).'">'."\n";
+	$res .= '<response node="'.htmlspecialchars($node).'" msg="'.htmlspecialchars($msg).'" len="'.count($results).'">'."\n";
 	foreach ($results as $r)
 	{
 		$res .= "<record";
@@ -61,12 +61,12 @@ class timereg extends atkNode
 
 		if ($error)
         {
-            echo make_xml("Err", array(array("message" => print_r($record, True))));
+            echo make_xml("timereg", "Err", array(array("Err"=>print_r($record, True))));
 		}
 		else
 		{
 			$hoursnode->addDb($record, true, "add");
-			echo make_xml("OK", "add");
+            echo make_xml("timereg", "OK", array(array("action"=>"save")));
 		}
 		exit;
 	}

@@ -30,7 +30,7 @@ class timereport extends atkNode
 		";
 		$results = $db->getRows($sql);
 
-		echo make_xml("OK", $results);
+		echo make_xml("timereport", "OK", $results);
 		exit;
 	}
 }

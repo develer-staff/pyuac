@@ -7,9 +7,14 @@
 # $Id:$
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
+#
+##############################################################################
 
-import urllib, urllib2, re, time, datetime, sys
+
+import urllib, urllib2, re, time, datetime, sys, logging
 from xml.parsers.expat import ExpatError
+from htmlentitydefs import entitydefs
+
 try:
     from xml.etree import ElementTree as ET
 except ImportError:
@@ -18,7 +23,42 @@ except ImportError:
     except ImportError:
         raise ImportError, "ElementTree (or py2.5) needed"
 
-err = sys.stderr.write
+import xml.parsers.expat
+
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(name)s %(asctime)s %(levelname)s %(message)s',
+                    filename='libRemoteTimereg.log',
+                    filemode='w+')
+
+log = logging.getLogger("pyuac.lib")
+log.addFilter(logging.Filter("pyuac"))
+
+def unescape(s):
+    want_unicode = False
+    if isinstance(s, unicode):
+        s = s.encode("utf-8")
+        want_unicode = True
+
+    # the rest of this assumes that `s` is UTF-8
+    list = []
+
+    # create and initialize a parser object
+    p = xml.parsers.expat.ParserCreate("utf-8")
+    p.buffer_text = True
+    p.returns_unicode = want_unicode
+    p.CharacterDataHandler = list.append
+
+    # parse the data wrapped in a dummy element
+    # (needed so the "document" is well-formed)
+    p.Parse("<e>", 0)
+    p.Parse(s, 0)
+    p.Parse("</e>", 1)
+
+    # join the extracted strings and return
+    es = ""
+    if want_unicode:
+        es = u""
+    return es.join(list)
 
 def timeRound(inTime, stepTime=15):
     """
@@ -39,11 +79,21 @@ def timeRound(inTime, stepTime=15):
     res = int(round(pre.seconds/float(step.seconds))*step.seconds)
     return "%02d:%02d" % (res/3600, (res%3600)/60)
 
+def eparse(message):
+    message = message.encode("utf-8")
+    #p = xml.parsers.expat.ParserCreate("utf-8")
+    #message = unicode(unescape(message))
+    emessage = ET.fromstring(message)
+    return emessage
+
+#def edump(emessage):
+#    return unescape(ET.tostring(emessage))
+
 class RemoteTimereg:
     """
     RemoteTimereg si interfaccia (in modo sincrono) con il modulo Achievo "remote".
     Sia server che client sono fondamentalmente stateles, l'unico stato è
-    l'aver fatto login, condizionw obbligatoria per compiere qualsiasi funzione.
+    l'aver fatto login, condizione obbligatoria per compiere qualsiasi funzione.
     I metodi accettano parametri standard e restituiscono un oggetto ElementTree.
     """
     def __init__(self, achievouri, user, password):
@@ -90,7 +140,7 @@ class RemoteTimereg:
         #installa come opener di default per urllib2
         #FIXME: e se fosse multithread con due auth diverse?
         urllib2.install_opener(opener)
-        
+    
     def _urlDispatch(self, node, action="search", **kwargs):
         """
         Invoca il dispatch.php di Achievo
@@ -105,10 +155,9 @@ class RemoteTimereg:
                 kwargs[key+"[]"] = val
         qstring = urllib.urlencode(params.items() + kwargs.items(), doseq=True)
         if __debug__:
-            print "########### Dispatch:", qstring
-        page = urllib2.urlopen(self._dispatchurl, qstring).read()
-        if __debug__:
-            err(page)
+            log.debug("########### Dispatch: %s" % qstring)
+        page = urllib2.urlopen(self._dispatchurl, qstring).read().decode("utf-8")
+        log.debug("_urlDispatch " + page)
         return page
 
     def whoami(self):
@@ -116,7 +165,7 @@ class RemoteTimereg:
         Restituisce il nome utente della sessione attiva
         """
         page = self._login()
-        elogin = ET.fromstring(page)
+        elogin = self.parse(page)
         if self.userid == 0:
             self.userid = elogin[0].get("id")
         return elogin
@@ -129,7 +178,10 @@ class RemoteTimereg:
             (?P<input_hours>\d{1,2}:\d{1,2}|)\ *
             (?P<input_remark>.*|)
             """, re.VERBOSE)
-        return getsq.search(smartquery).groupdict()
+
+        res = getsq.search(smartquery).groupdict()
+        log.debug("----> %s" % res)
+        return res
          
     def search(self, smartquery):
         """
@@ -150,11 +202,13 @@ class RemoteTimereg:
         _old_ppa = " ".join(map(self._smartquery.get,
                             ["input_project", "input_phase", "input_activity"]))
         self._smartquery = _smartquery
+        log.debug("ASD1 :" + self._smartquery.get("input_remark"))
         # Fa la query al server solo se la parte
         # "project", "phase", "activity" è cambiata
         if _ppa != _old_ppa:
             page = self._urlDispatch("query", input=_ppa)
-            self._projects = ET.fromstring(page)
+            self._projects = self.parse(page)
+            log.debug("lib - - - - Search: " + ET.tostring(self._projects))
         if len(self._projects) == 1:
             self._prepareTimereg()
         return self._projects
@@ -165,10 +219,15 @@ class RemoteTimereg:
         registrazione delle ore lavorate.
         """
         project = self._projects[0]
+        #TODO: non ci sono già in project?
         project.set("input_hours", self._smartquery["input_hours"])
-        project.set("input_remark", self._smartquery["input_remark"])
-        project.set("remark", self._smartquery["input_remark"])
+        project.set("input_remark", self._smartquery["input_remark"].decode("utf-8"))
+        log.debug("ASD2 :" + self._smartquery.get("input_remark"))
+        # il remark potrebbe essere filtrato in futuro, ad esempio permettendo
+        # di creare todo o appuntamenenti
+        project.set("remark", self._smartquery["input_remark"].decode("utf-8"))
         project.set("hmtime",  timeRound(self._smartquery["input_hours"] or "0:00"))
+        log.debug("ASD3 :" + self._projects[0].get("remark"))
     
     def timereport(self, date):
         """
@@ -176,8 +235,7 @@ class RemoteTimereg:
         passati nel parametro date
         """
         page = self._urlDispatch("timereport", date=date)
-        etimerep = ET.fromstring(page)
-        return etimerep
+        return self.parse(page)
 
     def timereg(self, projectid, activityid, phaseid, hmtime, activitydate, remark):
         args = {"projectid": projectid,
@@ -190,8 +248,14 @@ class RemoteTimereg:
                 "remark": remark,
                 "userid": "person.id=%s" % self.userid}
         page = self._urlDispatch("timereg", action="save", **args)
-        etimereg = ET.fromstring(page)
-        return etimereg
+        return self.parse(page)
+
+    def parse(self, message):
+        try:
+            return eparse(message)
+        except:
+            log.error(message)
+            raise
 
 example_save = """
 curl -v -b cookie -c cookie \

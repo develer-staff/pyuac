@@ -1,4 +1,4 @@
-#!/usr/bin/python -O
+#!/usr/bin/python
 #-*- coding: utf-8 -*-
 #
 # Copyright 2006 Develer S.r.l. (http://www.develer.com/)
@@ -8,19 +8,21 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import sys, cgi
+import sys, cgi, logging
 
 import libRemoteTimereg
 
 ET = libRemoteTimereg.ET
 
+log = logging.getLogger("pyuac.cli")
+log.addFilter(logging.Filter("pyuac"))
+
+out = sys.stdout.write
+
 help = """Uso:
     http://domain.com/achievo/ user password [--]
     [--] attiva la modalità a comando singolo
 """
-
-out = sys.stdout.write
-err = sys.stderr.write
 
 def checkParams(params):
     if len(sys.argv[1:]) < 3:
@@ -42,13 +44,13 @@ def serve(params, oneshot=False):
     try:
         rt = libRemoteTimereg.RemoteTimereg(*params)
     except libRemoteTimereg.urllib2.HTTPError:
-        err("Connection Error!!\n")
+        log.error("Connection Error!!\n")
         sys.exit(1)
     while True:
         #Gira aspettando righe di comando della forma:
         # action?url_encoded=params&other=params
         prompt = (not oneshot) and "remote: " or ""
-        msg = raw_input(prompt).strip().decode("UTF-8")
+        msg = raw_input(prompt).strip()
         cmdline = msg.split("?", 1)
         action = cmdline[0]
         params = {}
@@ -56,10 +58,12 @@ def serve(params, oneshot=False):
             for k, v in cgi.parse_qsl(cmdline[1]):
                 if len(v) == 1:
                     #parse_qsl restituisce sempre array (anche singole) come valore
-                    params[str(k)] = v[0]
+                    params[str(k)] = v[0]#.decode("UTF-8")
                 else:
                     #devo comunque convertire in stringa il nome (orig. unicode)
-                    params[str(k)] = v
+                    params[str(k)] = v#[i.decode("UTF-8") for i in v]
+        if __debug__:
+            log.debug("<!--params: \n%s\n-->\n" % str(params))
         if action not in actions:
             if not oneshot:
                 print "Usare una delle azioni definite:"
@@ -77,9 +81,11 @@ def serve(params, oneshot=False):
                     res = func(**params)
                 else:
                     res = func()
-                out(ET.tostring(res).encode("UTF-8")+"\n")
+                if __debug__:
+                    log.debug("ASD4 :" + ET.tostring(res, encoding="utf-8"))
+                out(ET.tostring(res, encoding="utf-8")+"\n")
             except:
-                err("Response Error! %s(%s)\n" % (action, params))
+                log.error("Response Error! %s(%s)\n" % (action, params))
                 if __debug__:
                     raise
                 sys.exit(1)

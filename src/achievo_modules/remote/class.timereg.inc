@@ -12,22 +12,28 @@ function is_valid_date($date)
 	return (ereg("([0-9]{4}).([0-9]{1,2}).([0-9]{1,2})", $date));
 }
 
+function xml_encode($var)
+{
+    return htmlspecialchars($var, ENT_COMPAT, "UTF-8");
+    //return str_replace(array("&gt;", "&lt;", "&quot;", "&amp;"), array(">", "<", "\"", "&"), $var);
+}
+
 function make_xml($node, $msg, $results, $bodykey="")
 {
-	$res  = '<?xml version="1.0" encoding="ISO-8859-1"?>'."\n";
-	$res .= '<response node="'.htmlspecialchars($node).'" msg="'.htmlspecialchars($msg).'" len="'.count($results).'">'."\n";
+	$res  = '<?xml version="1.0" encoding="UTF-8"?>'."\n";
+	$res .= '<response node="'.xml_encode($node).'" msg="'.xml_encode($msg).'" len="'.count($results).'">'."\n";
 	foreach ($results as $r)
 	{
 		$res .= "<record";
 		foreach ($r as $key=>$value)
 		{
 			if ($key != $bodykey)
-				$res .= ' '.htmlspecialchars($key).'="'.htmlspecialchars($value).'"';
+				$res .= ' '.xml_encode($key).'="'.xml_encode($value).'"';
 		}
 		if (array_key_exists($bodykey, $r))
 		{
 			$res .= ">\n";
-			$res .= htmlspecialchars($r[$bodykey])."\n";
+			$res .= xml_encode($r[$bodykey])."\n";
 			$res .= "</record>\n";
 		}
 		else

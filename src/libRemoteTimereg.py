@@ -8,10 +8,8 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 #
-##############################################################################
 
-
-import urllib, urllib2, re, time, datetime, sys, logging
+import urllib, urllib2, re, time, datetime, sys, logging, logging.config, copy
 from xml.parsers.expat import ExpatError
 from htmlentitydefs import entitydefs
 
@@ -23,42 +21,11 @@ except ImportError:
     except ImportError:
         raise ImportError, "ElementTree (or py2.5) needed"
 
-import xml.parsers.expat
-
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(name)s %(asctime)s %(levelname)s %(message)s',
-                    filename='libRemoteTimereg.log',
-                    filemode='w+')
-
+logging.config.fileConfig("logger.ini")
 log = logging.getLogger("pyuac.lib")
-log.addFilter(logging.Filter("pyuac"))
-
-def unescape(s):
-    want_unicode = False
-    if isinstance(s, unicode):
-        s = s.encode("utf-8")
-        want_unicode = True
-
-    # the rest of this assumes that `s` is UTF-8
-    list = []
-
-    # create and initialize a parser object
-    p = xml.parsers.expat.ParserCreate("utf-8")
-    p.buffer_text = True
-    p.returns_unicode = want_unicode
-    p.CharacterDataHandler = list.append
-
-    # parse the data wrapped in a dummy element
-    # (needed so the "document" is well-formed)
-    p.Parse("<e>", 0)
-    p.Parse(s, 0)
-    p.Parse("</e>", 1)
-
-    # join the extracted strings and return
-    es = ""
-    if want_unicode:
-        es = u""
-    return es.join(list)
+#TODO: risolvere il problema dei log contemporanei del processo
+#      principale e di quello in QProcess. Entrambi caricano libRemoteTimereg
+#      e quindi entrambi caricano il logger "pyuac.lib"
 
 def timeRound(inTime, stepTime=15):
     """
@@ -79,15 +46,11 @@ def timeRound(inTime, stepTime=15):
     res = int(round(pre.seconds/float(step.seconds))*step.seconds)
     return "%02d:%02d" % (res/3600, (res%3600)/60)
 
-def eparse(message):
-    message = message.encode("utf-8")
-    #p = xml.parsers.expat.ParserCreate("utf-8")
-    #message = unicode(unescape(message))
-    emessage = ET.fromstring(message)
-    return emessage
+def msgParse(msg, encoding="utf-8"):
+    return ET.fromstring(msg.encode(encoding))
 
-#def edump(emessage):
-#    return unescape(ET.tostring(emessage))
+def emsgDump(emsg, encoding="utf-8"):
+    return ET.tostring(emsg, encoding)
 
 class RemoteTimereg:
     """
@@ -108,7 +71,7 @@ class RemoteTimereg:
         self._dispatchurl = urllib.basejoin(self._achievouri, "dispatch.php")
 
         self._smartquery = self.parseSmartQuery("")
-        self._projects = []
+        self._projects = msgParse("<response />")
         
         self.whoami()
         #self.search("%")
@@ -178,12 +141,11 @@ class RemoteTimereg:
             (?P<input_hours>\d{1,2}:\d{1,2}|)\ *
             (?P<input_remark>.*|)
             """, re.VERBOSE)
-
         res = getsq.search(smartquery).groupdict()
-        log.debug("----> %s" % res)
+        log.debug("parseSmartQuery: %s" % res)
         return res
          
-    def search(self, smartquery):
+    def search(self, smartquery="%"):
         """
         Ottiene la lista dei progetti/fasi/attività coerenti
         con la smart-string inviata,
@@ -202,13 +164,12 @@ class RemoteTimereg:
         _old_ppa = " ".join(map(self._smartquery.get,
                             ["input_project", "input_phase", "input_activity"]))
         self._smartquery = _smartquery
-        log.debug("ASD1 :" + self._smartquery.get("input_remark"))
         # Fa la query al server solo se la parte
         # "project", "phase", "activity" è cambiata
         if _ppa != _old_ppa:
             page = self._urlDispatch("query", input=_ppa)
             self._projects = self.parse(page)
-            log.debug("lib - - - - Search: " + ET.tostring(self._projects))
+        log.debug("Search results: %s" % self._projects)
         if len(self._projects) == 1:
             self._prepareTimereg()
         return self._projects
@@ -222,12 +183,11 @@ class RemoteTimereg:
         #TODO: non ci sono già in project?
         project.set("input_hours", self._smartquery["input_hours"])
         project.set("input_remark", self._smartquery["input_remark"].decode("utf-8"))
-        log.debug("ASD2 :" + self._smartquery.get("input_remark"))
         # il remark potrebbe essere filtrato in futuro, ad esempio permettendo
         # di creare todo o appuntamenenti
         project.set("remark", self._smartquery["input_remark"].decode("utf-8"))
         project.set("hmtime",  timeRound(self._smartquery["input_hours"] or "0:00"))
-        log.debug("ASD3 :" + self._projects[0].get("remark"))
+        log.debug("_prepareTimereg: remark" + project.get("remark"))
     
     def timereport(self, date):
         """
@@ -252,7 +212,7 @@ class RemoteTimereg:
 
     def parse(self, message):
         try:
-            return eparse(message)
+            return msgParse(message)
         except:
             log.error(message)
             raise

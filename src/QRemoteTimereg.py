@@ -8,15 +8,17 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import sys, urllib
+import sys, urllib, logging
 from PyQt4 import uic
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import libRemoteTimereg
+log = logging.getLogger("pyuac.gui")
 
 def debug(msg):
-    qDebug("#-#-#-#-# "+msg.replace(r"%%", r"%").replace(r"%", r"%%"))
+    if __debug__:
+        qDebug("#-#-#-#-# "+msg.replace(r"%%", r"%").replace(r"%", r"%%"))
 
 class RemoteTimereg(QObject):
     """
@@ -37,22 +39,9 @@ class RemoteTimereg(QObject):
         self.auth = auth
         self._query = ""
         self._timereg = ""
-        self._noops = 0
         self._oops = 0
         self.connect(self.timer, SIGNAL("timeout()"), self._sync)
         self.connect(self.process, SIGNAL("finished(int)"), self._ready)
-        self._checkTimer()
-
-    def _checkTimer(self):
-        if self.timer.isActive() and self._noops > 10:
-            if __debug__:
-                debug("Timer Stop")
-            self.timer.stop()
-            self._noops = 0
-        elif not self.timer.isActive():
-            if __debug__:
-                debug("Timer Start")
-            self.timer.start(100)
 
     def _encode(self, action, **kwargs):
         """
@@ -64,9 +53,7 @@ class RemoteTimereg(QObject):
         originale
         """
         for k, v in kwargs.items():
-            kwargs[k] = unicode(v).strip().encode("UTF-8") #se v è un QString
-        if __debug__:
-            debug("_encode "+str(kwargs))
+            kwargs[k] = unicode(v).strip().encode("utf-8") #se v è un QString
         qstring = urllib.urlencode(kwargs)
         debug("**"+qstring)
         return action + "?" + qstring
@@ -77,30 +64,26 @@ class RemoteTimereg(QObject):
         Se execute viene rinviata NN volte, termina il processo in esecuzione
         """
         if self.process.state() == self.process.NotRunning:
-            if __debug__:
-                debug("_execute(%s) %s" % (self.process.state(), qstring))
+            debug("_execute(%s) %s" % (self.process.state(), qstring))
             self.process.start("./pyuac_cli.py", self.auth+["--"])
             self.process.write(qstring+"\n")
             self._oops = 0
             return True
         else:
             self._oops += 1
-            if self._oops > 50:
-                if __debug__:
-                    debug("terminate")
+            if self._oops > 20:
+                debug("terminate")
                 self.process.terminate()
                 self._oops = 0
             return False
 
     def search(self, query):
-        if __debug__:
-            debug("Search")
+        debug("Search")
         self._query = self._encode("search", smartquery=query)
         self._sync()
 
     def timereg(self, **kwargs):
-        if __debug__:
-            debug("Timereg")
+        debug("Timereg")
         self._timereg = self._encode("timereg", **kwargs)
         self._sync()
 
@@ -109,35 +92,26 @@ class RemoteTimereg(QObject):
         Provvede ad eseguire le query in attesa
         ed emette i segnali adatti alla query avviata
         """
-        if __debug__:
-            debug("Sync %s" % self._noops)
+        debug("Sync")
         if self._query != "" and self._execute(self._query):
             self._query = ""
             self.emit(SIGNAL("searchStarted()"))
-            self._noops = 0
         elif self._timereg != "" and self._execute(self._timereg):
             self._timereg = ""
             self.emit(SIGNAL("timeregStarted()"))
-            self._noops = 0
         else:
-            self._noops += 1
-        self._checkTimer()
+            pass
 
     def _ready(self):
         """
         Provvede a emettere i segnali adatti alla risposta ottenuta
         """
-        if __debug__:
-            debug("Ready")
+        debug("Ready")
         resp = str(self.process.readAllStandardOutput()).decode("utf-8")
-        if __debug__:
-            debug("Err: "+str(self.process.readAllStandardError()))
+        debug("Err: "+str(self.process.readAllStandardError()))
         if resp == "":
             return
-        self.eresp = libRemoteTimereg.eparse(resp)
-        #if __debug__:
-            #debug("ready "+str(resp))
-            #debug("ready ET"+libRemoteTimereg.ET.tostring(eresp))
+        self.eresp = libRemoteTimereg.msgParse(resp)
         node = self.eresp.get("node")
         msg = self.eresp.get("msg")
         if node == "query":
@@ -146,6 +120,6 @@ class RemoteTimereg(QObject):
             self.emit(SIGNAL("timeregDone()"))
         else:
             self.emit(SIGNAL("timeregError()"))
-        self._checkTimer()
+        self._sync()
 
 

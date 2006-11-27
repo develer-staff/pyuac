@@ -9,13 +9,11 @@
 # Author: Matteo Bertini <naufraghi@develer.com>
 
 import sys, cgi, logging
-
 import libRemoteTimereg
 
 ET = libRemoteTimereg.ET
 
 log = logging.getLogger("pyuac.cli")
-log.addFilter(logging.Filter("pyuac"))
 
 out = sys.stdout.write
 
@@ -63,7 +61,7 @@ def serve(params, oneshot=False):
                     #devo comunque convertire in stringa il nome (orig. unicode)
                     params[str(k)] = v#[i.decode("UTF-8") for i in v]
         if __debug__:
-            log.debug("<!--params: \n%s\n-->\n" % str(params))
+            log.debug("<!--cli params: \n%s\n-->\n" % str(params))
         if action not in actions:
             if not oneshot:
                 print "Usare una delle azioni definite:"
@@ -82,8 +80,8 @@ def serve(params, oneshot=False):
                 else:
                     res = func()
                 if __debug__:
-                    log.debug("ASD4 :" + ET.tostring(res, encoding="utf-8"))
-                out(ET.tostring(res, encoding="utf-8")+"\n")
+                    log.debug("cli.%s(%s) results: %s" % (action, params, libRemoteTimereg.emsgDump(res)))
+                out(libRemoteTimereg.emsgDump(res)+"\n")
             except:
                 log.error("Response Error! %s(%s)\n" % (action, params))
                 if __debug__:

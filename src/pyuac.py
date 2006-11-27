@@ -25,36 +25,9 @@ from QRemoteTimereg import RemoteTimereg
 
 ZEROtime = QDateTime.fromString("00:00", "HH:mm")
 
-import xml.parsers.expat
-def unescape(s):
-    want_unicode = False
-    if isinstance(s, unicode):
-        s = s.encode("utf-8")
-        want_unicode = True
-
-    # the rest of this assumes that `s` is UTF-8
-    list = []
-
-    # create and initialize a parser object
-    p = xml.parsers.expat.ParserCreate("utf-8")
-    p.buffer_text = True
-    p.returns_unicode = want_unicode
-    p.CharacterDataHandler = list.append
-
-    # parse the data wrapped in a dummy element
-    # (needed so the "document" is well-formed)
-    p.Parse("<e>", 0)
-    p.Parse(s, 0)
-    p.Parse("</e>", 1)
-
-    # join the extracted strings and return
-    es = ""
-    if want_unicode:
-        es = u""
-    return es.join(list)
-
 def debug(msg):
-    qDebug("#-#-#-#-# "+msg.replace(r"%%", r"%").replace(r"%", r"%%"))
+    if __debug__:
+        qDebug("#-#-#-#-# "+msg.replace(r"%%", r"%").replace(r"%", r"%%"))
 
 class TimeregApplication(QApplication):
     def __init__(self, args):
@@ -86,6 +59,7 @@ class TimeregWindow(QMainWindow):
         [i.setEnabled(False) for i in (self.ui.txtRemark,
                                        self.ui.timeTimeWorked,
                                        self.ui.btnSave)]
+        self.ui.setWindowTitle("Time Registration - %s" % self.auth[1])
 
     def _connectSlots(self):
         self.connect(self.ui.comboSmartQuery,
@@ -114,14 +88,8 @@ class TimeregWindow(QMainWindow):
         smartquery = unicode(r"%"+self.ui.comboSmartQuery.lineEdit().text())
         self.rt.search(smartquery)
                      
-    def _smartUpdateGui(self):
-        if __debug__:
-            debug("_smartUpdateGui")
-        self.ui.setWindowTitle("Time Registration - %s" % self.auth[1])
-
     def _projectsChanged(self, projects):
-        if __debug__:
-            debug("_projectsChanged %s" % len(projects))
+        debug("_projectsChanged %s" % len(projects))
         self.projects = projects
 
         # ---- Update comboboxes ----
@@ -143,7 +111,7 @@ class TimeregWindow(QMainWindow):
             worked_time = self.ui.timeTimeWorked.dateTimeFromText(p.get("input_hours"))
             self.ui.timeTimeWorked.setDateTime(worked_time)
             self.ui.labelRoundTime.setText(p.get("hmtime"))
-            self.ui.txtRemark.setPlainText(unescape(p.get("remark")))
+            self.ui.txtRemark.setPlainText(p.get("remark"))
             self.ui.labelTimeWorked.setEnabled(worked_time > ZEROtime)
             self.ui.labelRemark.setEnabled(p.get("remark") != "")
             self.ui.btnSave.setEnabled(worked_time > ZEROtime and p.get("remark") != "")
@@ -154,32 +122,23 @@ class TimeregWindow(QMainWindow):
             self.ui.btnSave.setEnabled(False)
  
     def _timeregStarted(self):
-        if __debug__:
-            debug("_timeregStarted")
+        debug("_timeregStarted")
     
     def _timeregDone(self):
-        if __debug__:
-            debug("_timeregDone")
+        debug("_timeregDone")
+        self._setupGui()
 
     def _timeregError(self):
-        if __debug__:
-            debug("_timeregError")
+        debug("_timeregError")
 
     def _searchStarted(self):
-        if __debug__:
-            debug("_searchStarted")
+        debug("_searchStarted")
      
     def timereg(self):
-        #if __debug__:
-        #    debug("timereg" % (ET.tostring(self.projects[0])))
-        debug("before project")
         p = self.projects[0]
-        debug("after project")
         params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime remark".split()])
-        debug("timereg2")
         params["activitydate"] = self.ui.dateTimeregDate.date().toString("yyyyMMdd")
-        if __debug__:
-            debug(str(params))
+        debug(str(params))
         self.rt.timereg(**params)
         self.ui.setWindowTitle("Time Registration - saving...")
 

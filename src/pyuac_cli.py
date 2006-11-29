@@ -37,8 +37,9 @@ def serve(params, oneshot=False):
     actions = {"q": "Quit",
                "search": "Search the project",
                "whoami": "Returns login info",
-               "timereg": "Register worked time"
-            }
+               "timereg": "Register worked time",
+               "timereport": "Report time registered in the provided date"
+              }
     try:
         rt = libRemoteTimereg.RemoteTimereg(*params)
     except libRemoteTimereg.urllib2.HTTPError:
@@ -67,7 +68,7 @@ def serve(params, oneshot=False):
                 print "Usare una delle azioni definite:"
                 for action in actions:
                     print "  %s: %s" % (action, actions[action])
-            else:
+            else: # if oneshot
                 sys.exit(1)
         else: #action in actions
             if action == "q":
@@ -82,13 +83,13 @@ def serve(params, oneshot=False):
                 if __debug__:
                     log.debug("cli.%s(%s) results: %s" % (action, params, libRemoteTimereg.emsgDump(res)))
                 out(libRemoteTimereg.emsgDump(res)+"\n")
+                if oneshot:
+                    sys.exit(0)
             except:
                 log.error("Response Error! %s(%s)\n" % (action, params))
                 if __debug__:
                     raise
                 sys.exit(1)
-            if oneshot:
-                sys.exit(0)
 
 if __name__=="__main__":
     params, oneshot = checkParams(sys.argv[1:])
@@ -96,4 +97,4 @@ if __name__=="__main__":
         serve(params, oneshot=oneshot)
     else:
         out(help)
-    sys.exit(0)
+        sys.exit(1)

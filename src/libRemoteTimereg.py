@@ -169,7 +169,7 @@ class RemoteTimereg:
         if _ppa != _old_ppa:
             page = self._urlDispatch("query", input=_ppa)
             self._projects = self.parse(page)
-        log.debug("Search results: %s" % self._projects)
+        log.debug("Search results: %s" % emsgDump(self._projects))
         if len(self._projects) == 1:
             self._prepareTimereg()
         return self._projects
@@ -187,7 +187,6 @@ class RemoteTimereg:
         # di creare todo o appuntamenenti
         project.set("remark", self._smartquery["input_remark"].decode("utf-8"))
         project.set("hmtime",  timeRound(self._smartquery["input_hours"] or "0:00"))
-        log.debug("_prepareTimereg: remark" + project.get("remark"))
     
     def timereport(self, date):
         """

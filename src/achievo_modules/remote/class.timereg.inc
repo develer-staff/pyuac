@@ -48,13 +48,13 @@ class timereg extends atkNode
 {
 	function timereg()
 	{
-		$this->atkNode("timereg");
+        $this->atkNode("timereg");
 	}
 
 	function action_save()
 	{
-		atkdebug("timereg Action save");
-		$hoursnode = &atkGetNode("timereg.hours");
+        atkdebug("timereg Action save");
+        $hoursnode = &atkGetNode("timereg.hours");
 		$hoursnode->m_postvars = $this->m_postvars; // Share postvars.
 		$record = $hoursnode->updateRecord();
 
@@ -75,6 +75,32 @@ class timereg extends atkNode
             echo make_xml("timereg", "OK", array(array("action"=>"save")));
 		}
 		exit;
-	}
+    }
+
+    function action_edit()
+	{
+        atkdebug("timereg Action edit");
+        $hoursnode = &atkGetNode("timereg.hours");
+		$hoursnode->m_postvars = $this->m_postvars; // Share postvars.
+		$record = $hoursnode->updateRecord();
+
+		$hoursnode->preUpdate($record);
+		$hoursnode->validate($record, "update");
+
+		$error = count($record['atkerror']) > 0;
+		foreach (array_keys($record) as $key)
+			$error = $error || (is_array($record[$key]) && count($record[$key]['atkerror']) > 0);
+
+		if ($error)
+        {
+            echo make_xml("timereg", "Err", array(array("Err"=>print_r($record, True))));
+		}
+		else
+		{
+			$hoursnode->updateDb($record);
+            echo make_xml("timereg", "OK", array(array("action"=>"edit")));
+		}
+		exit;
+    }
 }
 ?>

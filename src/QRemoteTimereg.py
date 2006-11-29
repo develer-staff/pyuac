@@ -35,13 +35,11 @@ class RemoteTimereg(QObject):
     def __init__(self, parent, auth):
         QObject.__init__(self, parent)
         self.process = QProcess(self)
-        self.timer = QTimer(self)
         self.auth = auth
         self._query = ""
         self._timereg = ""
-        self._oops = 0
-        self.connect(self.timer, SIGNAL("timeout()"), self._sync)
         self.connect(self.process, SIGNAL("finished(int)"), self._ready)
+        self.connect(self.process, SIGNAL("error(QProcess::ProcessError)"), self._error)
 
     def _encode(self, action, **kwargs):
         """
@@ -61,20 +59,13 @@ class RemoteTimereg(QObject):
     def _execute(self, qstring):
         """
         Avvia il processo e invia la qstring
-        Se execute viene rinviata NN volte, termina il processo in esecuzione
         """
         if self.process.state() == self.process.NotRunning:
             debug("_execute(%s) %s" % (self.process.state(), qstring))
-            self.process.start("./pyuac_cli.py", self.auth+["--"])
+            self.process.start("./pyuac_cli.py", self.auth+["--oneshot"])
             self.process.write(qstring+"\n")
-            self._oops = 0
             return True
         else:
-            self._oops += 1
-            if self._oops > 20:
-                debug("terminate")
-                self.process.terminate()
-                self._oops = 0
             return False
 
     def search(self, query):
@@ -99,16 +90,15 @@ class RemoteTimereg(QObject):
         elif self._timereg != "" and self._execute(self._timereg):
             self._timereg = ""
             self.emit(SIGNAL("timeregStarted()"))
-        else:
-            pass
 
-    def _ready(self):
+    def _ready(self, exitcode):
         """
         Provvede a emettere i segnali adatti alla risposta ottenuta
         """
         debug("Ready")
         resp = str(self.process.readAllStandardOutput()).decode("utf-8")
-        debug("Err: "+str(self.process.readAllStandardError()))
+        if exitcode != 0:
+            self._error(exitcode)
         if resp == "":
             return
         self.eresp = libRemoteTimereg.msgParse(resp)
@@ -118,8 +108,14 @@ class RemoteTimereg(QObject):
             self.emit(SIGNAL("searchDone(PyObject *)"), self.eresp)
         elif node == "timereg" and msg == "OK":
             self.emit(SIGNAL("timeregDone()"))
-        else:
+        elif node == "timereg" and msg == "Err":
             self.emit(SIGNAL("timeregError()"))
+        else:
+            pass
         self._sync()
+
+    def _error(self, error):
+        debug("Err: "+str(self.process.readAllStandardError()))
+        self.emit(SIGNAL("processError(int)"), error)
 
 

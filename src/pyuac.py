@@ -8,7 +8,7 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import sys, copy
+import sys
 from PyQt4 import uic
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -28,7 +28,9 @@ log = logging.getLogger("pyuac.gui")
 
 def debug(msg):
     if __debug__:
-        qDebug("#-#-# "+msg.replace(r"%%", r"%").replace(r"%", r"%%"))
+        msg = "#-#-# "+msg.replace(r"%%", r"%").replace(r"%", r"%%")
+        qDebug(msg)
+        log.debug(msg)
 
 class TimeregApplication(QApplication):
     def __init__(self, args):
@@ -69,38 +71,27 @@ class TimeregWindow(QMainWindow):
         self.ui.comboSmartQuery.lineEdit().setFocus()
 
     def _connectSlots(self):
-        self.connect(self.ui.comboSmartQuery,
-                     SIGNAL("editTextChanged(QString)"),
+        self.connect(self.ui.comboSmartQuery, SIGNAL("editTextChanged(QString)"),
                      self._smartQueryChanged)
-        self.connect(self.ui.btnSave,
-                     SIGNAL("clicked()"),
+        self.connect(self.ui.btnSave, SIGNAL("clicked()"),
                      self.timereg)
-        self.connect(self.rt,
-                     SIGNAL("searchStarted()"),
+        self.connect(self.rt, SIGNAL("searchStarted()"),
                      self._searchStarted)
-        self.connect(self.rt,
-                     SIGNAL("searchDone(PyObject *)"),
+        self.connect(self.rt, SIGNAL("searchDone(PyObject *)"),
                      self._projectsChanged)
-        self.connect(self.rt,
-                     SIGNAL("timeregStarted()"),
+        self.connect(self.rt, SIGNAL("timeregStarted()"),
                      self._timeregStarted)
-        self.connect(self.rt,
-                     SIGNAL("timeregDone()"),
+        self.connect(self.rt, SIGNAL("timeregDone()"),
                      self._timeregDone)
-        self.connect(self.rt,
-                     SIGNAL("timeregError()"),
+        self.connect(self.rt, SIGNAL("timeregError()"),
                      self._timeregError)
-        self.connect(self.rt,
-                     SIGNAL("processError(int)"),
+        self.connect(self.rt, SIGNAL("processError(int)"),
                      self._processError)
-        self.connect(self.ui.comboProjectPhase,
-                     SIGNAL("activated(const QString&)"),
+        self.connect(self.ui.comboProjectPhase, SIGNAL("activated(const QString&)"),
                      self._comboProjectPhaseActivated)
-        self.connect(self.ui.comboActivity,
-                     SIGNAL("activated(const QString&)"),
+        self.connect(self.ui.comboActivity, SIGNAL("activated(const QString&)"),
                      self._comboActivityActivated)
-        self.connect(self.ui.comboTimeWorked,
-                     SIGNAL("activated(const QString&)"),
+        self.connect(self.ui.comboTimeWorked, SIGNAL("activated(const QString&)"),
                      self._comboTimeWorkedActivated)
 
     def _smartQueryChanged(self, smartquery):

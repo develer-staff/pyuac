@@ -8,7 +8,7 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import sys
+import sys, copy
 from PyQt4 import uic
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -23,11 +23,12 @@ except ImportError:
 
 from QRemoteTimereg import RemoteTimereg
 
-ZEROtime = QDateTime.fromString("00:00", "HH:mm")
+import logging
+log = logging.getLogger("pyuac.gui")
 
 def debug(msg):
     if __debug__:
-        qDebug("#-#-#-#-# "+msg.replace(r"%%", r"%").replace(r"%", r"%%"))
+        qDebug("#-#-# "+msg.replace(r"%%", r"%").replace(r"%", r"%%"))
 
 class TimeregApplication(QApplication):
     def __init__(self, args):
@@ -44,23 +45,28 @@ class TimeregWindow(QMainWindow):
         self.ui = uic.loadUi("pyuac_edit.ui", self)
         self.rt = RemoteTimereg(self, self.auth)
         self.err = QErrorMessage(self)
- 
+        
         self.projects = []
+        self.allProjects = []
         self._connectSlots()
         self._setupGui()
 
     def _setupGui(self):
         self.ui.dateTimeregDate.setDate(QDate.currentDate())
-        self.ui.comboSmartQuery.lineEdit().setText("")
-        self.ui.txtRemark.setPlainText("")
-        self.ui.timeTimeWorked.setDateTime(ZEROtime)
-        self.ui.labelRoundTime.setText("00:00")
-        self._smartQueryChanged()
+        self.ui.comboTimeWorked.clear()
+        for hour in range(24):
+            for quarter in range(4):
+                if hour + quarter > 0:
+                    self.ui.comboTimeWorked.addItem("%02d:%02d" % (hour, 15*quarter))
+        self.ui.labelExactTime.setText("00:00")
+        self._smartQueryChanged("")
         #fino a quando non sarà attiva la gestione delle modifiche...
         [i.setEnabled(False) for i in (self.ui.txtRemark,
-                                       self.ui.timeTimeWorked,
                                        self.ui.btnSave)]
         self.ui.setWindowTitle("Time Registration - %s" % self.auth[1])
+        self.ui.txtRemark.setPlainText("")
+        self.ui.comboSmartQuery.lineEdit().setText("")
+        self.ui.comboSmartQuery.lineEdit().setFocus()
 
     def _connectSlots(self):
         self.connect(self.ui.comboSmartQuery,
@@ -87,40 +93,65 @@ class TimeregWindow(QMainWindow):
         self.connect(self.rt,
                      SIGNAL("processError(int)"),
                      self._processError)
+        self.connect(self.ui.comboProjectPhase,
+                     SIGNAL("activated(const QString&)"),
+                     self._comboProjectPhaseActivated)
+        self.connect(self.ui.comboActivity,
+                     SIGNAL("activated(const QString&)"),
+                     self._comboActivityActivated)
+        self.connect(self.ui.comboTimeWorked,
+                     SIGNAL("activated(const QString&)"),
+                     self._comboTimeWorkedActivated)
 
-    def _smartQueryChanged(self):
-        smartquery = unicode(r"%"+self.ui.comboSmartQuery.lineEdit().text())
+    def _smartQueryChanged(self, smartquery):
+        debug("-------> pre search")
+        smartquery = "%"+unicode(smartquery)
         self.rt.search(smartquery)
-                     
+        debug("-------> post search")
+                      
     def _projectsChanged(self, projects):
         debug("_projectsChanged %s" % len(projects))
-        self.projects = projects
+        if len(self.allProjects) < len(projects):
+            #TODO: mettere in un init, qua ci entro solo alla prima query con %
+            self.allProjects = list(projects) #mi stacco all'oggetto originale
+        self.projects = list(projects)
 
         # ---- Update comboboxes ----
         self.ui.comboProjectPhase.clear()
         self.ui.comboActivity.clear()
         projphases = set()
         activities = set()
-        for p in self.projects:
+        for p in self.allProjects:
             projphases.add("%(project_name)s / %(phase_name)s" % dict(p.items()))
             activities.add(p.get("activity_name"))
         self.ui.comboProjectPhase.addItems(list(projphases))
         self.ui.comboActivity.addItems(list(activities))
-        self.ui.labelProjectPhase.setEnabled(self.ui.comboProjectPhase.count() != 1)
-        self.ui.labelActivity.setEnabled(self.ui.comboActivity.count() != 1)
         # ^^^^ Update comboboxes ^^^^
 
         if len(self.projects) == 1:
             p = self.projects[0]
-            worked_time = self.ui.timeTimeWorked.dateTimeFromText(p.get("input_hours"))
-            self.ui.timeTimeWorked.setDateTime(worked_time)
-            self.ui.labelRoundTime.setText(p.get("hmtime"))
+            
+            projectphase = "%(project_name)s / %(phase_name)s" % dict(p.items())
+            id = self.ui.comboProjectPhase.findText(projectphase)
+            self.ui.comboProjectPhase.setCurrentIndex(id)
+
+            id = self.ui.comboActivity.findText(p.get("activity_name"))
+            self.ui.comboActivity.setCurrentIndex(id)
+            
+            id = self.ui.comboTimeWorked.findText(p.get("hmtime"))
+            self.ui.comboTimeWorked.setCurrentIndex(id)
+
+            self.ui.labelExactTime.setText(p.get("input_hours") or "00:00")
             self.ui.txtRemark.setPlainText(p.get("remark"))
-            self.ui.labelTimeWorked.setEnabled(worked_time > ZEROtime)
+            self.ui.labelTimeWorked.setEnabled(p.get("hmtime") != "00:00")
             self.ui.labelRemark.setEnabled(p.get("remark") != "")
-            self.ui.btnSave.setEnabled(worked_time > ZEROtime and p.get("remark") != "")
+            self.ui.btnSave.setEnabled(p.get("hmtime") != "00:00" and p.get("remark") != "")
+            self.ui.labelProjectPhase.setEnabled(True)
+            self.ui.labelActivity.setEnabled(True)
         else:
             self.ui.txtRemark.setPlainText("")
+            self.ui.labelProjectPhase.setEnabled(False)
+            self.ui.labelActivity.setEnabled(False)
             self.ui.labelTimeWorked.setEnabled(False)
             self.ui.labelRemark.setEnabled(False)
             self.ui.btnSave.setEnabled(False)
@@ -142,6 +173,35 @@ class TimeregWindow(QMainWindow):
         debug("_processError %s" % int)
         self.err.showMessage("Errore nell'avviare il processo interfaccia con Archievo.")
      
+    def _comboProjectPhaseActivated(self, combotext):
+        #TODO: fattorizzare in qualche modo questi 3
+        origtext = unicode(self.ui.comboSmartQuery.lineEdit().text())
+        origlist = origtext.split(" ", 4)
+        while len(origlist) < 5:
+            origlist.append("")
+        newproj, newpha = unicode(combotext).split("/")
+        origlist[0] = newproj.strip()
+        origlist[1] = newpha.strip()
+        self.ui.comboSmartQuery.setEditText(" ".join(origlist).strip()+" ")
+    
+    def _comboActivityActivated(self, combotext):
+        origtext = unicode(self.ui.comboSmartQuery.lineEdit().text())
+        origlist = origtext.split(" ", 4)
+        while len(origlist) < 5:
+            origlist.append("")
+        newact = unicode(combotext)
+        origlist[2] = newact.strip()
+        self.ui.comboSmartQuery.setEditText(" ".join(origlist).strip()+" ")
+
+    def _comboTimeWorkedActivated(self, combotext):
+        origtext = unicode(self.ui.comboSmartQuery.lineEdit().text())
+        origlist = origtext.split(" ", 4)
+        while len(origlist) < 5:
+            origlist.append("")
+        newact = unicode(combotext)
+        origlist[3] = newact.strip()
+        self.ui.comboSmartQuery.setEditText(" ".join(origlist).strip()+" ")        
+
     def timereg(self):
         p = self.projects[0]
         params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime remark".split()])

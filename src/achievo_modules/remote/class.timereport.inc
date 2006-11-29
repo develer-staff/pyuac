@@ -23,10 +23,21 @@ class timereport extends atkNode
 		$date = array_filter($date, is_valid_date);
 		$datelist = implode("','", $date);
 		
-		$sql = "
-			SELECT id, activitydate, userid, phaseid, activityid, remark, time
-			FROM hours WHERE activitydate IN ('$datelist',0)
-			AND userid = " . $g_user["id"] . " ORDER BY activitydate DESC
+        $sql = "
+                SELECT
+                    hours.*,
+                    phase.name AS phase_name,
+                    activity.name AS activity_name,
+                    project.name AS project_name
+                FROM hours
+                    JOIN phase ON hours.phaseid = phase.id
+                    JOIN activity ON hours.activityid = activity.id
+                    JOIN project ON hours.phaseid = project.id
+				WHERE 
+					project.status = 'active' AND
+					userid = " . $g_user["id"] . " AND 
+			        activitydate IN ('$datelist',0)
+			        ORDER BY activitydate DESC
 		";
 		$results = $db->getRows($sql);
 

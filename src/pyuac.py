@@ -43,6 +43,7 @@ class TimeregWindow(QMainWindow):
         self.auth = [achievouri, user, password]
         self.ui = uic.loadUi("pyuac_edit.ui", self)
         self.rt = RemoteTimereg(self, self.auth)
+        self.err = QErrorMessage(self)
  
         self.projects = []
         self._connectSlots()
@@ -83,6 +84,9 @@ class TimeregWindow(QMainWindow):
         self.connect(self.rt,
                      SIGNAL("timeregError()"),
                      self._timeregError)
+        self.connect(self.rt,
+                     SIGNAL("processError(int)"),
+                     self._processError)
 
     def _smartQueryChanged(self):
         smartquery = unicode(r"%"+self.ui.comboSmartQuery.lineEdit().text())
@@ -133,6 +137,10 @@ class TimeregWindow(QMainWindow):
 
     def _searchStarted(self):
         debug("_searchStarted")
+
+    def _processError(self, int):
+        debug("_processError %s" % int)
+        self.err.showMessage("Errore nell'avviare il processo interfaccia con Archievo.")
      
     def timereg(self):
         p = self.projects[0]

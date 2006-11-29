@@ -196,7 +196,7 @@ class RemoteTimereg:
         page = self._urlDispatch("timereport", date=date)
         return self.parse(page)
 
-    def timereg(self, projectid, activityid, phaseid, hmtime, activitydate, remark):
+    def timereg(self, projectid, activityid, phaseid, hmtime, activitydate, remark, id=0):
         args = {"projectid": projectid,
                 "activityid": activityid,
                 "phaseid": phaseid,
@@ -206,7 +206,12 @@ class RemoteTimereg:
                 "entrydate": time.strftime("%Y%m%d", time.gmtime()),
                 "remark": remark,
                 "userid": "person.id=%s" % self.userid}
-        page = self._urlDispatch("timereg", action="save", **args)
+        if id == 0: #save new record
+            page = self._urlDispatch("timereg", action="save", **args)
+        else: #update
+            args["id"] = id
+            args["atkprimkey"] = "hours.id=%s" % id
+            page = self._urlDispatch("timereg", action="edit", **args)
         return self.parse(page)
 
     def parse(self, message):

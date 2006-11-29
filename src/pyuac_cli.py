@@ -73,23 +73,33 @@ def serve(params, oneshot=False):
         else: #action in actions
             if action == "q":
                 sys.exit(0)
-            try:
+            else:
                 #Cerco di mappare l'azione su un metodo
-                func = getattr(rt, action)
-                if params:
-                    res = func(**params)
-                else:
-                    res = func()
                 if __debug__:
-                    log.debug("cli.%s(%s) results: %s" % (action, params, libRemoteTimereg.emsgDump(res)))
-                out(libRemoteTimereg.emsgDump(res)+"\n")
+                    log.debug("cli.%s(%s)" % (action, params))
+                try:
+                    func = getattr(rt, action)
+                except:
+                    log.error("Attribute Error! %s(%s)\n" % (action, params))
+                    sys.exit(1)
+                try:
+                    if params:
+                        eres = func(**params)
+                    else:
+                        eres = func()
+                except:
+                    log.error("Call Error! %s(%s)\n" % (action, params))
+                    sys.exit(1)
+                try:
+                    res = libRemoteTimereg.emsgDump(eres)
+                except:
+                    log.error("Response Error! %s(%s)\n" % (action, params))
+                    sys.exit(1)
+                if __debug__:
+                    log.debug("cli.%s(%s) results: %s" % (action, params, res))
+                out(res+"\n")
                 if oneshot:
                     sys.exit(0)
-            except:
-                log.error("Response Error! %s(%s)\n" % (action, params))
-                if __debug__:
-                    raise
-                sys.exit(1)
 
 if __name__=="__main__":
     params, oneshot = checkParams(sys.argv[1:])

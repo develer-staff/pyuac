@@ -101,11 +101,13 @@ class RemoteTimereg(QObject):
             self._error(exitcode)
         if resp == "":
             return
-        self.eresp = libRemoteTimereg.msgParse(resp)
-        node = self.eresp.get("node")
-        msg = self.eresp.get("msg")
+        eresp = libRemoteTimereg.msgParse(resp)
+        node = eresp.get("node")
+        msg = eresp.get("msg")
         if node == "query":
-            self.emit(SIGNAL("searchDone(PyObject *)"), self.eresp)
+            debug("pre emit searchDone")
+            self.emit(SIGNAL("searchDone(PyObject *)"), eresp)
+            debug("post emit searchDone")
         elif node == "timereg" and msg == "OK":
             self.emit(SIGNAL("timeregDone()"))
         elif node == "timereg" and msg == "Err":

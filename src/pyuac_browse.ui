@@ -1,0 +1,96 @@
+<ui version="4.0" >
+ <class>TimeBrowserWindow</class>
+ <widget class="QMainWindow" name="TimeBrowserWindow" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>597</width>
+    <height>564</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Achievo Time Browse</string>
+  </property>
+  <property name="windowIcon" >
+   <iconset>../../../../../usr/share/pixmaps/gnome-set-time.png</iconset>
+  </property>
+  <widget class="QWidget" name="centralwidget" >
+   <layout class="QGridLayout" >
+    <property name="margin" >
+     <number>9</number>
+    </property>
+    <property name="spacing" >
+     <number>6</number>
+    </property>
+    <item row="0" column="0" >
+     <widget class="QPushButton" name="btnToday" >
+      <property name="sizePolicy" >
+       <sizepolicy>
+        <hsizetype>0</hsizetype>
+        <vsizetype>0</vsizetype>
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text" >
+       <string>Today</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1" >
+     <widget class="QDateEdit" name="dateEdit" >
+      <property name="displayFormat" >
+       <string>ddd dd/MMM/yyyy</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="2" >
+     <widget class="QPushButton" name="btnQuit" >
+      <property name="text" >
+       <string>Quit</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0" colspan="2" >
+     <widget class="QPushButton" name="btnEdit" >
+      <property name="text" >
+       <string>Edit Timereg</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0" colspan="3" >
+     <widget class="QTableWidget" name="tableTimereg" >
+      <property name="alternatingRowColors" >
+       <bool>true</bool>
+      </property>
+      <property name="selectionMode" >
+       <enum>QAbstractItemView::SingleSelection</enum>
+      </property>
+      <property name="selectionBehavior" >
+       <enum>QAbstractItemView::SelectRows</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2" >
+     <widget class="QPushButton" name="btnTimereg" >
+      <property name="sizePolicy" >
+       <sizepolicy>
+        <hsizetype>1</hsizetype>
+        <vsizetype>0</vsizetype>
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text" >
+       <string>Add New Timereg</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusBar" />
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

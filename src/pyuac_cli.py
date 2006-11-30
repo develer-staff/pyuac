@@ -34,6 +34,13 @@ def checkParams(params):
         return sys.argv[1:4], True
 
 def serve(params, oneshot=False):
+    """
+    Questa funzione aspetta l'input dell'utente in forma
+    di POST http e redirige la chiamata:
+      action?param1=var1&param2=var2
+    sul metodo *action* di RemoteTimereg, se questo è
+    presente nel dizionario di azioni permesse (e documentate)
+    """
     actions = {"q": "Quit",
                "search": "Search the project",
                "whoami": "Returns login info",
@@ -56,11 +63,11 @@ def serve(params, oneshot=False):
         if len(cmdline) > 1:
             for k, v in cgi.parse_qsl(cmdline[1]):
                 if len(v) == 1:
-                    #parse_qsl restituisce sempre array (anche singole) come valore
-                    params[str(k)] = v[0]#.decode("UTF-8")
+                    #parse_qsl restituisce sempre array (anche singole)
+                    params[str(k)] = v[0]
                 else:
                     #devo comunque convertire in stringa il nome (orig. unicode)
-                    params[str(k)] = v#[i.decode("UTF-8") for i in v]
+                    params[str(k)] = v
         if __debug__:
             log.debug("<!--cli params: \n%s\n-->\n" % str(params))
         if action not in actions:

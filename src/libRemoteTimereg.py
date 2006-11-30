@@ -118,7 +118,7 @@ class RemoteTimereg:
                 kwargs[key+"[]"] = val
         qstring = urllib.urlencode(params.items() + kwargs.items(), doseq=True)
         if __debug__:
-            log.debug("########### Dispatch: %s" % qstring)
+            log.debug("##### Dispatch: %s" % qstring)
         page = urllib2.urlopen(self._dispatchurl, qstring).read().decode("utf-8")
         log.debug("_urlDispatch " + page)
         return page

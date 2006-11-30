@@ -106,24 +106,25 @@ class RemoteTimereg(QObject):
         Provvede a emettere i segnali adatti alla risposta ottenuta
         """
         debug("Ready")
-        resp = str(self.process.readAllStandardOutput()).decode("utf-8")
+        resp = str(self.process.readAllStandardOutput())
         if exitcode != 0:
             self._error(exitcode)
         if resp == "":
             return
         eresp = libRemoteTimereg.msgParse(resp)
+        print "eresp id", id(eresp)
         node = eresp.get("node")
         msg = eresp.get("msg")
         if node == "query":
             debug("pre emit searchDone")
-            self.emit(SIGNAL("searchDone(PyObject *)"), eresp)
+            self.emit(SIGNAL("searchDone"), eresp)
             debug("post emit searchDone")
         elif node == "timereg" and msg == "OK":
             self.emit(SIGNAL("timeregDone()"))
         elif node == "timereg" and msg == "Err":
             self.emit(SIGNAL("timeregError()"))
         elif node == "timereport":
-            self.emit(SIGNAL("timereportDone(PyObject *)"), eresp)
+            self.emit(SIGNAL("timereportDone"), eresp)
         else:
             pass
         self._sync()

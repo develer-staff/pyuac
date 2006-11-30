@@ -47,7 +47,7 @@ def timeRound(inTime, stepTime=15):
     return "%02d:%02d" % (res/3600, (res%3600)/60)
 
 def msgParse(msg, encoding="utf-8"):
-    return ET.fromstring(msg.encode(encoding))
+    return ET.fromstring(msg)#.encode(encoding))
 
 def emsgDump(emsg, encoding="utf-8"):
     return ET.tostring(emsg, encoding)
@@ -128,7 +128,7 @@ class RemoteTimereg:
         Restituisce il nome utente della sessione attiva
         """
         page = self._login()
-        elogin = self.parse(page)
+        elogin = msgParse(page)
         if self.userid == 0:
             self.userid = elogin[0].get("id")
         return elogin
@@ -168,7 +168,7 @@ class RemoteTimereg:
         # "project", "phase", "activity" è cambiata
         if _ppa != _old_ppa:
             page = self._urlDispatch("query", input=_ppa)
-            self._projects = self.parse(page)
+            self._projects = msgParse(page)
         log.debug("Search results: %s" % emsgDump(self._projects))
         if len(self._projects) == 1:
             self._prepareTimereg()
@@ -194,7 +194,7 @@ class RemoteTimereg:
         passati nel parametro date
         """
         page = self._urlDispatch("timereport", date=date)
-        return self.parse(page)
+        return msgParse(page)
 
     def timereg(self, projectid, activityid, phaseid, hmtime, activitydate, remark, id=0):
         args = {"projectid": projectid,
@@ -212,14 +212,8 @@ class RemoteTimereg:
             args["id"] = id
             args["atkprimkey"] = "hours.id=%s" % id
             page = self._urlDispatch("timereg", action="edit", **args)
-        return self.parse(page)
+        return msgParse(page)
 
-    def parse(self, message):
-        try:
-            return msgParse(message)
-        except:
-            log.error(message)
-            raise
 
 example_save = """
 curl -v -b cookie -c cookie \

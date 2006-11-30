@@ -9,7 +9,7 @@ else
     
 function is_valid_date($date)
 {
-	return (ereg("([0-9]{4}).([0-9]{1,2}).([0-9]{1,2})", $date));
+    return (ereg("([0-9]{4}).([0-9]{1,2}).([0-9]{1,2})", $date));
 }
 
 function xml_encode($var)
@@ -20,87 +20,87 @@ function xml_encode($var)
 
 function make_xml($node, $msg, $results, $bodykey="")
 {
-	$res  = '<?xml version="1.0" encoding="UTF-8"?>'."\n";
-	$res .= '<response node="'.xml_encode($node).'" msg="'.xml_encode($msg).'" len="'.count($results).'">'."\n";
-	foreach ($results as $r)
-	{
-		$res .= "<record";
-		foreach ($r as $key=>$value)
-		{
-			if ($key != $bodykey)
-				$res .= ' '.xml_encode($key).'="'.xml_encode($value).'"';
-		}
-		if (array_key_exists($bodykey, $r))
-		{
-			$res .= ">\n";
-			$res .= xml_encode($r[$bodykey])."\n";
-			$res .= "</record>\n";
-		}
-		else
-			$res .= " />\n";
+    $res  = '<?xml version="1.0" encoding="UTF-8"?>'."\n";
+    $res .= '<response node="'.xml_encode($node).'" msg="'.xml_encode($msg).'" len="'.count($results).'">'."\n";
+    foreach ($results as $r)
+    {
+        $res .= "<record";
+        foreach ($r as $key=>$value)
+        {
+            if ($key != $bodykey)
+                $res .= ' '.xml_encode($key).'="'.xml_encode($value).'"';
+        }
+        if (array_key_exists($bodykey, $r))
+        {
+            $res .= ">\n";
+            $res .= xml_encode($r[$bodykey])."\n";
+            $res .= "</record>\n";
+        }
+        else
+            $res .= " />\n";
 
-	}
-	$res .= '</response>';
-	return $res;
+    }
+    $res .= '</response>';
+    return $res;
 }
 
 class timereg extends atkNode
 {
-	function timereg()
-	{
+    function timereg()
+    {
         $this->atkNode("timereg");
-	}
+    }
 
-	function action_save()
-	{
+    function action_save()
+    {
         atkdebug("timereg Action save");
         $hoursnode = &atkGetNode("timereg.hours");
-		$hoursnode->m_postvars = $this->m_postvars; // Share postvars.
-		$record = $hoursnode->updateRecord();
+        $hoursnode->m_postvars = $this->m_postvars; // Share postvars.
+        $record = $hoursnode->updateRecord();
 
-		$hoursnode->preAdd($record);
-		$hoursnode->validate($record, "add");
+        $hoursnode->preAdd($record);
+        $hoursnode->validate($record, "add");
 
-		$error = count($record['atkerror']) > 0;
-		foreach (array_keys($record) as $key)
-			$error = $error || (is_array($record[$key]) && count($record[$key]['atkerror']) > 0);
+        $error = count($record['atkerror']) > 0;
+        foreach (array_keys($record) as $key)
+            $error = $error || (is_array($record[$key]) && count($record[$key]['atkerror']) > 0);
 
-		if ($error)
+        if ($error)
         {
             echo make_xml("timereg", "Err", array(array("Err"=>print_r($record, True))));
-		}
-		else
-		{
-			$hoursnode->addDb($record, true, "add");
+        }
+        else
+        {
+            $hoursnode->addDb($record, true, "add");
             echo make_xml("timereg", "OK", array(array("action"=>"save")));
-		}
-		exit;
+        }
+        exit;
     }
 
     function action_edit()
-	{
+    {
         atkdebug("timereg Action edit");
         $hoursnode = &atkGetNode("timereg.hours");
-		$hoursnode->m_postvars = $this->m_postvars; // Share postvars.
-		$record = $hoursnode->updateRecord();
+        $hoursnode->m_postvars = $this->m_postvars; // Share postvars.
+        $record = $hoursnode->updateRecord();
 
-		$hoursnode->preUpdate($record);
-		$hoursnode->validate($record, "update");
+        $hoursnode->preUpdate($record);
+        $hoursnode->validate($record, "update");
 
-		$error = count($record['atkerror']) > 0;
-		foreach (array_keys($record) as $key)
-			$error = $error || (is_array($record[$key]) && count($record[$key]['atkerror']) > 0);
+        $error = count($record['atkerror']) > 0;
+        foreach (array_keys($record) as $key)
+            $error = $error || (is_array($record[$key]) && count($record[$key]['atkerror']) > 0);
 
-		if ($error)
+        if ($error)
         {
             echo make_xml("timereg", "Err", array(array("Err"=>print_r($record, True))));
-		}
-		else
-		{
-			$hoursnode->updateDb($record);
+        }
+        else
+        {
+            $hoursnode->updateDb($record);
             echo make_xml("timereg", "OK", array(array("action"=>"edit")));
-		}
-		exit;
+        }
+        exit;
     }
 }
 ?>

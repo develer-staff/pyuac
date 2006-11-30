@@ -35,15 +35,81 @@ def debug(msg):
 class TimeregApplication(QApplication):
     def __init__(self, args):
         QApplication.__init__(self, args)
-        win = TimeregWindow("http://www.develer.com/~naufraghi/achievo/",
-                            "matteo", "matteo99")
+        win = TimeBrowseWindow("http://www.develer.com/~naufraghi/achievo/",
+                               "matteo", "matteo99")
         win.show()
         sys.exit(self.exec_())
-        
-class TimeregWindow(QMainWindow):
+
+class TimeBrowseWindow(QMainWindow):
     def __init__(self, achievouri, user, password):
         QMainWindow.__init__(self)
         self.auth = [achievouri, user, password]
+        self.ui = uic.loadUi("pyuac_browse.ui", self)
+        self.edit = TimeregWindow("http://www.develer.com/~naufraghi/achievo/",
+                                  "matteo", "matteo99", parent=self)
+        self.rt = RemoteTimereg(self, self.auth)
+        self.err = QErrorMessage(self)
+
+        self.projects = []
+        self._connectSlots()
+        self._setupGui()
+
+    def _setupGui(self):
+        self.ui.tableTimereg.setColumnCount(5)
+        for c, head in enumerate("Date Project/Phase Activity Remark Time".split()):
+            cellHead = QTableWidgetItem(head)
+            self.ui.tableTimereg.setHorizontalHeaderItem(c, cellHead)
+        self.ui.dateEdit.setDateTime(QDateTime.currentDateTime())
+    
+    def _connectSlots(self):
+        self.connect(self.ui.btnTimereg, SIGNAL("clicked()"),
+                     self._timereg)
+        self.connect(self.ui.btnQuit, SIGNAL("clicked()"),
+                     self.ui.close)
+        self.connect(self.ui.btnToday, SIGNAL("clicked()"),
+                     self._setupGui)
+        self.connect(self.ui.dateEdit, SIGNAL("dateChanged(const QDate&)"),
+                     self._timereport)
+        self.connect(self.rt, SIGNAL("timereportDone(PyObject *)"),
+                     self._updateTimereport)
+        self.connect(self.edit, SIGNAL("registrationDone()"),
+                     self._setupGui)
+        self.connect(self.ui.tableTimereg, SIGNAL("cellDoubleClicked(int,int)"),
+                     self._timeedit)
+
+    def _timereg(self):
+        self.edit.show()
+        
+    def _timeedit(self, row, column):
+        project = self.projects[row]
+        self.edit.edit(project)
+        self.edit.show()
+
+    def _timereport(self, qdate):
+        reportdate = qdate.toString("yyyyMMdd")
+        self.rt.timereport(date=reportdate)
+
+    def _updateTimereport(self, projects):
+        self.projects = list(projects)
+        self.ui.tableTimereg.setRowCount(len(projects))
+        for r, p in enumerate(projects):
+            row = []
+            row.append(QTableWidgetItem(p.get("activitydate")))
+            row.append(QTableWidgetItem("%(project_name)s / %(phase_name)s" %\
+                                        dict(p.items())))
+            row.append(QTableWidgetItem(p.get("activity_name")))
+            row.append(QTableWidgetItem(p.get("remark")))
+            hmtime = "%02d:%02d" % (int(p.get("time"))/60, int(p.get("time")) % 60)
+            p.set("hmtime", hmtime)
+            row.append(QTableWidgetItem(hmtime))
+            for c, cell in enumerate(row):
+                self.ui.tableTimereg.setItem(r, c, cell)
+
+class TimeregWindow(QMainWindow):
+    def __init__(self, achievouri, user, password, parent=None):
+        QMainWindow.__init__(self, parent)
+        self.auth = [achievouri, user, password]
+        self.baseproject = None
         self.ui = uic.loadUi("pyuac_edit.ui", self)
         self.rt = RemoteTimereg(self, self.auth)
         self.err = QErrorMessage(self)
@@ -59,9 +125,9 @@ class TimeregWindow(QMainWindow):
         for hour in range(24):
             for quarter in range(4):
                 if hour + quarter > 0:
-                    self.ui.comboTimeWorked.addItem("%02d:%02d" % (hour, 15*quarter))
+                    htext = "%02d:%02d" % (hour, 15*quarter)
+                    self.ui.comboTimeWorked.addItem(htext)
         self.ui.labelExactTime.setText("00:00")
-        self._smartQueryChanged("")
         #fino a quando non sarà attiva la gestione delle modifiche...
         [i.setEnabled(False) for i in (self.ui.txtRemark,
                                        self.ui.btnSave)]
@@ -69,7 +135,8 @@ class TimeregWindow(QMainWindow):
         self.ui.txtRemark.setPlainText("")
         self.ui.comboSmartQuery.lineEdit().setText("")
         self.ui.comboSmartQuery.lineEdit().setFocus()
-
+        self._smartQueryChanged("")
+ 
     def _connectSlots(self):
         self.connect(self.ui.comboSmartQuery, SIGNAL("editTextChanged(QString)"),
                      self._smartQueryChanged)
@@ -104,7 +171,7 @@ class TimeregWindow(QMainWindow):
         debug("_projectsChanged %s" % len(projects))
         if len(self.allProjects) < len(projects):
             #TODO: mettere in un init, qua ci entro solo alla prima query con %
-            self.allProjects = list(projects) #mi stacco all'oggetto originale
+            self.allProjects = list(projects) #mi stacco dall'oggetto originale
         self.projects = list(projects)
 
         # ---- Update comboboxes ----
@@ -153,6 +220,9 @@ class TimeregWindow(QMainWindow):
     def _timeregDone(self):
         debug("_timeregDone")
         self._setupGui()
+        self.emit(SIGNAL("registrationDone()"))
+        self.baseproject = None
+        self.ui.close()
 
     def _timeregError(self):
         debug("_timeregError")
@@ -197,9 +267,18 @@ class TimeregWindow(QMainWindow):
         p = self.projects[0]
         params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime remark".split()])
         params["activitydate"] = self.ui.dateTimeregDate.date().toString("yyyyMMdd")
+        if self.baseproject != None:
+            params["id"] = self.baseproject.get("id")
         debug(str(params))
         self.rt.timereg(**params)
         self.ui.setWindowTitle("Time Registration - saving...")
+    
+    def edit(self, project):
+        self.baseproject = project
+        smartquery = "%(project_name)s %(phase_name)s %(activity_name)s\
+                      %(hmtime)s %(remark)s" % dict(project.items())
+        self.ui.comboSmartQuery.setEditText(smartquery) 
+        
 
 if __name__ == "__main__":
     app = TimeregApplication(sys.argv)

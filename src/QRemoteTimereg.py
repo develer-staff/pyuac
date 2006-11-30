@@ -38,8 +38,10 @@ class RemoteTimereg(QObject):
         self.auth = auth
         self._query = ""
         self._timereg = ""
+        self._timereport = ""
         self.connect(self.process, SIGNAL("finished(int)"), self._ready)
-        self.connect(self.process, SIGNAL("error(QProcess::ProcessError)"), self._error)
+        self.connect(self.process, SIGNAL("error(QProcess::ProcessError)"),
+                     self._error)
 
     def _encode(self, action, **kwargs):
         """
@@ -52,7 +54,7 @@ class RemoteTimereg(QObject):
         """
         for k, v in kwargs.items():
             kwargs[k] = unicode(v).strip().encode("utf-8") #se v è un QString
-        qstring = urllib.urlencode(kwargs)
+        qstring = urllib.urlencode(kwargs, doseq=True)
         debug("**"+qstring)
         return action + "?" + qstring
 
@@ -78,6 +80,11 @@ class RemoteTimereg(QObject):
         self._timereg = self._encode("timereg", **kwargs)
         self._sync()
 
+    def timereport(self, **kwargs):
+        debug("Timereport")
+        self._timereport = self._encode("timereport", **kwargs)
+        self._sync()
+
     def _sync(self):
         """
         Provvede ad eseguire le query in attesa
@@ -90,6 +97,9 @@ class RemoteTimereg(QObject):
         elif self._timereg != "" and self._execute(self._timereg):
             self._timereg = ""
             self.emit(SIGNAL("timeregStarted()"))
+        elif self._timereport != "" and self._execute(self._timereport):
+            self._timereport = ""
+            self.emit(SIGNAL("timereportStarted()"))
 
     def _ready(self, exitcode):
         """
@@ -112,6 +122,8 @@ class RemoteTimereg(QObject):
             self.emit(SIGNAL("timeregDone()"))
         elif node == "timereg" and msg == "Err":
             self.emit(SIGNAL("timeregError()"))
+        elif node == "timereport":
+            self.emit(SIGNAL("timereportDone(PyObject *)"), eresp)
         else:
             pass
         self._sync()

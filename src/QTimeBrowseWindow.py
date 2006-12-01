@@ -28,8 +28,7 @@ log = logging.getLogger("pyuac.gui")
 
 def debug(msg):
     if __debug__:
-        msg = "#-#-# "+msg.replace(r"%%", r"%").replace(r"%", r"%%")
-        qDebug(msg)
+        print __name__, msg
         log.debug(msg)
 
 class TimeBrowseWindow(QMainWindow):
@@ -42,7 +41,7 @@ class TimeBrowseWindow(QMainWindow):
         self.edit = TimeregWindow(self)
         self.err = QErrorMessage(self)
 
-        self.projects = []
+        self.projects = None
         self._connectSlots()
         self._setupGui()
 
@@ -62,32 +61,35 @@ class TimeBrowseWindow(QMainWindow):
                      self._setupGui)
         self.connect(self.ui.dateEdit, SIGNAL("dateChanged(const QDate&)"),
                      self._timereport)
-        self.connect(self.remote, SIGNAL("timereportDone"),
+        self.connect(self.ui.tableTimereg, SIGNAL("cellDoubleClicked(int,int)"),
+                     self._timeedit)
+        # Short-circuit Signals (from python to python)
+        self.connect(self.remote, SIGNAL("timereportOK"),
                      self._updateTimereport)
         self.connect(self.edit, SIGNAL("registrationDone"),
                      self._registrationDone)
-        self.connect(self.ui.tableTimereg, SIGNAL("cellDoubleClicked(int,int)"),
-                     self._timeedit)
 
     def _timereg(self):
         self.edit.show()
         
     def _timeedit(self, row, column):
-        debug("Editing projects%s[%s] %s" % (type(self.projects), row, self.projects[row]))
+        debug("Editing projects %s[%s] %s" %(type(self.projects), row, self.projects[row]))
         self.edit.edit(self.projects[row])
         self.edit.show()
     
-    def _registrationDone(self, qdate):
-        self._timereport(QDate.fromString(qdate, "yyyyMMdd"))
+    def _registrationDone(self, eresp):
+        debug("_registrationDone %s" % ET.tostring(eresp))
+        newdate = str(eresp[0].get("activitydate"))
+        self.ui.dateEdit.setDate(QDate.fromString(newdate, "yyyyMMdd"))
 
     def _timereport(self, qdate):
         reportdate = qdate.toString("yyyyMMdd")
         self.remote.timereport(date=reportdate)
 
-    def _updateTimereport(self, projects):
-        self.projects = list(projects)
-        self.ui.tableTimereg.setRowCount(len(projects))
-        for r, p in enumerate(projects):
+    def _updateTimereport(self, eprojects):
+        self.projects = eprojects
+        self.ui.tableTimereg.setRowCount(len(eprojects))
+        for r, p in enumerate(eprojects):
             row = []
             row.append(QTableWidgetItem(p.get("activitydate")))
             row.append(QTableWidgetItem("%(project_name)s / %(phase_name)s" %\

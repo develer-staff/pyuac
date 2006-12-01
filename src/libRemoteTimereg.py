@@ -46,11 +46,22 @@ def timeRound(inTime, stepTime=15):
     res = int(round(pre.seconds/float(step.seconds))*step.seconds)
     return "%02d:%02d" % (res/3600, (res%3600)/60)
 
-def msgParse(msg, encoding="utf-8"):
-    return ET.fromstring(msg)#.encode(encoding))
 
-def emsgDump(emsg, encoding="utf-8"):
-    return ET.tostring(emsg, encoding)
+def parseSmartQuery(smartquery):
+    """
+    Analizza una stringa e restisuisce un dizionario
+    """
+    getsq = re.compile("""
+        (?P<input_project>[^ ]+|)\ *
+        (?P<input_phase>[^ ]+|)\ *
+        (?P<input_activity>[^ ]+|)\ *
+        (?P<input_hours>\d{1,2}:\d{1,2}|)\ *
+        (?P<input_remark>.*|)
+        """, re.VERBOSE)
+    res = getsq.search(smartquery).groupdict()
+    log.debug("parseSmartQuery: %s" % res)
+    return res
+
 
 class RemoteTimereg:
     """
@@ -59,9 +70,15 @@ class RemoteTimereg:
     l'aver fatto login, condizione obbligatoria per compiere qualsiasi funzione.
     I metodi accettano parametri standard e restituiscono un oggetto ElementTree.
     """
+    actions = {"search": "Search the project",
+               "whoami": "Returns login info",
+               "timereg": "Register worked time",
+               "timereport": "Report time registered in the provided date"}
+    
     def __init__(self, achievouri, user, password):
         """
         Classe di interfaccia per il modulo Achievo "remote"
+        Fornire la path di achievo, username e password
         """
         self.user = user
         self.userid = 0
@@ -70,12 +87,12 @@ class RemoteTimereg:
         self._loginurl = urllib.basejoin(self._achievouri, "index.php")
         self._dispatchurl = urllib.basejoin(self._achievouri, "dispatch.php")
 
-        self._smartquery = self.parseSmartQuery("")
-        self._projects = msgParse("<response />")
-        
+        self._smartquery = parseSmartQuery("")
+        self._projects = ET.fromstring("<response />")
+
         self.whoami()
         #self.search("%")
-        
+
     def _login(self, user=None, password=None):
         """
         Restituisce il nome utente e rinfresca la sessione di Achievo
@@ -89,7 +106,7 @@ class RemoteTimereg:
         #refresh Achievo session
         urllib2.urlopen(self._loginurl, auth).read()
         return self._urlDispatch("whoami")
-    
+
     def _setupAuth(self):
         """
         Imposta l'autenticazione http e la gestione dei cookies
@@ -103,7 +120,7 @@ class RemoteTimereg:
         #installa come opener di default per urllib2
         #FIXME: e se fosse multithread con due auth diverse?
         urllib2.install_opener(opener)
-    
+
     def _urlDispatch(self, node, action="search", **kwargs):
         """
         Invoca il dispatch.php di Achievo
@@ -128,28 +145,15 @@ class RemoteTimereg:
         Restituisce il nome utente della sessione attiva
         """
         page = self._login()
-        elogin = msgParse(page)
+        elogin = ET.fromstring(page)
         if self.userid == 0:
             self.userid = elogin[0].get("id")
         return elogin
 
-    def parseSmartQuery(self, smartquery):
-        getsq = re.compile("""
-            (?P<input_project>[^ ]+|)\ *
-            (?P<input_phase>[^ ]+|)\ *
-            (?P<input_activity>[^ ]+|)\ *
-            (?P<input_hours>\d{1,2}:\d{1,2}|)\ *
-            (?P<input_remark>.*|)
-            """, re.VERBOSE)
-        res = getsq.search(smartquery).groupdict()
-        log.debug("parseSmartQuery: %s" % res)
-        return res
-         
     def search(self, smartquery="%"):
         """
         Ottiene la lista dei progetti/fasi/attività coerenti
-        con la smart-string inviata,
-        restituisce un AchievoTimereg
+        con la smart-string inviata, restituisce un ElementTree
         """
         #Se vuota converte in "trova tutto"
         # % permette la ricerca anche all'interno del nome del progetto
@@ -158,18 +162,18 @@ class RemoteTimereg:
             #simula la latenza di internet
             import time
             time.sleep(1)
-        _smartquery = self.parseSmartQuery(smartquery)
-        _ppa = " ".join(map(_smartquery.get,
-                            ["input_project", "input_phase", "input_activity"]))
-        _old_ppa = " ".join(map(self._smartquery.get,
-                            ["input_project", "input_phase", "input_activity"]))
+        _smartquery = parseSmartQuery(smartquery)
+        _ppa = " ".join([_smartquery[k] for k in
+                        ["input_project", "input_phase", "input_activity"]])
+        _old_ppa = " ".join([self._smartquery[k] for k in
+                            ["input_project", "input_phase", "input_activity"]])
         self._smartquery = _smartquery
         # Fa la query al server solo se la parte
         # "project", "phase", "activity" è cambiata
         if _ppa != _old_ppa:
             page = self._urlDispatch("query", input=_ppa)
-            self._projects = msgParse(page)
-        log.debug("Search results: %s" % emsgDump(self._projects))
+            self._projects = ET.fromstring(page)
+        log.debug("Search results: %s" % ET.tostring(self._projects, "utf-8"))
         if len(self._projects) == 1:
             self._prepareTimereg()
         return self._projects
@@ -194,9 +198,12 @@ class RemoteTimereg:
         passati nel parametro date
         """
         page = self._urlDispatch("timereport", date=date)
-        return msgParse(page)
+        return ET.fromstring(page)
 
     def timereg(self, projectid, activityid, phaseid, hmtime, activitydate, remark, id=0):
+        """
+        Registra un blocco di ore lavorate
+        """
         args = {"projectid": projectid,
                 "activityid": activityid,
                 "phaseid": phaseid,
@@ -206,13 +213,15 @@ class RemoteTimereg:
                 "entrydate": time.strftime("%Y%m%d", time.gmtime()),
                 "remark": remark,
                 "userid": "person.id=%s" % self.userid}
+                #TODO: fare in modo che il server prenda userid dalla sessione corrente
         if id == 0: #save new record
             page = self._urlDispatch("timereg", action="save", **args)
         else: #update
             args["id"] = id
             args["atkprimkey"] = "hours.id=%s" % id
+            #TODO: scoprire quale dei due viene usato da achievo per l'update
             page = self._urlDispatch("timereg", action="edit", **args)
-        return msgParse(page)
+        return ET.fromstring(page)
 
 
 example_save = """

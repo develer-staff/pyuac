@@ -42,15 +42,20 @@ def parseCommand(cmdline):
     action = action_params[0]
     params = {}
     if len(action_params) > 1:
+        if __debug__:
+            log.debug("<!--cli parse_qsl: \n%s\n-->\n" % cgi.parse_qsl(action_params[1]))
+        # parse_qsl restutuisce una lista del tipo
+        # [('par1', 'var'), ('par2', 'var1'), ('par2', 'var2')] da convertire in
+        # => {'par1': 'var',
+        #     'par2', ['var1','var2']}
         for k, v in cgi.parse_qsl(action_params[1]):
-            if len(v) == 1:
-                # parse_qsl restituisce sempre array (anche singole)
-                params[str(k)] = v[0]
-                # str(k) perchè poi le chiavi del dizionario passeranno
-                # per getattr che non accetta unicode (sono nomi di metodi)
-            else:
-                # devo comunque convertire in stringa il nome (orig. unicode)
-                params[str(k)] = v
+            if params.setdefault(str(k), v) != v:
+                if type(params[str(k)]) is not list:
+                    params[str(k)] = [params[str(k)], v]
+                else:
+                    params[str(k)].append(v)
+                # str(k) perchè poi le chiavi del dizionario
+                # verranno usate come keyword arguments
     if __debug__:
         log.debug("<!--cli params: \n%s\n-->\n" % str(params))
     return action, params

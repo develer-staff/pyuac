@@ -28,8 +28,7 @@ log = logging.getLogger("pyuac.gui")
 
 def debug(msg):
     if __debug__:
-        msg = "#-#-# "+msg.replace(r"%%", r"%").replace(r"%", r"%%")
-        qDebug(msg)
+        print __name__, msg
         log.debug(msg)
 
 class TimeregWindow(QMainWindow):
@@ -68,44 +67,38 @@ class TimeregWindow(QMainWindow):
                      self._smartQueryChanged)
         self.connect(self.ui.btnSave, SIGNAL("clicked()"),
                      self.timereg)
-        self.connect(self.remote, SIGNAL("searchStarted()"),
-                     self._searchStarted)
-        self.connect(self.remote, SIGNAL("searchDone"),
-                     self._projectsChanged)
-        self.connect(self.remote, SIGNAL("timeregStarted()"),
-                     self._timeregStarted)
-        self.connect(self.remote, SIGNAL("timeregDone()"),
-                     self._timeregDone)
-        self.connect(self.remote, SIGNAL("timeregError()"),
-                     self._timeregError)
-        self.connect(self.remote, SIGNAL("processError(int)"),
-                     self._processError)
         self.connect(self.ui.comboProjectPhase, SIGNAL("activated(const QString&)"),
                      self._comboProjectPhaseActivated)
         self.connect(self.ui.comboActivity, SIGNAL("activated(const QString&)"),
                      self._comboActivityActivated)
         self.connect(self.ui.comboTimeWorked, SIGNAL("activated(const QString&)"),
                      self._comboTimeWorkedActivated)
+        # Short-circuit Signals (from python to python)
+        self.connect(self.remote, SIGNAL("queryStarted"),
+                     self._searchStarted)
+        self.connect(self.remote, SIGNAL("queryOK"),
+                     self._projectsChanged)
+        self.connect(self.remote, SIGNAL("timeregStarted"),
+                     self._timeregStarted)
+        self.connect(self.remote, SIGNAL("timeregOK"),
+                     self._registrationDone)
+        self.connect(self.remote, SIGNAL("timeregErr"),
+                     self._timeregErr)
+        self.connect(self.remote, SIGNAL("processError"),
+                     self._processError)
 
     def _smartQueryChanged(self, smartquery):
-        debug("-------> pre search")
         smartquery = "%"+unicode(smartquery)
-        self.remote.search(smartquery)
-        debug("-------> post search")
+        self.remote.query(smartquery=smartquery)
                       
     def _projectsChanged(self, projects):
         debug("_projectsChanged %s" % len(projects))
         #if len(self.allProjects) < len(projects):
-        print "id"
-        print id(self.allProjects)
-        print self.allProjects
-        print dir(self.allProjects)
         if not self.allProjects:
             #TODO: mettere in un init, qua ci entro solo alla prima query con %
             self.allProjects = projects #mi stacco dall'oggetto originale
         self.projects = projects
 
-        print "update combobox"
         # ---- Update comboboxes ----
         self.ui.comboProjectPhase.clear()
         self.ui.comboActivity.clear()
@@ -118,7 +111,6 @@ class TimeregWindow(QMainWindow):
         self.ui.comboActivity.addItems(list(activities))
         # ^^^^ Update comboboxes ^^^^
 
-        print "if len 1"
         if len(self.projects) == 1:
             p = self.projects[0]
             
@@ -147,20 +139,17 @@ class TimeregWindow(QMainWindow):
             self.ui.labelRemark.setEnabled(False)
             self.ui.btnSave.setEnabled(False)
 
-        print "_projectsChanged false"
- 
     def _timeregStarted(self):
         debug("_timeregStarted")
     
-    def _timeregDone(self):
-        debug("_timeregDone")
+    def _registrationDone(self, eresp):
+        debug("_registrationDone")
         self._setupGui()
-        self.emit(SIGNAL("registrationDone"),
-                  str(self.baseproject.get("activitydate")))
+        self.emit(SIGNAL("registrationDone"), eresp)
         self.baseproject = None
         self.ui.close()
 
-    def _timeregError(self):
+    def _timeregErr(self):
         debug("_timeregError")
 
     def _searchStarted(self):
@@ -168,7 +157,7 @@ class TimeregWindow(QMainWindow):
 
     def _processError(self, int):
         debug("_processError %s" % int)
-        self.err.showMessage(tr("Errore nell'avviare il processo interfaccia con Achievo."))
+        self.err.showMessage(self.tr("Errore nell'avviare il processo interfaccia con Achievo."))
      
     def _comboProjectPhaseActivated(self, combotext):
         #TODO: fattorizzare in qualche modo questi 3
@@ -208,7 +197,7 @@ class TimeregWindow(QMainWindow):
             self.baseproject.set("activitydate", params["activitydate"])
         debug(str(params))
         self.remote.timereg(**params)
-        self.ui.setWindowTitle(tr("Time Registration - saving..."))
+        self.ui.setWindowTitle(self.tr("Time Registration - saving..."))
     
     def edit(self, project):
         self.baseproject = project

@@ -62,7 +62,6 @@ def parseSmartQuery(smartquery):
     log.debug("parseSmartQuery: %s" % res)
     return res
 
-
 class RemoteTimereg:
     """
     RemoteTimereg si interfaccia (in modo sincrono) con il modulo Achievo "remote".
@@ -70,11 +69,12 @@ class RemoteTimereg:
     l'aver fatto login, condizione obbligatoria per compiere qualsiasi funzione.
     I metodi accettano parametri standard e restituiscono un oggetto ElementTree.
     """
-    actions = {"search": "Search the project",
+
+    actions = {"query": "Search the project matching the smartquery",
                "whoami": "Returns login info",
                "timereg": "Register worked time",
                "timereport": "Report time registered in the provided date"}
-    
+
     def __init__(self, achievouri, user, password):
         """
         Classe di interfaccia per il modulo Achievo "remote"
@@ -150,7 +150,7 @@ class RemoteTimereg:
             self.userid = elogin[0].get("id")
         return elogin
 
-    def search(self, smartquery="%"):
+    def query(self, smartquery="%"):
         """
         Ottiene la lista dei progetti/fasi/attività coerenti
         con la smart-string inviata, restituisce un ElementTree
@@ -200,7 +200,7 @@ class RemoteTimereg:
         page = self._urlDispatch("timereport", date=date)
         return ET.fromstring(page)
 
-    def timereg(self, projectid, activityid, phaseid, hmtime, activitydate, remark, id=0):
+    def timereg(self, projectid, activityid, phaseid, hmtime, activitydate, remark, id=None):
         """
         Registra un blocco di ore lavorate
         """
@@ -214,14 +214,16 @@ class RemoteTimereg:
                 "remark": remark,
                 "userid": "person.id=%s" % self.userid}
                 #TODO: fare in modo che il server prenda userid dalla sessione corrente
-        if id == 0: #save new record
+        if id == None: #save new record
             page = self._urlDispatch("timereg", action="save", **args)
         else: #update
             args["id"] = id
             args["atkprimkey"] = "hours.id=%s" % id
             #TODO: scoprire quale dei due viene usato da achievo per l'update
             page = self._urlDispatch("timereg", action="edit", **args)
-        return ET.fromstring(page)
+        epage = ET.fromstring(page)
+        epage[0].set("activitydate", activitydate)
+        return epage
 
 
 example_save = """

@@ -55,21 +55,21 @@ def parseCommand(cmdline):
         log.debug("<!--cli params: \n%s\n-->\n" % str(params))
     return action, params
 
-def help(lib):
+def help(remote):
     res = ["Usare una delle azioni definite:"]
     res += ["  q: Quit"]
-    res += ["  %s: %s" % (action, lib.actions[action]) for lib.action in actions]
+    res += ["  %s: %s" % (action, remote.actions[action]) for remote.action in actions]
     return "\n".join(res)
 
 exits = "OK PARAMS_ERROR CONNECTION_ERROR ACTION_ERROR RESPONSE_ERROR".split()
 def exit(mode):
     sys.exit(exits.index(mode))
 
-def execute(lib, action, params):
+def execute(remote, action, params):
     if __debug__:
         log.debug("cli.%s(%s)" % (action, params))
     #Cerco di mappare l'azione su un metodo
-    func = getattr(lib, action)
+    func = getattr(remote, action)
     if params:
         eres = func(**params)
     else:
@@ -89,7 +89,7 @@ def serve(params, oneshot=False):
     """
     try:
         #Cerca di inizializzare la classe con i parametri forniti
-        lib = libRemoteTimereg.RemoteTimereg(*params)
+        remote = libRemoteTimereg.RemoteTimereg(*params)
     except urllib2.HTTPError:
         log.error("Connection Error!!\n")
         exit("CONNECTION_ERROR")
@@ -100,8 +100,8 @@ def serve(params, oneshot=False):
         prompt = (not oneshot) and "remote: " or ""
         cmdline = raw_input(prompt).strip()
         action, params = parseCommand(cmdline)
-        if action in lib.actions:
-            print execute(lib, action, params)
+        if action in remote.actions:
+            print execute(remote, action, params)
             if oneshot:
                 exit("OK")
         elif action == "q":

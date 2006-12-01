@@ -29,8 +29,7 @@ log = logging.getLogger("pyuac.gui")
 
 def debug(msg):
     if __debug__:
-        msg = "#-#-# "+msg.replace(r"%%", r"%").replace(r"%", r"%%")
-        qDebug(msg)
+        print msg
         log.debug(msg)
 
 class TimeregApplication(QApplication):

@@ -9,7 +9,7 @@
 # Author: Matteo Bertini <naufraghi@develer.com>
 #
 
-import urllib, urllib2, re, time, datetime, sys, logging, logging.config, copy
+import urllib, urllib2, re, time, datetime, sys, logging
 from xml.parsers.expat import ExpatError
 from htmlentitydefs import entitydefs
 
@@ -21,11 +21,15 @@ except ImportError:
     except ImportError:
         raise ImportError, "ElementTree (or py2.5) needed"
 
-logging.config.fileConfig("logger.ini")
+logging.basicConfig(filename="pyuac.lib.log",
+                    format="%(name)-12s %(asctime)s %(levelname)s %(message)s",
+                    level=logging.DEBUG)
 log = logging.getLogger("pyuac.lib")
 #TODO: risolvere il problema dei log contemporanei del processo
 #      principale e di quello in QProcess. Entrambi caricano libRemoteTimereg
 #      e quindi entrambi caricano il logger "pyuac.lib"
+
+ACHIEVO_ENCODING = "ISO-8859-1"
 
 def timeRound(inTime, stepTime=15):
     """
@@ -87,7 +91,7 @@ class RemoteTimereg:
         self._loginurl = urllib.basejoin(self._achievouri, "index.php")
         self._dispatchurl = urllib.basejoin(self._achievouri, "dispatch.php")
 
-        self._smartquery = parseSmartQuery("")
+        self._smartquery_dict = parseSmartQuery("")
         self._projects = ET.fromstring("<response />")
 
         self.whoami()
@@ -132,20 +136,22 @@ class RemoteTimereg:
         for key, val in kwargs.items():
             if type(val) == list:
                 del kwargs[key]
-                kwargs[key+"[]"] = val
+                kwargs[key+"[]"] = [v.encode(ACHIEVO_ENCODING) for v in val]
+            else:
+                kwargs[key] = val.encode(ACHIEVO_ENCODING)
         qstring = urllib.urlencode(params.items() + kwargs.items(), doseq=True)
         if __debug__:
             log.debug("##### Dispatch: %s" % qstring)
-        page = urllib2.urlopen(self._dispatchurl, qstring).read().decode("utf-8")
+        page = urllib2.urlopen(self._dispatchurl, qstring).read()#.decode("utf-8")
+                                                        # è xml, ci deve pensare etree
         log.debug("_urlDispatch " + page)
-        return page
+        return ET.fromstring(page)
 
     def whoami(self):
         """
         Restituisce il nome utente della sessione attiva
         """
-        page = self._login()
-        elogin = ET.fromstring(page)
+        elogin = self._login()
         if self.userid == 0:
             self.userid = elogin[0].get("id")
         return elogin
@@ -162,18 +168,17 @@ class RemoteTimereg:
             #simula la latenza di internet
             import time
             time.sleep(1)
-        _smartquery = parseSmartQuery(smartquery)
-        _ppa = " ".join([_smartquery[k] for k in
+        _smartquery_dict = parseSmartQuery(smartquery)
+        _ppa = " ".join([_smartquery_dict[k] for k in
                         ["input_project", "input_phase", "input_activity"]])
-        _old_ppa = " ".join([self._smartquery[k] for k in
+        _old_ppa = " ".join([self._smartquery_dict[k] for k in
                             ["input_project", "input_phase", "input_activity"]])
-        self._smartquery = _smartquery
+        self._smartquery_dict = _smartquery_dict
         # Fa la query al server solo se la parte
         # "project", "phase", "activity" è cambiata
         if _ppa != _old_ppa:
-            page = self._urlDispatch("query", input=_ppa)
-            self._projects = ET.fromstring(page)
-        log.debug("Search results: %s" % ET.tostring(self._projects, "utf-8"))
+            self._projects = self._urlDispatch("query", input=_ppa)
+        log.debug("Search results: %s" % ET.tostring(self._projects))
         if len(self._projects) == 1:
             self._prepareTimereg()
         return self._projects
@@ -185,43 +190,41 @@ class RemoteTimereg:
         """
         project = self._projects[0]
         #TODO: non ci sono già in project?
-        project.set("input_hours", self._smartquery["input_hours"])
-        project.set("input_remark", self._smartquery["input_remark"].decode("utf-8"))
+        project.set("input_hours", self._smartquery_dict["input_hours"])
+        project.set("input_remark", self._smartquery_dict["input_remark"])
         # il remark potrebbe essere filtrato in futuro, ad esempio permettendo
         # di creare todo o appuntamenenti
-        project.set("remark", self._smartquery["input_remark"].decode("utf-8"))
-        project.set("hmtime",  timeRound(self._smartquery["input_hours"] or "0:00"))
-    
+        project.set("remark", self._smartquery_dict["input_remark"])
+        project.set("hmtime",  timeRound(self._smartquery_dict["input_hours"] or "0:00"))
+
     def timereport(self, date):
         """
         Ottiene la lista delle ore registrate nei giorni
         passati nel parametro date
         """
-        page = self._urlDispatch("timereport", date=date)
-        return ET.fromstring(page)
+        return self._urlDispatch("timereport", date=date)
 
     def timereg(self, projectid, activityid, phaseid, hmtime, activitydate, remark, id=None):
         """
         Registra un blocco di ore lavorate
         """
-        args = {"projectid": projectid,
-                "activityid": activityid,
-                "phaseid": phaseid,
-                "time[hours]": hmtime.split(":")[0],
-                "time[minutes]": hmtime.split(":")[1],
-                "activitydate": activitydate,
-                "entrydate": time.strftime("%Y%m%d", time.gmtime()),
-                "remark": remark,
-                "userid": "person.id=%s" % self.userid}
+        kwargs = {"projectid": projectid,
+                  "activityid": activityid,
+                  "phaseid": phaseid,
+                  "time[hours]": hmtime.split(":")[0],
+                  "time[minutes]": hmtime.split(":")[1],
+                  "activitydate": activitydate,
+                  "entrydate": time.strftime("%Y%m%d", time.gmtime()),
+                  "remark": remark,
+                  "userid": "person.id=%s" % self.userid}
                 #TODO: fare in modo che il server prenda userid dalla sessione corrente
         if id == None: #save new record
-            page = self._urlDispatch("timereg", action="save", **args)
+            epage = self._urlDispatch("timereg", action="save", **kwargs)
         else: #update
-            args["id"] = id
-            args["atkprimkey"] = "hours.id=%s" % id
+            kwargs["id"] = id
+            kwargs["atkprimkey"] = "hours.id=%s" % id
             #TODO: scoprire quale dei due viene usato da achievo per l'update
-            page = self._urlDispatch("timereg", action="edit", **args)
-        epage = ET.fromstring(page)
+            epage = self._urlDispatch("timereg", action="edit", **kwargs)
         epage[0].set("activitydate", activitydate)
         return epage
 

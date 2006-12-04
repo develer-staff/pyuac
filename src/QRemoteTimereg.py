@@ -26,7 +26,7 @@ log = logging.getLogger("pyuac.gui")
 
 def debug(msg):
     if __debug__:
-        log.debug(msg)
+        log.debug("%s.%s" % (__name__, msg))
         print __name__, msg
 
 class RemoteTimereg(QObject):
@@ -56,7 +56,7 @@ class RemoteTimereg(QObject):
         for k, v in kwargs.items():
             kwargs[k] = unicode(v).strip().encode("utf-8") #se v è un QString
         qstring = urllib.urlencode(kwargs, doseq=True)
-        debug("_encode "+qstring)
+        #debug("_encode "+qstring)
         return action + "?" + qstring
 
     def _execute(self, qstring):
@@ -64,7 +64,7 @@ class RemoteTimereg(QObject):
         Avvia il processo e invia la qstring
         """
         if self.process.state() == self.process.NotRunning:
-            debug("_execute(%s) %s" % (self.process.state(), qstring))
+            debug("_execute(%s)" % qstring)
             self.process.start("./pyuac_cli.py", self.auth+["--oneshot"])
             self.process.write(qstring+"\n")
             return True

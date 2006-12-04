@@ -8,7 +8,7 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import sys
+import sys, logging
 from PyQt4 import uic
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -24,13 +24,12 @@ except ImportError:
 from QRemoteTimereg import RemoteTimereg
 from QTimeBrowseWindow import TimeBrowseWindow
 
-import logging
 log = logging.getLogger("pyuac.gui")
 
 def debug(msg):
     if __debug__:
-        print msg
-        log.debug(msg)
+        print __name__, msg
+        log.debug("%s.%s" % (__name__, msg))
 
 class TimeregApplication(QApplication):
     def __init__(self, args):

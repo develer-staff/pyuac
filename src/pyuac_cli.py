@@ -68,7 +68,7 @@ def parseCommand(cmdline):
 def help(remote):
     res = ["Usare una delle azioni definite:"]
     res += ["  q: Quit"]
-    res += ["  %s: %s" % (action, remote.actions[action]) for remote.action in actions]
+    res += ["  %s: %s" % (action, description) for action, description in remote.actions.items()]
     return "\n".join(res)
 
 exits = "OK PARAMS_ERROR CONNECTION_ERROR ACTION_ERROR RESPONSE_ERROR".split()
@@ -115,7 +115,7 @@ def serve(params, oneshot=False):
         elif action == "q":
             exit("OK")
         elif not oneshot:
-            print help()
+            print help(remote)
         else:
             exit("ACTION_ERROR")
 

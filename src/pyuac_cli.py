@@ -21,6 +21,11 @@ except ImportError:
 
 log = logging.getLogger("pyuac.cli")
 
+def debug(msg):
+    if __debug__:
+        log.debug("%s.%s" % (__name__, msg))
+        #sys.stderr.write(msg+"\n") #da problemi, non separa bene stdout da stderr
+
 help = """Uso:
     http://domain.com/achievo/ user password [--]
     [--] attiva la modalità a comando singolo
@@ -42,22 +47,22 @@ def parseCommand(cmdline):
     action = action_params[0]
     params = {}
     if len(action_params) > 1:
-        if __debug__:
-            log.debug("<!--cli parse_qsl: \n%s\n-->\n" % cgi.parse_qsl(action_params[1]))
+        debug("<!--cli parse_qsl: \n%s\n-->\n" % cgi.parse_qsl(action_params[1]))
         # parse_qsl restutuisce una lista del tipo
         # [('par1', 'var'), ('par2', 'var1'), ('par2', 'var2')] da convertire in
         # => {'par1': 'var',
         #     'par2', ['var1','var2']}
         for k, v in cgi.parse_qsl(action_params[1]):
-            if params.setdefault(str(k), v) != v:
-                if type(params[str(k)]) is not list:
-                    params[str(k)] = [params[str(k)], v]
+            # str(k) perchè poi le chiavi del dizionario
+            # verranno usate come keyword arguments
+            k = str(k)
+            v = v.decode("utf-8")
+            if params.setdefault(k, v) != v:
+                if type(params[k]) is not list:
+                    params[k] = [params[k], v]
                 else:
-                    params[str(k)].append(v)
-                # str(k) perchè poi le chiavi del dizionario
-                # verranno usate come keyword arguments
-    if __debug__:
-        log.debug("<!--cli params: \n%s\n-->\n" % str(params))
+                    params[k].append(v)
+    debug("<!--cli params: \n%s\n-->\n" % str(params))
     return action, params
 
 def help(remote):
@@ -71,8 +76,7 @@ def exit(mode):
     sys.exit(exits.index(mode))
 
 def execute(remote, action, params):
-    if __debug__:
-        log.debug("cli.%s(%s)" % (action, params))
+    debug("cli.%s(%s)" % (action, params))
     #Cerco di mappare l'azione su un metodo
     func = getattr(remote, action)
     if params:
@@ -80,8 +84,7 @@ def execute(remote, action, params):
     else:
         eres = func()
     res = ET.tostring(eres, "utf-8")
-    if __debug__:
-        log.debug("cli.%s(%s) results: %s" % (action, params, res))
+    debug("cli.%s(%s) results: %s" % (action, params, res))
     return res
 
 def serve(params, oneshot=False):

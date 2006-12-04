@@ -50,7 +50,7 @@ class TimeBrowseWindow(QMainWindow):
             cellHead = QTableWidgetItem(head)
             self.ui.tableTimereg.setHorizontalHeaderItem(c, cellHead)
         self.ui.dateEdit.setDateTime(QDateTime.currentDateTime())
-    
+
     def _connectSlots(self):
         self.connect(self.ui.btnTimereg, SIGNAL("clicked()"),
                      self._timereg)
@@ -58,6 +58,8 @@ class TimeBrowseWindow(QMainWindow):
                      self.ui.close)
         self.connect(self.ui.btnToday, SIGNAL("clicked()"),
                      self._setupGui)
+        self.connect(self.ui.btnEdit, SIGNAL("clicked()"),
+                     self._timeedit)
         self.connect(self.ui.dateEdit, SIGNAL("dateChanged(const QDate&)"),
                      self._timereport)
         self.connect(self.ui.tableTimereg, SIGNAL("cellDoubleClicked(int,int)"),
@@ -70,27 +72,29 @@ class TimeBrowseWindow(QMainWindow):
 
     def _timereg(self):
         self.edit.show()
-        
-    def _timeedit(self, row, column):
+
+    def _timeedit(self, row=None, column=None):
         debug("_timeedit Editing projects")
-        self.edit.edit(self.projects[row])
+        if row == None:
+          row = self.ui.tableTimereg.currentRow()
+        self.edit.setupEdit(self.projects[row])
         self.edit.show()
-    
+
     def _registrationDone(self, eresp):
         debug("_registrationDone %s" % ET.tostring(eresp))
-        newdate = QDate.fromString(str(eresp[0].get("activitydate")), "yyyyMMdd")
+        newdate = QDate.fromString(str(eresp[0].get("activitydate")), "yyyy-MM-dd")
         if newdate != self.ui.dateEdit.date():
             self.ui.dateEdit.setDate(newdate)
         self._timereport(newdate)
 
     def _timereport(self, qdate):
-        reportdate = qdate.toString("yyyyMMdd")
+        reportdate = qdate.toString("yyyy-MM-dd")
         self.remote.timereport(date=reportdate)
 
     def _updateTimereport(self, eprojects):
         debug("_updateTimereport")
         self.projects = eprojects
-        self.ui.tableTimereg.clear()
+        self.ui.tableTimereg.setRowCount(0)
         self.ui.tableTimereg.setRowCount(len(eprojects))
         for r, p in enumerate(eprojects):
             row = []

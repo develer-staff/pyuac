@@ -77,6 +77,7 @@ class RemoteTimereg:
     actions = {"query": "Search the project matching the smartquery",
                "whoami": "Returns login info",
                "timereg": "Register worked time",
+               "delete": "Delete the timered by id",
                "timereport": "Report time registered in the provided date"}
 
     def __init__(self, achievouri, user, password):
@@ -225,7 +226,12 @@ class RemoteTimereg:
             kwargs["atkprimkey"] = "hours.id=%s" % id
             #TODO: scoprire quale dei due viene usato da achievo per l'update
             epage = self._urlDispatch("timereg", action="edit", **kwargs)
-        epage[0].set("activitydate", activitydate)
+        return epage
+
+    def delete(self, id):
+        kwargs = {"atkselector": "hours.id=%s" % id,
+                  "confirm": "Yes"}
+        epage = self._urlDispatch("timereg", action="delete", **kwargs)
         return epage
 
 

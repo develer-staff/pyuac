@@ -6,10 +6,13 @@ if (stristr($_SERVER[HTTP_ACCEPT], "application/xhtml+xml"))
     header("Content-Type: application/xhtml+xml");
 else
     header("Content-Type: text/html");
-    
+
 function is_valid_date($date)
 {
-    return (ereg("([0-9]{4}).([0-9]{1,2}).([0-9]{1,2})", $date));
+    $res = (ereg("([0-9]{4})[^0-9]{0,1}([0-9]{1,2})[^0-9]{0,1}([0-9]{1,2})", $date));
+    //if ($res == 1) echo "Pass";
+    //else echo "Fail";
+    return $res;
 }
 
 function xml_encode($var)
@@ -100,6 +103,16 @@ class timereg extends atkNode
             $hoursnode->updateDb($record);
             echo make_xml("timereg", "OK", array(array("action"=>"edit")));
         }
+        exit;
+    }
+
+    function action_delete()
+    {
+        atkdebug("timereg Action delete");
+        $hoursnode = &atkGetNode("timereg.hours");
+        $hoursnode->m_postvars = $this->m_postvars; // Share postvars.
+        $hoursnode->callHandler("delete");
+        echo make_xml("timereg", "OK", array(array("action"=>"delete")));
         exit;
     }
 }

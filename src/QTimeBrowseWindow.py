@@ -8,7 +8,7 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import sys
+import sys, logging
 from PyQt4 import uic
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -23,13 +23,12 @@ except ImportError:
 
 from QTimeregWindow import TimeregWindow
 
-import logging
 log = logging.getLogger("pyuac.gui")
 
 def debug(msg):
     if __debug__:
         print __name__, msg
-        log.debug(msg)
+        log.debug("%s.%s" % (__name__, msg))
 
 class TimeBrowseWindow(QMainWindow):
     def __init__(self, parent):
@@ -73,21 +72,25 @@ class TimeBrowseWindow(QMainWindow):
         self.edit.show()
         
     def _timeedit(self, row, column):
-        debug("Editing projects %s[%s] %s" %(type(self.projects), row, self.projects[row]))
+        debug("_timeedit Editing projects")
         self.edit.edit(self.projects[row])
         self.edit.show()
     
     def _registrationDone(self, eresp):
         debug("_registrationDone %s" % ET.tostring(eresp))
-        newdate = str(eresp[0].get("activitydate"))
-        self.ui.dateEdit.setDate(QDate.fromString(newdate, "yyyyMMdd"))
+        newdate = QDate.fromString(str(eresp[0].get("activitydate")), "yyyyMMdd")
+        if newdate != self.ui.dateEdit.date():
+            self.ui.dateEdit.setDate(newdate)
+        self._timereport(newdate)
 
     def _timereport(self, qdate):
         reportdate = qdate.toString("yyyyMMdd")
         self.remote.timereport(date=reportdate)
 
     def _updateTimereport(self, eprojects):
+        debug("_updateTimereport")
         self.projects = eprojects
+        self.ui.tableTimereg.clear()
         self.ui.tableTimereg.setRowCount(len(eprojects))
         for r, p in enumerate(eprojects):
             row = []

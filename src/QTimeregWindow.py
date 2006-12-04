@@ -8,7 +8,7 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import sys
+import sys, logging
 from PyQt4 import uic
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -23,13 +23,12 @@ except ImportError:
 
 from QRemoteTimereg import RemoteTimereg
 
-import logging
 log = logging.getLogger("pyuac.gui")
 
 def debug(msg):
     if __debug__:
         print __name__, msg
-        log.debug(msg)
+        log.debug("%s.%s" % (__name__, msg))
 
 class TimeregWindow(QMainWindow):
     def __init__(self, parent):
@@ -154,6 +153,7 @@ class TimeregWindow(QMainWindow):
 
     def _searchStarted(self):
         debug("_searchStarted")
+        self.ui.btnSave.setEnabled(False)
 
     def _processError(self, int):
         debug("_processError %s" % int)
@@ -191,7 +191,7 @@ class TimeregWindow(QMainWindow):
     def timereg(self):
         p = self.projects[0]
         params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime remark".split()])
-        params["activitydate"] = self.ui.dateTimeregDate.date().toString("yyyyMMdd")
+        params["activitydate"] = str(self.ui.dateTimeregDate.date().toString("yyyyMMdd"))
         if self.baseproject != None:
             params["id"] = self.baseproject.get("id")
             self.baseproject.set("activitydate", params["activitydate"])

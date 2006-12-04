@@ -17,12 +17,13 @@ class timereport extends atkNode
         $db = &atkGetDb();
         $date = $this->m_postvars['date'];
         // faccio un controllo per far passare solo le date
-        // nel formato YYYY-[M]M-[D]D
+        // nel formato YYYY[-][M]M[-][D]D
         if (!is_array($date))
             $date = array($date);
         $date = array_filter($date, is_valid_date);
+        $date = str_replace("-","", $date);
         $datelist = implode("','", $date);
-        
+
         $sql = "
                 SELECT
                     hours.*,

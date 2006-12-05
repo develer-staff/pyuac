@@ -59,7 +59,7 @@ class TimeregWindow(QMainWindow):
         self.ui.setWindowTitle("Time Registration - %s" % self.remote.auth[1])
         self.ui.txtRemark.setPlainText("")
         self.ui.comboSmartQuery.lineEdit().setText("")
-        self.ui.comboSmartQuery.lineEdit().setFocus()
+        self.ui.txtRemark.setFocus()
         self._smartQueryChanged("")
         self._updateComboBoxes()
 
@@ -72,8 +72,6 @@ class TimeregWindow(QMainWindow):
         self.ui.btnDelete.setEnabled(False)
 
     def _connectSlots(self):
-        self.connect(self.ui.comboSmartQuery, SIGNAL("editTextChanged(QString)"),
-                     self._smartQueryChanged)
         self.connect(self.ui.btnSave, SIGNAL("clicked()"),
                      self.timereg)
         self.connect(self.ui.btnDelete, SIGNAL("clicked()"),
@@ -84,7 +82,7 @@ class TimeregWindow(QMainWindow):
                      self._comboActivityActivated)
         self.connect(self.ui.comboTimeWorked, SIGNAL("activated(const QString&)"),
                      self._comboTimeWorkedActivated)
-        self.connect(self.ui.txtRemark, SIGNAL("cursorPositionChanged()"),
+        self.connect(self.ui.txtRemark, SIGNAL("textChanged()"),
                      self._txtRemarkChanged)
         # Short-circuit Signals (from python to python)
         self.connect(self.remote, SIGNAL("queryStarted"),
@@ -105,6 +103,10 @@ class TimeregWindow(QMainWindow):
     def _smartQueryChanged(self, smartquery):
         smartquery = "%"+unicode(smartquery)
         self.remote.query(smartquery=smartquery)
+
+    def _txtRemarkChanged(self):
+        newremark = unicode(self.ui.txtRemark.toPlainText())
+        self._smartQueryChanged(newremark)
 
     def _updateComboBoxes(self):
         self.ui.comboProjectPhase.clear()
@@ -135,10 +137,10 @@ class TimeregWindow(QMainWindow):
             self.ui.comboTimeWorked.setCurrentIndex(idx)
 
             self.ui.labelExactTime.setText(p.get("input_hours") or "00:00")
-            self.ui.txtRemark.setPlainText(p.get("remark"))
+            #self.ui.txtRemark.setPlainText(p.text)
             self.ui.labelTimeWorked.setEnabled(p.get("hmtime") != "00:00")
-            self.ui.labelRemark.setEnabled(p.get("remark") != "")
-            self.ui.btnSave.setEnabled(p.get("hmtime") != "00:00" and p.get("remark") != "")
+            self.ui.labelRemark.setEnabled(p.text != "")
+            self.ui.btnSave.setEnabled(p.get("hmtime") != "00:00" and p.text != "")
             self.ui.labelProjectPhase.setEnabled(True)
             self.ui.labelActivity.setEnabled(True)
             self.ui.btnDelete.setEnabled(True)
@@ -172,53 +174,46 @@ class TimeregWindow(QMainWindow):
         debug("_processError %s" % int)
         self.err.showMessage(self.tr("Errore nell'avviare il processo interfaccia con Achievo."))
 
-    def _comboProjectPhaseActivated(self, combotext):
-        #TODO: fattorizzare in qualche modo questi 3
-        origtext = unicode(self.ui.comboSmartQuery.lineEdit().text())
+    def _parseSmartQuery(self):
+        #origtext = unicode(self.ui.comboSmartQuery.lineEdit().text())
+        origtext = unicode(self.ui.txtRemark.toPlainText())
         origlist = origtext.split(" ", 4)
         while len(origlist) < 5:
             origlist.append("")
+        return origlist
+
+    def _setSmartQuery(self, qstring):
+        #self.ui.comboSmartQuery.setEditText(qstring)
+        self.ui.txtRemark.setPlainText(qstring)
+
+    def _comboProjectPhaseActivated(self, combotext):
+        #TODO: fattorizzare meglio questi 3 metodi
+        origlist = self._parseSmartQuery()
         newproj, newpha = unicode(combotext).split("/")
         origlist[0] = newproj.strip()
         origlist[1] = newpha.strip()
         self._last_modified_combo = "projectphase"
-        self.ui.comboSmartQuery.setEditText(" ".join(origlist).strip()+" ")
+        self._setSmartQuery(" ".join(origlist).strip()+" ")
 
     def _comboActivityActivated(self, combotext):
-        origtext = unicode(self.ui.comboSmartQuery.lineEdit().text())
-        origlist = origtext.split(" ", 4)
-        while len(origlist) < 5:
-            origlist.append("")
+        origlist = self._parseSmartQuery()
         newact = unicode(combotext)
         origlist[2] = newact.strip()
         self._last_modified_combo = "activity"
-        self.ui.comboSmartQuery.setEditText(" ".join(origlist).strip()+" ")
+        self._setSmartQuery(" ".join(origlist).strip()+" ")
 
     def _comboTimeWorkedActivated(self, combotext):
-        origtext = unicode(self.ui.comboSmartQuery.lineEdit().text())
-        origlist = origtext.split(" ", 4)
-        while len(origlist) < 5:
-            origlist.append("")
+        origlist = self._parseSmartQuery()
         newact = unicode(combotext)
         origlist[3] = newact.strip()
-        self.ui.comboSmartQuery.setEditText(" ".join(origlist).strip()+" ")
+        self._setSmartQuery(" ".join(origlist).strip()+" ")
         
-    def _txtRemarkChanged(self):
-        if not self.ui.txtRemark.document().isModified():
-            return
-        origtext = unicode(self.ui.comboSmartQuery.lineEdit().text())
-        origlist = origtext.split(" ", 4)
-        while len(origlist) < 5:
-            origlist.append("")
-        newremark = unicode(self.ui.txtRemark.toPlainText())
-        origlist[4] = newremark.strip()
-        self.ui.comboSmartQuery.setEditText(" ".join(origlist).strip()+" ")
-
     def timereg(self):
         p = self.projects[0]
         activitydate = str(self.ui.dateTimeregDate.date().toString("yyyy-MM-dd"))
         p.set("activitydate", activitydate)
-        params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime remark activitydate".split()])
+        params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime activitydate".split()])
+        params["remark"] = p.text
         if self._baseproject != None:
             params["id"] = self._baseproject.get("id")
         else:
@@ -230,8 +225,9 @@ class TimeregWindow(QMainWindow):
     def setupEdit(self, project):
         self._baseproject = project
         self.ui.dateTimeregDate.setDate(QDate.fromString(project.get("activitydate"), "yyyy-MM-dd"))
-        smartquery = "%(project_name)s %(phase_name)s %(activity_name)s %(hmtime)s %(remark)s" % dict(project.items())
-        self.ui.comboSmartQuery.setEditText(smartquery)
+        smartquery = "%(project_name)s %(phase_name)s %(activity_name)s %(hmtime)s %(remark)s" %\
+                     dict(project.items() + [("remark", project.text)])
+        self._setSmartQuery(smartquery)
 
     def delete(self):
         if self._baseproject != None:

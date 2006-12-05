@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 #-*- coding: utf-8 -*-
 #
 # Copyright 2006 Develer S.r.l. (http://www.develer.com/)
@@ -54,8 +54,8 @@ class TimeregWindow(QMainWindow):
                     self.ui.comboTimeWorked.addItem(htext)
         self.ui.labelExactTime.setText("00:00")
         #fino a quando non sarà attiva la gestione delle modifiche...
-        [i.setEnabled(False) for i in (self.ui.txtRemark,
-                                       self.ui.btnSave)]
+        #[i.setEnabled(False) for i in (self.ui.txtRemark,
+        #                               self.ui.btnSave)]
         self.ui.setWindowTitle("Time Registration - %s" % self.remote.auth[1])
         self.ui.txtRemark.setPlainText("")
         self.ui.comboSmartQuery.lineEdit().setText("")
@@ -84,6 +84,8 @@ class TimeregWindow(QMainWindow):
                      self._comboActivityActivated)
         self.connect(self.ui.comboTimeWorked, SIGNAL("activated(const QString&)"),
                      self._comboTimeWorkedActivated)
+        self.connect(self.ui.txtRemark, SIGNAL("cursorPositionChanged()"),
+                     self._txtRemarkChanged)
         # Short-circuit Signals (from python to python)
         self.connect(self.remote, SIGNAL("queryStarted"),
                      self._searchStarted)
@@ -199,6 +201,17 @@ class TimeregWindow(QMainWindow):
             origlist.append("")
         newact = unicode(combotext)
         origlist[3] = newact.strip()
+        self.ui.comboSmartQuery.setEditText(" ".join(origlist).strip()+" ")
+        
+    def _txtRemarkChanged(self):
+        if not self.ui.txtRemark.document().isModified():
+            return
+        origtext = unicode(self.ui.comboSmartQuery.lineEdit().text())
+        origlist = origtext.split(" ", 4)
+        while len(origlist) < 5:
+            origlist.append("")
+        newremark = unicode(self.ui.txtRemark.toPlainText())
+        origlist[4] = newremark.strip()
         self.ui.comboSmartQuery.setEditText(" ".join(origlist).strip()+" ")
 
     def timereg(self):

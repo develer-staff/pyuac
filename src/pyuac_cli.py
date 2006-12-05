@@ -26,10 +26,9 @@ def debug(msg):
         log.debug("%s.%s" % (__name__, msg))
         #sys.stderr.write(msg+"\n") #da problemi, non separa bene stdout da stderr
 
-help = """Uso:
-    http://domain.com/achievo/ user password [--]
-    [--] attiva la modalità a comando singolo
-"""
+docs = """  Uso:
+    http://domain.com/achievo/ user password [--oneshot]
+    [--oneshot] attiva la modalità a comando singolo"""
 
 def checkParams(params):
     if len(sys.argv[1:]) < 3:
@@ -124,5 +123,5 @@ if __name__=="__main__":
     if params:
         serve(params, oneshot=oneshot)
     else:
-        print help
+        print docs
         exit("PARAMS_ERROR")

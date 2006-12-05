@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 #-*- coding: utf-8 -*-
 #
 # Copyright 2006 Develer S.r.l. (http://www.develer.com/)
@@ -55,7 +55,7 @@ class TimeBrowseWindow(QMainWindow):
         self.connect(self.ui.btnTimereg, SIGNAL("clicked()"),
                      self._timereg)
         self.connect(self.ui.btnQuit, SIGNAL("clicked()"),
-                     self.ui.close)
+                     self._close)
         self.connect(self.ui.btnToday, SIGNAL("clicked()"),
                      self._setupGui)
         self.connect(self.ui.btnEdit, SIGNAL("clicked()"),
@@ -72,6 +72,10 @@ class TimeBrowseWindow(QMainWindow):
 
     def _timereg(self):
         self.edit.show()
+        
+    def _close(self):
+        self.remote._close()
+        self.ui.close()
 
     def _timeedit(self, row=None, column=None):
         debug("_timeedit Editing projects")

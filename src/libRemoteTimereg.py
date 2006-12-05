@@ -61,7 +61,7 @@ def parseSmartQuery(smartquery):
         (?P<input_activity>[^ ]+|)\ *
         (?P<input_hours>\d{1,2}:\d{1,2}|)\ *
         (?P<input_remark>.*|)
-        """, re.VERBOSE)
+        """, re.VERBOSE + re.DOTALL)
     res = getsq.search(smartquery).groupdict()
     log.debug("parseSmartQuery: %s" % res)
     return res
@@ -190,12 +190,7 @@ class RemoteTimereg:
         registrazione delle ore lavorate.
         """
         project = self._projects[0]
-        #TODO: non ci sono già in project?
-        project.set("input_hours", self._smartquery_dict["input_hours"])
-        project.set("input_remark", self._smartquery_dict["input_remark"])
-        # il remark potrebbe essere filtrato in futuro, ad esempio permettendo
-        # di creare todo o appuntamenenti
-        project.set("remark", self._smartquery_dict["input_remark"])
+        project.text = self._smartquery_dict["input_remark"]
         project.set("hmtime",  timeRound(self._smartquery_dict["input_hours"] or "0:00"))
 
     def timereport(self, date):
@@ -218,7 +213,7 @@ class RemoteTimereg:
                   "entrydate": time.strftime("%Y%m%d", time.gmtime()),
                   "remark": remark,
                   "userid": "person.id=%s" % self.userid}
-                #TODO: fare in modo che il server prenda userid dalla sessione corrente
+        #TODO: fare in modo che il server prenda userid dalla sessione corrente
         if id == None: #save new record
             epage = self._urlDispatch("timereg", action="save", **kwargs)
         else: #update

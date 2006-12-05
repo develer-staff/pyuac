@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 #-*- coding: utf-8 -*-
 #
 # Copyright 2006 Develer S.r.l. (http://www.develer.com/)
@@ -43,6 +43,9 @@ class RemoteTimereg(QObject):
         self.connect(self.process, SIGNAL("finished(int)"), self._ready)
         self.connect(self.process, SIGNAL("error(QProcess::ProcessError)"),
                      self._error)
+                     
+    def _close(self):
+        self.process.terminate()
 
     def _encode(self, action, **kwargs):
         """
@@ -65,7 +68,14 @@ class RemoteTimereg(QObject):
         """
         if self.process.state() == self.process.NotRunning:
             debug("_execute(%s)" % qstring)
-            self.process.start("./pyuac_cli.py", self.auth+["--oneshot"])
+            if sys.platform == "win32":
+                executable = sys.executable
+                params = ["-u", "pyuac_cli.py"]
+            else:
+                executable = "./pyuac_cli.py"
+                params = []
+            debug("Executing: %s" % " ".join([executable]+self.auth+["--oneshot"]))
+            self.process.start(executable, params+self.auth+["--oneshot"])
             self.process.write(qstring+"\n")
             return True
         else:

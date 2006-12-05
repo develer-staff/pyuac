@@ -67,7 +67,7 @@ class query extends atkNode
          * timereg una volta controllati.
         */
         global $g_user;
-        
+
         $db = &atkGetDb();
 
         $string = $this->m_postvars['input'];
@@ -142,7 +142,7 @@ class query extends atkNode
             $k = $results[$i]["k"];
             $results[$i] = array_merge($results[$i], $guesses[$k]);
         }
-        
+
         echo make_xml("query", "OK", $results);
 
         exit;

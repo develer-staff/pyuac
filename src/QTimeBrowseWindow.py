@@ -46,9 +46,10 @@ class TimeBrowseWindow(QMainWindow):
 
     def _setupGui(self):
         self.ui.tableTimereg.setColumnCount(5)
-        for c, head in enumerate("Date Project/Phase Activity Remark Time".split()):
+        for c, head in enumerate("Date Project/Phase Activity Time Remark".split()):
             cellHead = QTableWidgetItem(head)
             self.ui.tableTimereg.setHorizontalHeaderItem(c, cellHead)
+        self.ui.tableTimereg.horizontalHeader().setStretchLastSection(True)
         self.ui.dateEdit.setDateTime(QDateTime.currentDateTime())
 
     def _connectSlots(self):
@@ -106,10 +107,13 @@ class TimeBrowseWindow(QMainWindow):
             row.append(QTableWidgetItem("%(project_name)s / %(phase_name)s" %\
                                         dict(p.items())))
             row.append(QTableWidgetItem(p.get("activity_name")))
-            row.append(QTableWidgetItem(p.get("remark")))
             hmtime = "%02d:%02d" % (int(p.get("time"))/60, int(p.get("time"))%60)
             p.set("hmtime", hmtime)
             row.append(QTableWidgetItem(hmtime))
+            row.append(QTableWidgetItem(p.text))
             for c, cell in enumerate(row):
                 self.ui.tableTimereg.setItem(r, c, cell)
+                if c != 4:
+                    self.ui.tableTimereg.resizeColumnToContents(c)
+        self.ui.tableTimereg.resizeRowsToContents()
 

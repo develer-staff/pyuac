@@ -74,7 +74,7 @@ class RemoteTimereg(QObject):
             else:
                 executable = "./pyuac_cli.py"
                 params = []
-            debug("Executing: %s" % " ".join([executable]+self.auth+["--oneshot"]))
+            #debug("Executing: %s" % " ".join([executable]+self.auth+["--oneshot"]))
             self.process.start(executable, params+self.auth+["--oneshot"])
             self.process.write(qstring+"\n")
             return True

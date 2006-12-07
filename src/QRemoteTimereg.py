@@ -43,9 +43,10 @@ class RemoteTimereg(QObject):
         self.connect(self.process, SIGNAL("finished(int)"), self._ready)
         self.connect(self.process, SIGNAL("error(QProcess::ProcessError)"),
                      self._error)
-                     
+
     def _close(self):
-        self.process.terminate()
+        #blocco in chiusura ed aspetto la terminazione del processo
+        self.process.waitForFinished()
 
     def _encode(self, action, **kwargs):
         """

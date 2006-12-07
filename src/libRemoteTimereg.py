@@ -59,7 +59,7 @@ def parseSmartQuery(smartquery):
         (?P<input_project>[^ ]+|)\ *
         (?P<input_phase>[^ ]+|)\ *
         (?P<input_activity>[^ ]+|)\ *
-        (?P<input_hours>\d{1,2}:\d{1,2}|)\ *
+        (?P<input_hmtime>\d{1,2}:\d{1,2}|)\ *
         (?P<input_remark>.*|)
         """, re.VERBOSE + re.DOTALL)
     res = getsq.search(smartquery).groupdict()
@@ -191,7 +191,8 @@ class RemoteTimereg:
         """
         project = self._projects[0]
         project.text = self._smartquery_dict["input_remark"]
-        project.set("hmtime",  timeRound(self._smartquery_dict["input_hours"] or "0:00"))
+        project.set("hmtime",  timeRound(self._smartquery_dict["input_hmtime"] or "0:00"))
+        project.set("input_hmtime",  timeRound(self._smartquery_dict["input_hmtime"] or "0:00"))
 
     def timereport(self, date):
         """

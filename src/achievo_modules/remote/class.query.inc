@@ -98,7 +98,7 @@ class query extends atkNode
                         "input_prj"      => $prj,
                         "input_phase"    => $phase,
                         "input_activity" => $activity,
-                        "input_hours"    => $hours,
+                        "input_hmtime"   => $hours,
                         "input_remark"   => $remark);
                 }
             }

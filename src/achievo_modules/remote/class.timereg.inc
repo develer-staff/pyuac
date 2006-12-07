@@ -111,6 +111,7 @@ class timereg extends atkNode
         atkdebug("timereg Action delete");
         $hoursnode = &atkGetNode("timereg.hours");
         $hoursnode->m_postvars = $this->m_postvars; // Share postvars.
+        //TODO: callHandler semplifica la delegazione, ma la gestione degli errori?
         $hoursnode->callHandler("delete");
         echo make_xml("timereg", "OK", array(array("action"=>"delete")));
         exit;

@@ -21,7 +21,6 @@ except ImportError:
     except ImportError:
         raise ImportError, "ElementTree (or py2.5) needed"
 
-from QRemoteTimereg import RemoteTimereg
 from QTimeBrowseWindow import TimeBrowseWindow
 
 log = logging.getLogger("pyuac.gui")
@@ -34,9 +33,6 @@ def debug(msg):
 class TimeregApplication(QApplication):
     def __init__(self, args):
         QApplication.__init__(self, args)
-        self.remote = RemoteTimereg(self,
-                                    ["http://www.develer.com/~naufraghi/achievo/",
-                                     "matteo", "matteo99"])
         win = TimeBrowseWindow(self)
         win.show()
         sys.exit(self.exec_())

@@ -21,6 +21,7 @@ except ImportError:
     except ImportError:
         raise ImportError, "ElementTree (or py2.5) needed"
 
+from QRemoteTimereg import RemoteTimereg
 from QTimeregWindow import TimeregWindow
 
 log = logging.getLogger("pyuac.gui")
@@ -34,7 +35,9 @@ class TimeBrowseWindow(QMainWindow):
     def __init__(self, parent):
         QMainWindow.__init__(self)
         self.ui = uic.loadUi("pyuac_browse.ui", self)
-        self.remote = parent.remote
+        self.remote = RemoteTimereg(self,
+                                    ["http://www.develer.com/~naufraghi/achievo/",
+                                     "matteo", "matteo99"])
         #TODO: la classe Timereg si "aspetta" un attributo *remote*
         #      nella classe parent... non é tanto carino
         self.edit = TimeregWindow(self)
@@ -116,4 +119,5 @@ class TimeBrowseWindow(QMainWindow):
                 if c != 4:
                     self.ui.tableTimereg.resizeColumnToContents(c)
         self.ui.tableTimereg.resizeRowsToContents()
+        self.ui.btnEdit.setEnabled(len(eprojects) != 0)
 

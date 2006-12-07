@@ -7,10 +7,10 @@
   </property>
   <property name="geometry" >
    <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>545</width>
-    <height>416</height>
+    <x>10</x>
+    <y>10</y>
+    <width>500</width>
+    <height>300</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -27,18 +27,119 @@
     <property name="spacing" >
      <number>6</number>
     </property>
-    <item row="0" column="2" colspan="4" >
-     <widget class="QLabel" name="labelSmartQueryExample" >
+    <item row="6" column="5" >
+     <widget class="QPushButton" name="btnCancel" >
       <property name="text" >
-       <string>&lt;b>project&lt;/b> [phase [activity [hh:mm [comment]]]]]</string>
-      </property>
-      <property name="textFormat" >
-       <enum>Qt::AutoText</enum>
+       <string>Cancel</string>
       </property>
      </widget>
     </item>
-    <item row="4" column="5" >
-     <widget class="QComboBox" name="comboTimeWorked" />
+    <item row="6" column="1" colspan="4" >
+     <widget class="QPushButton" name="btnSave" >
+      <property name="enabled" >
+       <bool>false</bool>
+      </property>
+      <property name="text" >
+       <string>&amp;Save</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="3" >
+     <widget class="QLabel" name="labelTimeWorked" >
+      <property name="text" >
+       <string>&amp;Time worked</string>
+      </property>
+      <property name="buddy" >
+       <cstring>comboTimeWorked</cstring>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1" colspan="2" >
+     <widget class="QLabel" name="labelProjectPhase" >
+      <property name="text" >
+       <string>&amp;Project / Phase</string>
+      </property>
+      <property name="buddy" >
+       <cstring>comboProjectPhase</cstring>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0" colspan="2" >
+     <widget class="QLabel" name="labelSmartQuery" >
+      <property name="text" >
+       <string>Insert S&amp;mart query here:</string>
+      </property>
+      <property name="buddy" >
+       <cstring>comboSmartQuery</cstring>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0" >
+     <widget class="QLabel" name="labelRemark" >
+      <property name="text" >
+       <string>&amp;Remark</string>
+      </property>
+      <property name="buddy" >
+       <cstring>txtRemark</cstring>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="0" >
+     <widget class="QPushButton" name="btnDelete" >
+      <property name="enabled" >
+       <bool>false</bool>
+      </property>
+      <property name="text" >
+       <string>Reset</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="0" colspan="6" >
+     <widget class="QTextEdit" name="txtRemark" />
+    </item>
+    <item row="3" column="1" colspan="2" >
+     <widget class="QComboBox" name="comboProjectPhase" >
+      <property name="editable" >
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="3" colspan="3" >
+     <widget class="QComboBox" name="comboActivity" />
+    </item>
+    <item row="3" column="0" >
+     <widget class="QDateEdit" name="dateTimeregDate" >
+      <property name="displayFormat" >
+       <string>ddd dd/MMM/yyyy</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="3" colspan="3" >
+     <widget class="QLabel" name="labelActivity" >
+      <property name="text" >
+       <string>&amp;Activity</string>
+      </property>
+      <property name="buddy" >
+       <cstring>comboActivity</cstring>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0" >
+     <widget class="QLabel" name="labelDate" >
+      <property name="text" >
+       <string>&amp;Date</string>
+      </property>
+      <property name="buddy" >
+       <cstring>dateTimeregDate</cstring>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0" colspan="6" >
+     <widget class="QComboBox" name="comboSmartQuery" >
+      <property name="editable" >
+       <bool>true</bool>
+      </property>
+     </widget>
     </item>
     <item row="4" column="4" >
      <widget class="QLabel" name="labelExactTime" >
@@ -55,110 +156,16 @@
       </property>
      </widget>
     </item>
-    <item row="6" column="1" colspan="5" >
-     <widget class="QPushButton" name="btnSave" >
-      <property name="enabled" >
-       <bool>false</bool>
-      </property>
+    <item row="4" column="5" >
+     <widget class="QComboBox" name="comboTimeWorked" />
+    </item>
+    <item row="0" column="2" colspan="4" >
+     <widget class="QLabel" name="labelSmartQueryExample" >
       <property name="text" >
-       <string>&amp;Save</string>
+       <string>&lt;b>project&lt;/b> [phase [activity [hh:mm [comment]]]]]</string>
       </property>
-     </widget>
-    </item>
-    <item row="1" column="0" colspan="6" >
-     <widget class="QComboBox" name="comboSmartQuery" >
-      <property name="editable" >
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0" >
-     <widget class="QLabel" name="labelDate" >
-      <property name="text" >
-       <string>&amp;Date</string>
-      </property>
-      <property name="buddy" >
-       <cstring>dateTimeregDate</cstring>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="3" colspan="3" >
-     <widget class="QLabel" name="labelActivity" >
-      <property name="text" >
-       <string>&amp;Activity</string>
-      </property>
-      <property name="buddy" >
-       <cstring>comboActivity</cstring>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0" >
-     <widget class="QDateEdit" name="dateTimeregDate" >
-      <property name="displayFormat" >
-       <string>ddd dd/MMM/yyyy</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="3" colspan="3" >
-     <widget class="QComboBox" name="comboActivity" />
-    </item>
-    <item row="3" column="1" colspan="2" >
-     <widget class="QComboBox" name="comboProjectPhase" >
-      <property name="editable" >
-       <bool>false</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="0" colspan="6" >
-     <widget class="QTextEdit" name="txtRemark" />
-    </item>
-    <item row="6" column="0" >
-     <widget class="QPushButton" name="btnDelete" >
-      <property name="enabled" >
-       <bool>false</bool>
-      </property>
-      <property name="text" >
-       <string>Delete</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="0" >
-     <widget class="QLabel" name="labelRemark" >
-      <property name="text" >
-       <string>&amp;Remark</string>
-      </property>
-      <property name="buddy" >
-       <cstring>txtRemark</cstring>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="0" colspan="2" >
-     <widget class="QLabel" name="labelSmartQuery" >
-      <property name="text" >
-       <string>Insert S&amp;mart query here:</string>
-      </property>
-      <property name="buddy" >
-       <cstring>comboSmartQuery</cstring>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="1" colspan="2" >
-     <widget class="QLabel" name="labelProjectPhase" >
-      <property name="text" >
-       <string>&amp;Project / Phase</string>
-      </property>
-      <property name="buddy" >
-       <cstring>comboProjectPhase</cstring>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="3" >
-     <widget class="QLabel" name="labelTimeWorked" >
-      <property name="text" >
-       <string>&amp;Time worked</string>
-      </property>
-      <property name="buddy" >
-       <cstring>comboTimeWorked</cstring>
+      <property name="textFormat" >
+       <enum>Qt::AutoText</enum>
       </property>
      </widget>
     </item>

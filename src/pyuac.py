@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 #-*- coding: utf-8 -*-
 #
 # Copyright 2006 Develer S.r.l. (http://www.develer.com/)
@@ -7,6 +7,15 @@
 # $Id:$
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
+
+import getpass
+
+########################## Congiguration ###############################
+
+config = {"achievouri": "https://www.develer.com/groupware/",
+          "username": getpass.getuser()}
+
+########################## Congiguration ###############################
 
 import sys, logging
 from PyQt4 import uic
@@ -33,7 +42,7 @@ def debug(msg):
 class TimeregApplication(QApplication):
     def __init__(self, args):
         QApplication.__init__(self, args)
-        win = TimeBrowseWindow(self)
+        win = TimeBrowseWindow(config)
         win.show()
         sys.exit(self.exec_())
 

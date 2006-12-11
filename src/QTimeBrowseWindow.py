@@ -31,31 +31,41 @@ def debug(msg):
         print __name__, msg
         log.debug("%s.%s" % (__name__, msg))
 
+class LoginDialog(QDialog):
+    def __init__(self, parent, config):
+        QDialog.__init__(self, parent)
+        self.ui = uic.loadUi("pyuac_auth.ui", self)
+        self.ui.editAchievoUri.setText(config["achievouri"])
+        self.ui.editUsername.setText(config["username"])
+        self.connect(self.ui.buttonBox, SIGNAL("accepted()"), self.login)
+        self.connect(self.ui.buttonBox, SIGNAL("rejected"), self.cancel)
+
+    def login(self):
+        auth = [self.ui.editAchievoUri.text()]
+        auth += [self.ui.editUsername.text()]
+        auth += [self.ui.editPassword.text()]
+        self.emit(SIGNAL("login"), auth)
+        self.close()
+        
+    def cancel(self):
+        self.emit(SIGNAL("cancel"))
+        self.ui.close()
+
 class TimeBrowseWindow(QMainWindow):
-    def __init__(self, parent):
+    def __init__(self, config):
         QMainWindow.__init__(self)
         self.ui = uic.loadUi("pyuac_browse.ui", self)
-        self.remote = RemoteTimereg(self,
-                                    ["http://www.develer.com/~naufraghi/achievo/",
-                                     "matteo", "matteo99"])
-        #TODO: la classe Timereg si "aspetta" un attributo *remote*
-        #      nella classe parent... non é tanto carino
-        self.edit = TimeregWindow(self)
+        self.login = LoginDialog(self, config)
+        self.login.show()
         self.err = QErrorMessage(self)
-
         self.projects = None
         self._connectSlots()
-        self._setupGui()
-
-    def _setupGui(self):
-        self.ui.tableTimereg.setColumnCount(5)
-        for c, head in enumerate("Date Project/Phase Activity Time Remark".split()):
-            cellHead = QTableWidgetItem(head)
-            self.ui.tableTimereg.setHorizontalHeaderItem(c, cellHead)
-        self.ui.tableTimereg.horizontalHeader().setStretchLastSection(True)
-        self.ui.dateEdit.setDateTime(QDateTime.currentDateTime())
 
     def _connectSlots(self):
+        self.connect(self.login, SIGNAL("login"),
+                     self._login)
+        self.connect(self.login, SIGNAL("cancel"),
+                     self._close)
         self.connect(self.ui.btnTimereg, SIGNAL("clicked()"),
                      self._timereg)
         self.connect(self.ui.btnQuit, SIGNAL("clicked()"),
@@ -68,11 +78,29 @@ class TimeBrowseWindow(QMainWindow):
                      self._timereport)
         self.connect(self.ui.tableTimereg, SIGNAL("cellDoubleClicked(int,int)"),
                      self._timeedit)
+
+    def _login(self, auth):
+        #TODO: la classe Timereg si "aspetta" un attributo *remote*
+        #      nella classe parent... non é tanto carino
+        self.remote = RemoteTimereg(self, auth)
+        self.edit = TimeregWindow(self)
+        self._connectRemote()
+        self._setupGui()
+    
+    def _connectRemote(self):
         # Short-circuit Signals (from python to python)
-        self.connect(self.remote, SIGNAL("timereportOK"),
-                     self._updateTimereport)
         self.connect(self.edit, SIGNAL("registrationDone"),
                      self._registrationDone)
+        self.connect(self.remote, SIGNAL("timereportOK"),
+                     self._updateTimereport)
+
+    def _setupGui(self):
+        self.ui.tableTimereg.setColumnCount(5)
+        for c, head in enumerate("Date Project/Phase Activity Time Remark".split()):
+            cellHead = QTableWidgetItem(head)
+            self.ui.tableTimereg.setHorizontalHeaderItem(c, cellHead)
+        self.ui.tableTimereg.horizontalHeader().setStretchLastSection(True)
+        self.ui.dateEdit.setDateTime(QDateTime.currentDateTime())
 
     def _timereg(self):
         self.edit.show()

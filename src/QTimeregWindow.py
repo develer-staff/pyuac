@@ -115,6 +115,7 @@ class TimeregWindow(QMainWindow):
         """
         self.ui.comboProjectPhase.clear()
         self.ui.comboActivity.clear()
+        self.projphases = set()
         for p in self.projects:
             projphase = "%(project_name)s / %(phase_name)s" % dict(p.items())
             self.projphases.add(projphase)
@@ -218,7 +219,7 @@ class TimeregWindow(QMainWindow):
         smartquery_dict["input_project"] = newproj.strip()
         smartquery_dict["input_phase"] = newpha.strip()
         self._last_modified_combo = "projectphase"
-        self._updateComboBoxes(combotext)
+        self._updateComboBoxes(unicode(combotext))
         self._setSmartQuery(smartquery_dict)
 
     def _comboActivityActivated(self, combotext):

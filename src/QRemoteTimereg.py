@@ -69,12 +69,11 @@ class RemoteTimereg(QObject):
         """
         if self.process.state() == self.process.NotRunning:
             debug("_execute(%s)" % qstring)
-            if sys.platform == "win32":
-                executable = sys.executable
-                params = ["-u", "pyuac_cli.py"]
-            else:
-                executable = "./pyuac_cli.py"
-                params = []
+            executable = sys.executable
+            params = ["-u"]
+            if not __debug__:
+                params += ["-O"]
+            params += ["pyuac_cli.py"]
             #debug("Executing: %s" % " ".join([executable]+self.auth+["--oneshot"]))
             self.process.start(executable, params+self.auth+["--oneshot"])
             self.process.write(qstring+"\n")
@@ -129,17 +128,17 @@ class RemoteTimereg(QObject):
             self.emit(SIGNAL("emptyResponse"))
         self._sync()
 
-    def _error(self, qerror, exitcode=None):
+    def _error(self, process_error, exitcode=None):
         """
         Emette processError con parametri:
             QProcess::ProcessError decodificato come stringa
             pyuac_cli.error decodificato come stringa
         """
-        qerrors = "FailedToStart Crashed Timedout WriteError ReadError UnknownError"
-        qerror = qerrors.split()[qerror]
-        debug("Err(%s): %s" % (qerror, str(self.process.readAllStandardError())))
+        process_errors = "FailedToStart Crashed Timedout WriteError ReadError UnknownError"
+        process_error = process_errors.split()[process_error]
         if exitcode != None:
             exitcode = pyuac_cli.exits[exitcode]
-        self.emit(SIGNAL("processError"), qerror, exitcode)
+        debug("Err(%s, %s): %s" % (process_error, exitcode, str(self.process.readAllStandardError())))
+        self.emit(SIGNAL("processError"), process_error, exitcode)
 
 

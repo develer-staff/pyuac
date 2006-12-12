@@ -11,6 +11,7 @@
 import sys, cgi, logging, urllib2
 import libRemoteTimereg
 
+from xml.parsers.expat import ExpatError
 try:
     from xml.etree import ElementTree as ET
 except ImportError:
@@ -75,7 +76,7 @@ def exit(mode):
     sys.exit(exits.index(mode))
 
 def execute(remote, action, params):
-    debug("cli.%s(%s)" % (action, params))
+    #debug("cli.%s(%s)" % (action, params))
     #Cerco di mappare l'azione su un metodo
     func = getattr(remote, action)
     if params:
@@ -100,6 +101,9 @@ def serve(params, oneshot=False):
     except urllib2.HTTPError:
         log.error("Connection Error!!\n")
         exit("CONNECTION_ERROR")
+    except ExpatError:
+        log.error("Response Error!!\n")
+        exit("RESPONSE_ERROR")        
 
     while True:
         #Gira aspettando righe di comando della forma:

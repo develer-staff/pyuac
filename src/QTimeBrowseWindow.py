@@ -38,7 +38,8 @@ class LoginDialog(QDialog):
         self.ui.editAchievoUri.setText(config["achievouri"])
         self.ui.editUsername.setText(config["username"])
         self.connect(self.ui.buttonBox, SIGNAL("accepted()"), self.login)
-        self.connect(self.ui.buttonBox, SIGNAL("rejected"), self.cancel)
+        self.connect(self.ui.buttonBox, SIGNAL("rejected()"), self.cancel)
+        self.ui.editPassword.setFocus()
 
     def login(self):
         auth = [self.ui.editAchievoUri.text()]
@@ -103,10 +104,14 @@ class TimeBrowseWindow(QMainWindow):
         self.ui.dateEdit.setDateTime(QDateTime.currentDateTime())
 
     def _timereg(self):
+        selected_date = self.ui.dateEdit.date().toString("yyyy-MM-dd")
+        project_template = ET.XML("<record activitydate='%s'> </record>" % selected_date)
+        self.edit.setupEdit(project_template)
         self.edit.show()
         
     def _close(self):
-        self.remote._close()
+        if "remote" in dir(self):
+            self.remote._close()
         self.ui.close()
 
     def _timeedit(self, row=None, column=None):
@@ -132,13 +137,17 @@ class TimeBrowseWindow(QMainWindow):
         self.projects = eprojects
         self.ui.tableTimereg.setRowCount(0)
         self.ui.tableTimereg.setRowCount(len(eprojects))
+        total_time = 0
+        def min2hmtime(mins):
+            return "%02d:%02d" % (mins/60, mins%60)
         for r, p in enumerate(eprojects):
             row = []
             row.append(QTableWidgetItem(p.get("activitydate")))
             row.append(QTableWidgetItem("%(project_name)s / %(phase_name)s" %\
                                         dict(p.items())))
             row.append(QTableWidgetItem(p.get("activity_name")))
-            hmtime = "%02d:%02d" % (int(p.get("time"))/60, int(p.get("time"))%60)
+            hmtime = min2hmtime(int(p.get("time")))
+            total_time += int(p.get("time"))
             p.set("hmtime", hmtime)
             row.append(QTableWidgetItem(hmtime))
             row.append(QTableWidgetItem(p.text))
@@ -146,6 +155,7 @@ class TimeBrowseWindow(QMainWindow):
                 self.ui.tableTimereg.setItem(r, c, cell)
                 if c != 4:
                     self.ui.tableTimereg.resizeColumnToContents(c)
+        self.ui.statusBar.showMessage("Totale ore del giorno: %s" % min2hmtime(total_time))
         self.ui.tableTimereg.resizeRowsToContents()
         self.ui.btnEdit.setEnabled(len(eprojects) != 0)
 

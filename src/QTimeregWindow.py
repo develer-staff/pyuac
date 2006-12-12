@@ -39,9 +39,10 @@ class TimeregWindow(QMainWindow):
         self.remote = RemoteTimereg(self, auth)
         self.err = QErrorMessage(self)
         self._last_modified_combo = None
-        self.projects = []
-        self.projphases = set()
-        self.activities = {None: set()}
+        self._response_projects = []
+        self.projects = set()
+        self.phases = {None: set()}
+        self.activities = {(None,None): set()}
         self._connectSlots()
         self._setupGui()
 
@@ -68,7 +69,8 @@ class TimeregWindow(QMainWindow):
         self._updateComboBoxes()
 
     def _disableAll(self):
-        self.ui.labelProjectPhase.setEnabled(False)
+        self.ui.labelProject.setEnabled(False)
+        self.ui.labelPhase.setEnabled(False)
         self.ui.labelActivity.setEnabled(False)
         self.ui.labelTimeWorked.setEnabled(False)
         self.ui.labelRemark.setEnabled(False)
@@ -84,8 +86,10 @@ class TimeregWindow(QMainWindow):
                      self.delete)
         self.connect(self.ui.btnCancel, SIGNAL("clicked()"),
                      self._close)
-        self.connect(self.ui.comboProjectPhase, SIGNAL("activated(const QString&)"),
-                     self._comboProjectPhaseActivated)
+        self.connect(self.ui.comboProject, SIGNAL("activated(const QString&)"),
+                     self._comboProjectActivated)
+        self.connect(self.ui.comboPhase, SIGNAL("activated(const QString&)"),
+                     self._comboPhaseActivated)
         self.connect(self.ui.comboActivity, SIGNAL("activated(const QString&)"),
                      self._comboActivityActivated)
         self.connect(self.ui.comboTimeWorked, SIGNAL("activated(const QString&)"),
@@ -109,26 +113,54 @@ class TimeregWindow(QMainWindow):
         """
         Avvia la query al servizio remoto di achievo tramite la cli
         """
-        if smartquery != "" or self.projects == []:
+        if smartquery != "" or self._response_projects == []:
             smartquery = "%"+unicode(smartquery)
             self.remote.query(smartquery=smartquery)
 
-    def _updateComboBoxes(self, projphase=None):
+    def _updateComboBoxes(self, combo=None):
         """
         Aggiorna i combobox in modo che contengano
         l'unione dei progetti visti durante la sessione
         """
-        self.ui.comboProjectPhase.clear()
-        self.ui.comboActivity.clear()
-        self.projphases = set()
-        for p in self.projects:
-            projphase = "%(prj)s / %(pha)s" % dict(p.items())
-            self.projphases.add(projphase)
-            self.activities.setdefault(projphase, set())
-            self.activities[projphase].add(p.get("act"))
-            self.activities[None].add(p.get("act"))
-        self.ui.comboProjectPhase.addItems(sorted(list(self.projphases)))
-        self.ui.comboActivity.addItems(sorted(list(self.activities[projphase])))
+        for p in self._response_projects:
+            self.projects.add(p.get("prj"))
+            self.phases.setdefault(p.get("prj"), set())
+            self.phases[p.get("prj")].add(p.get("pha"))
+            self.phases[None].add(p.get("pha"))
+            self.activities.setdefault((p.get("prj"), p.get("pha")), set())
+            self.activities[(p.get("prj"), p.get("pha"))].add(p.get("act"))
+            self.activities[(None,None)].add(p.get("act"))
+                    
+        if combo == None and len(self._response_projects) >= 1:
+            project = p.get("prj")
+            phase = p.get("pha")
+            activity = p.get("act")
+            newtime = p.get("hmtime")
+            self.ui.comboProject.clear()
+            self.ui.comboProject.addItems(sorted(list(self.projects)))
+            self.ui.comboPhase.clear()
+            self.ui.comboPhase.addItems(sorted(list(self.phases[project])))
+            self.ui.comboActivity.clear()
+            self.ui.comboActivity.addItems(sorted(list(self.activities[(project,phase)])))
+        else:
+            project = unicode(self.ui.comboProject.currentText()) or None
+            phase = unicode(self.ui.comboPhase.currentText()) or None
+            activity = unicode(self.ui.comboActivity.currentText()) or None
+            newtime = unicode(self.ui.comboTimeWorked.currentText())
+            
+            if combo == "Project" or len(self._response_projects) == 1:
+                self.ui.comboPhase.clear()
+                self.ui.comboPhase.addItems(sorted(list(self.phases[project])))
+            elif combo == "Phase" or len(self._response_projects) == 1:
+                self.ui.comboActivity.clear()
+                self.ui.comboActivity.addItems(sorted(list(self.activities[(project,phase)])))
+            
+            smartquery_dict = self._parseSmartQuery()
+            smartquery_dict["in_prj"] = project or smartquery_dict["in_prj"]
+            smartquery_dict["in_pha"] = phase or smartquery_dict["in_pha"]
+            smartquery_dict["in_act"] = activity or smartquery_dict["in_act"]
+            smartquery_dict["in_hmtime"] = newtime or smartquery_dict["in_hmtime"]
+            self._setSmartQuery(smartquery_dict)
 
     def _projectsChanged(self, projects):
         """
@@ -143,20 +175,22 @@ class TimeregWindow(QMainWindow):
         """
         debug("_projectsChanged %s" % len(projects))
 
-        self.projects = projects
+        self._response_projects = projects
         self._updateComboBoxes()
 
         #TODO: spostare projects[0] in _baseproject, in modo che sia il
         #      modello di ciò che viene visualizzato
 
-        if len(self.projects) == 1:
-            p = self.projects[0]
+        if len(self._response_projects) == 1:
+            p = self._response_projects[0]
 
-            projectphase = "%(prj)s / %(pha)s" % dict(p.items())
-            idx = self.ui.comboProjectPhase.findText(projectphase)
-            self.ui.comboProjectPhase.setCurrentIndex(idx)
+            idx = self.ui.comboProject.findText(p.get("prj"))
+            self.ui.comboProject.setCurrentIndex(idx)
 
-            idx = self.ui.comboActivity.findText(p.get("act") or "")
+            idx = self.ui.comboPhase.findText(p.get("pha"))
+            self.ui.comboPhase.setCurrentIndex(idx)
+
+            idx = self.ui.comboActivity.findText(p.get("act"))
             self.ui.comboActivity.setCurrentIndex(idx)
 
             idx = self.ui.comboTimeWorked.findText(p.get("hmtime") or "00:00")
@@ -169,14 +203,10 @@ class TimeregWindow(QMainWindow):
 
             self.ui.labelRemark.setEnabled(p.text != "")
             self.ui.btnSave.setEnabled(p.get("hmtime") != "00:00" and p.text != "")
-            self.ui.labelProjectPhase.setEnabled(True)
+            self.ui.labelProject.setEnabled(True)
+            self.ui.labelPhase.setEnabled(True)
             self.ui.labelActivity.setEnabled(True)
             self.ui.btnDelete.setEnabled(True)
-        elif len(self.projects) == 0:
-            if self._last_modified_combo == "projectphase":
-                self._comboActivityActivated("%")
-            elif self._last_modified_combo == "activity":
-                self._comboProjectPhaseActivated("%/%")
         else:
             self._disableAll()
 
@@ -185,7 +215,7 @@ class TimeregWindow(QMainWindow):
 
     def _registrationDone(self, eresp):
         debug("_registrationDone")
-        eresp[0].set("activitydate", self.projects[0].get("activitydate"))
+        eresp[0].set("activitydate", self._response_projects[0].get("activitydate"))
         self.emit(SIGNAL("registrationDone"), eresp)
         self._baseproject = None
         self._close()
@@ -217,33 +247,23 @@ class TimeregWindow(QMainWindow):
         qstring = " ".join([smartquery_dict.get(k, "") or "" for k in keys]).strip()
         self.ui.comboSmartQuery.setEditText(qstring)
         self.ui.comboSmartQuery.setFocus()
+    
+    
+    def _comboProjectActivated(self, combotext):
+        self._updateComboBoxes("Project")
 
-    def _comboProjectPhaseActivated(self, combotext):
-        #TODO: fattorizzare meglio questi 3 metodi
-        smartquery_dict = self._parseSmartQuery()
-        newproj, newpha = unicode(combotext).split("/")
-        smartquery_dict["in_prj"] = newproj.strip()
-        smartquery_dict["in_pha"] = newpha.strip()
-        self._last_modified_combo = "projectphase"
-        self._updateComboBoxes(unicode(combotext))
-        self._setSmartQuery(smartquery_dict)
+    def _comboPhaseActivated(self, combotext):
+        self._updateComboBoxes("Phase")
 
     def _comboActivityActivated(self, combotext):
-        smartquery_dict = self._parseSmartQuery()
-        newact = unicode(combotext)
-        smartquery_dict["in_act"] = newact.strip()
-        self._last_modified_combo = "activity"
-        self._setSmartQuery(smartquery_dict)
+        self._updateComboBoxes("Activity")
 
     def _comboTimeWorkedActivated(self, combotext):
-        smartquery_dict = self._parseSmartQuery()
-        newtime = unicode(combotext)
-        smartquery_dict["in_hmtime"] = newtime.strip()
-        self._setSmartQuery(smartquery_dict)
+        self._updateComboBoxes("TimeWorked")
 
     def timereg(self):
         self.ui.btnSave.setEnabled(False)
-        p = self.projects[0]
+        p = self._response_projects[0]
         activitydate = str(self.ui.dateTimeregDate.date().toString("yyyy-MM-dd"))
         p.set("activitydate", activitydate)
         params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime activitydate".split()])

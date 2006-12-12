@@ -56,13 +56,15 @@ def parseSmartQuery(smartquery):
     Analizza una stringa e restisuisce un dizionario
     """
     getsq = re.compile("""
-        (?P<input_project>[^ ]+|)\ *
-        (?P<input_phase>[^ ]+|)\ *
-        (?P<input_activity>[^ ]+|)\ *
-        (?P<input_hmtime>\d{1,2}:\d{1,2}|)\ *
-        (?P<input_remark>.*|)
+        (?P<in_prj>[^ ]+|)\ *
+        (?P<in_pha>[^ ]+|)\ *
+        (?P<in_act>[^ ]+|)\ *
+        (?P<in_hmtime>\d{1,2}:\d{1,2}|\d{1,2}|)\ *
+        (?P<in_remark>.*|)
         """, re.VERBOSE + re.DOTALL)
     res = getsq.search(smartquery).groupdict()
+    if ":" not in res["in_hmtime"]:
+        res["in_hmtime"] += res["in_hmtime"] or "00" + ":00"
     log.debug("parseSmartQuery: %s" % res)
     return res
 
@@ -167,9 +169,9 @@ class RemoteTimereg:
         #FIXME: nel sever, SQL INJECT?
         _smartquery_dict = parseSmartQuery(smartquery)
         _ppa = " ".join([_smartquery_dict[k] for k in
-                        ["input_project", "input_phase", "input_activity"]])
+                        ["in_prj", "in_pha", "in_act"]])
         _old_ppa = " ".join([self._smartquery_dict[k] for k in
-                            ["input_project", "input_phase", "input_activity"]])
+                            ["in_prj", "in_pha", "in_act"]])
         self._smartquery_dict = _smartquery_dict
         # Fa la query al server solo se la parte
         # "project", "phase", "activity" è cambiata
@@ -186,9 +188,9 @@ class RemoteTimereg:
         registrazione delle ore lavorate.
         """
         project = self._projects[0]
-        project.text = self._smartquery_dict["input_remark"]
-        project.set("hmtime",  timeRound(self._smartquery_dict["input_hmtime"] or "0:00"))
-        project.set("input_hmtime",  timeRound(self._smartquery_dict["input_hmtime"] or "0:00"))
+        project.text = self._smartquery_dict["in_remark"]
+        project.set("hmtime",  timeRound(self._smartquery_dict["in_hmtime"]))
+        #project.set("in_hmtime",  timeRound(self._smartquery_dict["in_hmtime"]))
 
     def timereport(self, date):
         """

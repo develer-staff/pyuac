@@ -26,10 +26,12 @@ class timereport extends atkNode
 
         $sql = "
                 SELECT
-                    hours.*,
-                    phase.name AS phase_name,
-                    activity.name AS activity_name,
-                    project.name AS project_name
+                    hours.time AS time,
+                    hours.remark AS remark,
+                    hours.activitydate AS activitydate,
+                    project.name AS prj,
+                    activity.name AS act,
+                    phase.name AS pha
                 FROM hours
                     JOIN phase ON hours.phaseid = phase.id
                     JOIN activity ON hours.activityid = activity.id

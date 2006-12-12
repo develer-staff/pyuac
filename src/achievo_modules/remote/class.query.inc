@@ -95,11 +95,11 @@ class query extends atkNode
                     }
 
                     $guesses[] = array (
-                        "input_prj"      => $prj,
-                        "input_phase"    => $phase,
-                        "input_activity" => $activity,
-                        "input_hmtime"   => $hours,
-                        "input_remark"   => $remark);
+                        "in_prj"   => $prj,
+                        "in_pha"   => $phase,
+                        "in_act"   => $activity,
+                        "in_hmtime"   => $hours,
+                        "in_remark"   => $remark);
                 }
             }
         }
@@ -109,25 +109,25 @@ class query extends atkNode
             $sql .= "
                 SELECT
                     $k AS k, 
-                    project.name AS project_name,
-                    phase.name AS phase_name,
-                    activity.name AS activity_name, 
-                    project.id AS projectid, 
-                    phase.id AS phaseid, 
-                    activity.id AS activityid 
+                    project.name AS prj,
+                    phase.name AS pha,
+                    activity.name AS act,
+                    project.id AS projectid,
+                    phase.id AS phaseid,
+                    activity.id AS activityid
                 FROM
                     project
-                    JOIN phase ON project.id = phase.projectid 
-                    JOIN phase_activity ON phase.id = phase_activity.phaseid 
-                    JOIN activity ON phase_activity.activityid = activity.id 
-                    JOIN project_person ON project.id = project_person.projectid 
-                WHERE 
+                    JOIN phase ON project.id = phase.projectid
+                    JOIN phase_activity ON phase.id = phase_activity.phaseid
+                    JOIN activity ON phase_activity.activityid = activity.id
+                    JOIN project_person ON project.id = project_person.projectid
+                WHERE
                     project.status = 'active' AND
-                    project_person.personid = " . $g_user["id"] . " AND 
+                    project_person.personid = " . $g_user["id"] . " AND
                     (
-                    (" . smartLike("project.name", $guesses[$k]["input_prj"]) . ") AND 
-                    (" . smartLike("phase.name", $guesses[$k]["input_phase"]) . ") AND 
-                    (" . smartLike("activity.name", $guesses[$k]["input_activity"]) . ")
+                    (" . smartLike("project.name", $guesses[$k]["in_prj"]) . ") AND
+                    (" . smartLike("phase.name", $guesses[$k]["in_pha"]) . ") AND
+                    (" . smartLike("activity.name", $guesses[$k]["in_act"]) . ")
                     )";
 
             if ($k != sizeof($guesses) - 1)

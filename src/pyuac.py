@@ -15,6 +15,9 @@ import getpass
 config = {"achievouri": "https://www.develer.com/groupware/",
           "username": getpass.getuser()}
 
+config = {"achievouri": "http://www.develer.com/~naufraghi/achievo/",
+          "username": "matteo"}
+
 ########################## Congiguration ###############################
 
 import sys, logging

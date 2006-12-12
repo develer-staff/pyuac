@@ -26,10 +26,10 @@ from QTimeregWindow import TimeregWindow
 
 log = logging.getLogger("pyuac.gui")
 
-def debug(msg):
+def debug(msg, level="debug"):
+    getattr(log, level)("%s.%s" % (__name__, msg))
     if __debug__:
         print __name__, msg
-        log.debug("%s.%s" % (__name__, msg))
 
 class LoginDialog(QDialog):
     def __init__(self, parent, config):
@@ -81,10 +81,8 @@ class TimeBrowseWindow(QMainWindow):
                      self._timeedit)
 
     def _login(self, auth):
-        #TODO: la classe Timereg si "aspetta" un attributo *remote*
-        #      nella classe parent... non é tanto carino
         self.remote = RemoteTimereg(self, auth)
-        self.edit = TimeregWindow(self)
+        self.edit = TimeregWindow(self, auth)
         self._connectRemote()
         self._setupGui()
     
@@ -94,6 +92,9 @@ class TimeBrowseWindow(QMainWindow):
                      self._registrationDone)
         self.connect(self.remote, SIGNAL("timereportOK"),
                      self._updateTimereport)
+        self.connect(self.remote, SIGNAL("processError"),
+                     self._processError)
+
 
     def _setupGui(self):
         self.ui.tableTimereg.setColumnCount(5)
@@ -101,7 +102,10 @@ class TimeBrowseWindow(QMainWindow):
             cellHead = QTableWidgetItem(head)
             self.ui.tableTimereg.setHorizontalHeaderItem(c, cellHead)
         self.ui.tableTimereg.horizontalHeader().setStretchLastSection(True)
-        self.ui.dateEdit.setDateTime(QDateTime.currentDateTime())
+        if self.ui.dateEdit.date() != QDate.currentDate():
+            self.ui.dateEdit.setDate(QDate.currentDate())
+        else:
+            self._timereport(QDate.currentDate())
 
     def _timereg(self):
         selected_date = self.ui.dateEdit.date().toString("yyyy-MM-dd")
@@ -110,8 +114,10 @@ class TimeBrowseWindow(QMainWindow):
         self.edit.show()
         
     def _close(self):
+        self.notify(self.tr("Closing..."))
         if "remote" in dir(self):
             self.remote._close()
+            self.edit.remote._close()
         self.ui.close()
 
     def _timeedit(self, row=None, column=None):
@@ -130,6 +136,8 @@ class TimeBrowseWindow(QMainWindow):
 
     def _timereport(self, qdate):
         reportdate = qdate.toString("yyyy-MM-dd")
+        self.notify(self.tr("Searching..."))
+        self.ui.btnEdit.setEnabled(False)
         self.remote.timereport(date=reportdate)
 
     def _updateTimereport(self, eprojects):
@@ -143,9 +151,9 @@ class TimeBrowseWindow(QMainWindow):
         for r, p in enumerate(eprojects):
             row = []
             row.append(QTableWidgetItem(p.get("activitydate")))
-            row.append(QTableWidgetItem("%(project_name)s / %(phase_name)s" %\
+            row.append(QTableWidgetItem("%(prj)s / %(pha)s" %\
                                         dict(p.items())))
-            row.append(QTableWidgetItem(p.get("activity_name")))
+            row.append(QTableWidgetItem(p.get("act")))
             hmtime = min2hmtime(int(p.get("time")))
             total_time += int(p.get("time"))
             p.set("hmtime", hmtime)
@@ -155,7 +163,18 @@ class TimeBrowseWindow(QMainWindow):
                 self.ui.tableTimereg.setItem(r, c, cell)
                 if c != 4:
                     self.ui.tableTimereg.resizeColumnToContents(c)
-        self.ui.statusBar.showMessage("Totale ore del giorno: %s" % min2hmtime(total_time))
+        self.notify(self.tr("Totale ore del giorno: ") + "%s" % min2hmtime(total_time))
         self.ui.tableTimereg.resizeRowsToContents()
         self.ui.btnEdit.setEnabled(len(eprojects) != 0)
+        
+    def notify(self, msg, timeout=0):
+        self.ui.statusBar.showMessage(msg, timeout)
+
+    def _processError(self, qperror, exitcode):
+        debug("_processError %s, %s" % (qperror, exitcode), "warning")
+        if exitcode == "RESPONSE_ERROR":
+            self.login.show()
+        else:
+            self.err.showMessage(self.tr("Errore nel processo interfaccia con Achievo:\n") +
+                                 "%s, %s" % (qperror, exitcode))
 

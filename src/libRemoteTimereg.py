@@ -165,10 +165,6 @@ class RemoteTimereg:
         #Se vuota converte in "trova tutto"
         # % permette la ricerca anche all'interno del nome del progetto
         #FIXME: nel sever, SQL INJECT?
-        if __debug__:
-            #simula la latenza di internet
-            import time
-            time.sleep(1)
         _smartquery_dict = parseSmartQuery(smartquery)
         _ppa = " ".join([_smartquery_dict[k] for k in
                         ["input_project", "input_phase", "input_activity"]])

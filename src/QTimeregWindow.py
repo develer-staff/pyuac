@@ -48,11 +48,15 @@ class TimeregWindow(QMainWindow):
     def _setupGui(self):
         self.ui.dateTimeregDate.setDate(QDate.currentDate())
         self.ui.comboTimeWorked.clear()
-        for hour in range(24):
+        max_hours = 8
+        for hour in range(max_hours):
             for quarter in range(4):
                 if hour + quarter > 0:
                     htext = "%02d:%02d" % (hour, 15*quarter)
                     self.ui.comboTimeWorked.addItem(htext)
+            if hour == max_hours - 1:
+                htext = "%02d:%02d" % (max_hours, 0)
+                self.ui.comboTimeWorked.addItem(htext)
         self.ui.labelExactTime.setText("00:00")
         self.ui.setWindowTitle("Time Registration - %s" % self.remote.auth[1])
         self.ui.btnDelete.setText(self.tr("Reset"))
@@ -122,8 +126,8 @@ class TimeregWindow(QMainWindow):
             self.activities.setdefault(projphase, set())
             self.activities[projphase].add(p.get("activity_name"))
             self.activities[None].add(p.get("activity_name"))
-        self.ui.comboProjectPhase.addItems(list(self.projphases))
-        self.ui.comboActivity.addItems(list(self.activities[projphase]))
+        self.ui.comboProjectPhase.addItems(sorted(list(self.projphases)))
+        self.ui.comboActivity.addItems(sorted(list(self.activities[projphase])))
 
     def _projectsChanged(self, projects):
         """
@@ -208,7 +212,7 @@ class TimeregWindow(QMainWindow):
     def _setSmartQuery(self, smartquery_dict):
         keys = "input_project input_phase input_activity input_hmtime input_remark".split()
         print "_setSmartQuery", smartquery_dict
-        qstring = " ".join([smartquery_dict[k] for k in keys])
+        qstring = " ".join([smartquery_dict.get(k, "") or "" for k in keys]).strip()
         self.ui.comboSmartQuery.setEditText(qstring)
         #self.ui.txtRemark.setPlainText(qstring)
 
@@ -241,7 +245,7 @@ class TimeregWindow(QMainWindow):
         p.set("activitydate", activitydate)
         params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime activitydate".split()])
         params["remark"] = p.text
-        if self._baseproject != None:
+        if self._baseproject.get("id") != None:
             params["id"] = self._baseproject.get("id")
         debug(str(params))
         self.remote.timereg(**params)
@@ -260,7 +264,7 @@ class TimeregWindow(QMainWindow):
         self._setSmartQuery(smartquery_dict)
 
     def delete(self):
-        if self._baseproject != None:
+        if self._baseproject.get("id") != None:
              self.remote.delete(id=self._baseproject.get("id"))
              self.ui.setWindowTitle(self.tr("Time Registration - deleting..."))
              self._baseproject = None

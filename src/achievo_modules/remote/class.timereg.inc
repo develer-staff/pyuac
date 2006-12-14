@@ -2,7 +2,7 @@
 include_once (moduleDir("timestats")."class.hours.inc");
 
 //XML stuff da http://www.xml.com/pub/a/2003/03/19/dive-into-xml.html
-if (stristr($_SERVER[HTTP_ACCEPT], "application/xhtml+xml")) 
+if (stristr($_SERVER[HTTP_ACCEPT], "application/xhtml+xml"))
     header("Content-Type: application/xhtml+xml");
 else
     header("Content-Type: text/html");
@@ -35,8 +35,8 @@ function make_xml($node, $msg, $results, $bodykey="")
         }
         if (array_key_exists($bodykey, $r))
         {
-            $res .= ">\n";
-            $res .= xml_encode($r[$bodykey])."\n";
+            $res .= ">";
+            $res .= xml_encode($r[$bodykey]);
             $res .= "</record>\n";
         }
         else

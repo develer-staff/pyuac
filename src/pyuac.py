@@ -20,7 +20,7 @@ config = {"achievouri": "http://www.develer.com/~naufraghi/achievo/",
 
 ########################## Congiguration ###############################
 
-import sys, logging
+import sys
 from PyQt4 import uic
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -34,13 +34,7 @@ except ImportError:
         raise ImportError, "ElementTree (or py2.5) needed"
 
 from QTimeBrowseWindow import TimeBrowseWindow
-
-log = logging.getLogger("pyuac.gui")
-
-def debug(msg):
-    if __debug__:
-        print __name__, msg
-        log.debug("%s.%s" % (__name__, msg))
+from pyuac_utils import *
 
 class TimeregApplication(QApplication):
     def __init__(self, args):

@@ -3,10 +3,10 @@
  <widget class="QMainWindow" name="TimeBrowserWindow" >
   <property name="geometry" >
    <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>597</width>
-    <height>564</height>
+    <x>50</x>
+    <y>60</y>
+    <width>500</width>
+    <height>400</height>
    </rect>
   </property>
   <property name="windowTitle" >

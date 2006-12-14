@@ -8,7 +8,7 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import sys, urllib, logging
+import sys, urllib
 from PyQt4 import uic
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -21,13 +21,8 @@ except ImportError:
     except ImportError:
         raise ImportError, "ElementTree (or py2.5) needed"
 
+from pyuac_utils import *
 import libRemoteTimereg, pyuac_cli
-log = logging.getLogger("pyuac.gui")
-
-def debug(msg):
-    if __debug__:
-        log.debug("%s.%s" % (__name__, msg))
-        print __name__, msg
 
 class RemoteTimereg(QObject):
     """
@@ -44,13 +39,26 @@ class RemoteTimereg(QObject):
         self.connect(self.process, SIGNAL("error(QProcess::ProcessError)"),
                      self._error)
 
-    def _close(self):
+    def __getattr__(self, action):
+        """
+        Imposta per l'esecuzione le azioni definite in RemoteTimereg
+        ed avvia sync()
+        """
+        if action in libRemoteTimereg.RemoteTimereg.actions:
+            def _action(**kwargs):
+                self._actions_params[action] = self.encode(action, **kwargs)
+                self.sync()
+            return _action
+        else:
+            raise AttributeError
+
+    def close(self):
         #blocco in chiusura ed aspetto la terminazione del processo
         self.process.waitForFinished()
 
-    def _encode(self, action, **kwargs):
+    def encode(self, action, **kwargs):
         """
-        metodo che codifica il dizionario ricevuto con
+        Metodo che codifica il dizionario ricevuto con
         urllib.urlencode() e restituisce una stringa
           action?param1=var1&param2=var2
         compatibile con il metodo
@@ -63,35 +71,25 @@ class RemoteTimereg(QObject):
         #debug("_encode "+qstring)
         return action + "?" + qstring
 
-    def _execute(self, qstring):
+    def execute(self, qstring):
         """
         Avvia il processo e invia la qstring
+        viene invocato da sync()
         """
         if self.process.state() == self.process.NotRunning:
-            debug("_execute(%s)" % qstring)
+            #debug("execute(%s)" % qstring)
             executable = sys.executable
             params = ["-u"]
             if not __debug__:
                 params += ["-O"]
             params += ["pyuac_cli.py"]
-            #debug("Executing: %s" % " ".join([executable]+self.auth+["--oneshot"]))
             self.process.start(executable, params+self.auth+["--oneshot"])
             self.process.write(qstring+"\n")
             return True
         else:
             return False
 
-    def __getattr__(self, action):
-        debug(action)
-        if action in libRemoteTimereg.RemoteTimereg.actions:
-            def _action(**kwargs):
-                self._actions_params[action] = self._encode(action, **kwargs)
-                self._sync()
-            return _action
-        else:
-            raise AttributeError
-
-    def _sync(self):
+    def sync(self):
         """
         Provvede ad eseguire le query in attesa
         ed emette i segnali adatti alla query avviata:
@@ -100,14 +98,14 @@ class RemoteTimereg(QObject):
             timeregStarted
             timereportStarted
         """
-        debug("Sync")
+        #debug("Sync")
         for action, cmdline in self._actions_params.items():
-            if self._execute(cmdline):
+            if self.execute(cmdline):
                 del self._actions_params[action]
                 self.emit(SIGNAL(action+"Started"))
 
     def _ready(self, exitcode):
-        """
+        """ <-- SIGNAL("finished(int)"), self._ready
         Provvede a emettere i segnali adatti alla risposta ottenuta:
             whoami[OK|Err](ElemetTree)
             query[OK|Err](ElemetTree)
@@ -115,21 +113,23 @@ class RemoteTimereg(QObject):
             timereport[OK|Err](ElemetTree)
             emptyResponse
         """
-        debug("Ready")
+        #debug("Ready")
         if exitcode != pyuac_cli.exits.index("OK"):
             self._error(5, exitcode)
         resp = str(self.process.readAllStandardOutput())
         if resp != "":
+            #debug("_ready %s" % resp)
             eresp = ET.fromstring(resp)
             node = eresp.get("node")
             msg = eresp.get("msg")
             self.emit(SIGNAL(node+msg), eresp)
         else:
             self.emit(SIGNAL("emptyResponse"))
-        self._sync()
+        #appena il processo ha terminato il lavoro controllo la coda con
+        self.sync()
 
     def _error(self, process_error, exitcode=None):
-        """
+        """ <-- self.process, SIGNAL("error(QProcess::ProcessError)")
         Emette processError con parametri:
             QProcess::ProcessError decodificato come stringa
             pyuac_cli.error decodificato come stringa

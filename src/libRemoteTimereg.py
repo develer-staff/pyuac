@@ -9,9 +9,11 @@
 # Author: Matteo Bertini <naufraghi@develer.com>
 #
 
-import urllib, urllib2, re, time, datetime, sys, logging
+import urllib, urllib2, time, datetime, sys
 from xml.parsers.expat import ExpatError
 from htmlentitydefs import entitydefs
+
+from pyuac_utils import *
 
 try:
     from xml.etree import ElementTree as ET
@@ -21,52 +23,7 @@ except ImportError:
     except ImportError:
         raise ImportError, "ElementTree (or py2.5) needed"
 
-logging.basicConfig(filename="pyuac.lib.log",
-                    format="%(name)-12s %(asctime)s %(levelname)s %(message)s",
-                    level=logging.DEBUG)
-log = logging.getLogger("pyuac.lib")
-#TODO: risolvere il problema dei log contemporanei del processo
-#      principale e di quello in QProcess. Entrambi caricano libRemoteTimereg
-#      e quindi entrambi caricano il logger "pyuac.lib"
-
 ACHIEVO_ENCODING = "ISO-8859-1"
-
-def timeRound(inTime, stepTime=15):
-    """
-    Arrotonda la stringa hh:mm alla risoluzione inviata
-    e restituisce un oggetto timedelta:
-
-    >>> timeRound("2:44")
-    '02:45'
-    >>> timeRound("13:10", 20)
-    '13:20'
-    """
-    inTime_tuple = time.strptime(inTime, "%H:%M")
-    step = datetime.timedelta(minutes=stepTime)
-    if step == datetime.timedelta():
-        step = datetime.timedelta(minutes=1)
-    pre = datetime.timedelta(hours=inTime_tuple.tm_hour,
-                             minutes=inTime_tuple.tm_min)
-    res = int(round(pre.seconds/float(step.seconds))*step.seconds)
-    return "%02d:%02d" % (res/3600, (res%3600)/60)
-
-
-def parseSmartQuery(smartquery):
-    """
-    Analizza una stringa e restisuisce un dizionario
-    """
-    getsq = re.compile("""
-        (?P<in_prj>[^ ]+|)\ *
-        (?P<in_pha>[^ ]+|)\ *
-        (?P<in_act>[^ ]+|)\ *
-        (?P<in_hmtime>\d{1,2}:\d{1,2}|\d{1,2}|)\ *
-        (?P<in_remark>.*|)
-        """, re.VERBOSE + re.DOTALL)
-    res = getsq.search(smartquery).groupdict()
-    if ":" not in res["in_hmtime"]:
-        res["in_hmtime"] += res["in_hmtime"] or "00" + ":00"
-    log.debug("parseSmartQuery: %s" % res)
-    return res
 
 class RemoteTimereg:
     """
@@ -98,7 +55,6 @@ class RemoteTimereg:
         self._projects = ET.fromstring("<response />")
 
         self.whoami()
-        #self.search("%")
 
     def _login(self, user=None, password=None):
         """
@@ -143,11 +99,10 @@ class RemoteTimereg:
             else:
                 kwargs[key] = val.encode(ACHIEVO_ENCODING)
         qstring = urllib.urlencode(params.items() + kwargs.items(), doseq=True)
-        if __debug__:
-            log.debug("##### Dispatch: %s" % qstring)
-        page = urllib2.urlopen(self._dispatchurl, qstring).read()#.decode("utf-8")
-                                                        # è xml, ci deve pensare etree
-        log.debug("_urlDispatch " + page)
+        #if __debug__:
+            #debug("##### Dispatch: %s" % qstring)
+        page = urllib2.urlopen(self._dispatchurl, qstring).read()
+        #debug("_urlDispatch " + page)
         return ET.fromstring(page)
 
     def whoami(self):
@@ -159,7 +114,7 @@ class RemoteTimereg:
             self.userid = elogin[0].get("id")
         return elogin
 
-    def query(self, smartquery="%"):
+    def query(self, smartquery):
         """
         Ottiene la lista dei progetti/fasi/attività coerenti
         con la smart-string inviata, restituisce un ElementTree
@@ -175,22 +130,19 @@ class RemoteTimereg:
         self._smartquery_dict = _smartquery_dict
         # Fa la query al server solo se la parte
         # "project", "phase", "activity" è cambiata
-        if _ppa != _old_ppa:
+        if _ppa != _old_ppa or (_ppa.strip() == _old_ppa.strip() == ""):
             self._projects = self._urlDispatch("query", input=_ppa)
-        log.debug("Search results: %s" % ET.tostring(self._projects))
-        if len(self._projects) == 1:
-            self._prepareTimereg()
+        #debug("Search results: %s" % ET.tostring(self._projects))
+        for p in self._projects[:1]:
+            # riempio tutti i campi necessari alla registrazione
+            # delle ore lavorate solo nel primo progetto.
+            p.text = self._smartquery_dict["in_remark"]
+            p.set("in_hmtime",  self._smartquery_dict["in_hmtime"])
+            try:
+                p.set("hmtime", timeRound(self._smartquery_dict["in_hmtime"]))
+            except ValueError:
+                pass
         return self._projects
-
-    def _prepareTimereg(self):
-        """
-        Se ho un solo progetto, posso riempire tutti i campi necessari alla
-        registrazione delle ore lavorate.
-        """
-        project = self._projects[0]
-        project.text = self._smartquery_dict["in_remark"]
-        project.set("hmtime",  timeRound(self._smartquery_dict["in_hmtime"]))
-        #project.set("in_hmtime",  timeRound(self._smartquery_dict["in_hmtime"]))
 
     def timereport(self, date):
         """
@@ -227,7 +179,6 @@ class RemoteTimereg:
                   "confirm": "Yes"}
         epage = self._urlDispatch("timereg", action="delete", **kwargs)
         return epage
-
 
 example_save = """
 curl -v -b cookie -c cookie \

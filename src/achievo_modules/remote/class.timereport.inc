@@ -26,8 +26,9 @@ class timereport extends atkNode
 
         $sql = "
                 SELECT
-                    hours.time AS time,
-                    hours.remark AS remark,
+                    hours.id,
+                    hours.time,
+                    hours.remark,
                     hours.activitydate AS activitydate,
                     project.name AS prj,
                     activity.name AS act,
@@ -36,9 +37,9 @@ class timereport extends atkNode
                     JOIN phase ON hours.phaseid = phase.id
                     JOIN activity ON hours.activityid = activity.id
                     JOIN project ON phase.projectid = project.id
-                WHERE 
+                WHERE
                     project.status = 'active' AND
-                    userid = " . $g_user["id"] . " AND 
+                    userid = " . $g_user["id"] . " AND
                     activitydate IN ('$datelist',0)
                     ORDER BY activitydate DESC
         ";

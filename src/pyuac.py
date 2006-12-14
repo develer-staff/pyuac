@@ -34,7 +34,6 @@ except ImportError:
         raise ImportError, "ElementTree (or py2.5) needed"
 
 from QTimeBrowseWindow import TimeBrowseWindow
-from pyuac_utils import *
 
 class TimeregApplication(QApplication):
     def __init__(self, args):

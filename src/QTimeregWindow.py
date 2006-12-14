@@ -57,6 +57,8 @@ class TimeregWindow(QMainWindow):
     def _connectSlots(self):
         self.connect(self.ui.comboSmartQuery, SIGNAL("editTextChanged(QString)"),
                      self._smartQueryChanged)
+        self.connect(self.ui.comboSmartQuery.lineEdit(), SIGNAL("returnPressed()"),
+                     self.timereg)
         self.connect(self.ui.btnSave, SIGNAL("clicked()"),
                      self.timereg)
         self.connect(self.ui.btnDelete, SIGNAL("clicked()"),
@@ -257,6 +259,9 @@ class TimeregWindow(QMainWindow):
         self._updateComboBoxes("TimeWorked", combotext)
 
     def timereg(self):
+        if not self._baseproject.isComplete():
+            self.notify(self.tr("Unable to save!"), 1000)
+            return
         self.ui.btnSave.setEnabled(False)
         p = self._baseproject
         activitydate = str(self.ui.dateTimeregDate.date().toString("yyyy-MM-dd"))

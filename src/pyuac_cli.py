@@ -8,8 +8,7 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import sys, cgi, logging, urllib2
-import libRemoteTimereg
+import sys, cgi, urllib2
 
 from xml.parsers.expat import ExpatError
 try:
@@ -20,12 +19,8 @@ except ImportError:
     except ImportError:
         raise ImportError, "ElementTree (or py2.5) needed"
 
-log = logging.getLogger("pyuac.cli")
-
-def debug(msg):
-    if __debug__:
-        log.debug("%s.%s" % (__name__, msg))
-        #sys.stderr.write(msg+"\n") #da problemi, non separa bene stdout da stderr
+import libRemoteTimereg
+from pyuac_utils import *
 
 docs = """  Uso:
     http://domain.com/achievo/ user password [--oneshot]
@@ -47,12 +42,11 @@ def parseCommand(cmdline):
     action = action_params[0]
     params = {}
     if len(action_params) > 1:
-        debug("<!--cli parse_qsl: \n%s\n-->\n" % cgi.parse_qsl(action_params[1]))
         # parse_qsl restutuisce una lista del tipo
         # [('par1', 'var'), ('par2', 'var1'), ('par2', 'var2')] da convertire in
         # => {'par1': 'var',
         #     'par2', ['var1','var2']}
-        for k, v in cgi.parse_qsl(action_params[1]):
+        for k, v in cgi.parse_qsl(action_params[1], keep_blank_values=True):
             # str(k) perchè poi le chiavi del dizionario
             # verranno usate come keyword arguments
             k = str(k)
@@ -62,7 +56,6 @@ def parseCommand(cmdline):
                     params[k] = [params[k], v]
                 else:
                     params[k].append(v)
-    debug("<!--cli params: \n%s\n-->\n" % str(params))
     return action, params
 
 def help(remote):
@@ -71,12 +64,13 @@ def help(remote):
     res += ["  %s: %s" % (action, description) for action, description in remote.actions.items()]
     return "\n".join(res)
 
-exits = "OK PARAMS_ERROR CONNECTION_ERROR ACTION_ERROR RESPONSE_ERROR".split()
-def exit(mode):
+exits = "OK CONNECTION_ERROR ACTION_ERROR RESPONSE_ERROR PARAMS_ERROR".split()
+def exit(mode, verbose=False):
+    if verbose:
+        sys.stderr.write(mode)
     sys.exit(exits.index(mode))
 
 def execute(remote, action, params):
-    #debug("cli.%s(%s)" % (action, params))
     #Cerco di mappare l'azione su un metodo
     func = getattr(remote, action)
     if params:
@@ -84,7 +78,6 @@ def execute(remote, action, params):
     else:
         eres = func()
     res = ET.tostring(eres, "utf-8")
-    debug("cli.%s(%s) results: %s" % (action, params, res))
     return res
 
 def serve(params, oneshot=False):
@@ -99,11 +92,9 @@ def serve(params, oneshot=False):
         #Cerca di inizializzare la classe con i parametri forniti
         remote = libRemoteTimereg.RemoteTimereg(*params)
     except urllib2.HTTPError:
-        log.error("Connection Error!!\n")
-        exit("CONNECTION_ERROR")
+        exit("CONNECTION_ERROR", True)
     except ExpatError:
-        log.error("Response Error!!\n")
-        exit("RESPONSE_ERROR")        
+        exit("RESPONSE_ERROR", True)
 
     while True:
         #Gira aspettando righe di comando della forma:

@@ -8,7 +8,7 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import sys, logging
+import sys, copy
 from PyQt4 import uic
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -21,43 +21,31 @@ except ImportError:
     except ImportError:
         raise ImportError, "ElementTree (or py2.5) needed"
 
-import libRemoteTimereg
+from pyuac_utils import *
 from QRemoteTimereg import RemoteTimereg
 
-log = logging.getLogger("pyuac.gui")
-
-def debug(msg):
-    if __debug__:
-        print __name__, msg
-        log.debug("%s.%s" % (__name__, msg))
-
 class TimeregWindow(QMainWindow):
+
+    empty_combo = "------"
+
     def __init__(self, parent, auth):
         QMainWindow.__init__(self, parent)
-        self._baseproject = None
+        self._baseproject = AchievoProject()
         self.ui = uic.loadUi("pyuac_edit.ui", self)
         self.remote = RemoteTimereg(self, auth)
         self.err = QErrorMessage(self)
-        self._last_modified_combo = None
         self._response_projects = []
-        self.projects = set()
-        self.phases = {None: set()}
-        self.activities = {(None,None): set()}
+        self._ppa = {}
         self._connectSlots()
         self._setupGui()
+        self._smartQueryChanged("")
 
     def _setupGui(self):
+        debug("_setupGui")
         self.ui.dateTimeregDate.setDate(QDate.currentDate())
         self.ui.comboTimeWorked.clear()
-        max_hours = 8
-        for hour in range(max_hours):
-            for quarter in range(4):
-                if hour + quarter > 0:
-                    htext = "%02d:%02d" % (hour, 15*quarter)
-                    self.ui.comboTimeWorked.addItem(htext)
-            if hour == max_hours - 1:
-                htext = "%02d:%02d" % (max_hours, 0)
-                self.ui.comboTimeWorked.addItem(htext)
+        for htext in timerange(8, 15):
+            self.ui.comboTimeWorked.addItem(htext)
         self.ui.labelExactTime.setText("00:00")
         self.ui.setWindowTitle("Time Registration - %s" % self.remote.auth[1])
         self.ui.btnDelete.setText(self.tr("Reset"))
@@ -65,17 +53,6 @@ class TimeregWindow(QMainWindow):
         self.ui.txtRemark.setReadOnly(True)
         self.ui.comboSmartQuery.lineEdit().setText("")
         self.ui.comboSmartQuery.setFocus()
-        self._smartQueryChanged("")
-        self._updateComboBoxes()
-
-    def _disableAll(self):
-        self.ui.labelProject.setEnabled(False)
-        self.ui.labelPhase.setEnabled(False)
-        self.ui.labelActivity.setEnabled(False)
-        self.ui.labelTimeWorked.setEnabled(False)
-        self.ui.labelRemark.setEnabled(False)
-        self.ui.btnSave.setEnabled(False)
-        self.ui.btnDelete.setEnabled(False)
 
     def _connectSlots(self):
         self.connect(self.ui.comboSmartQuery, SIGNAL("editTextChanged(QString)"),
@@ -85,7 +62,7 @@ class TimeregWindow(QMainWindow):
         self.connect(self.ui.btnDelete, SIGNAL("clicked()"),
                      self.delete)
         self.connect(self.ui.btnCancel, SIGNAL("clicked()"),
-                     self._close)
+                     self.cancel)
         self.connect(self.ui.comboProject, SIGNAL("activated(const QString&)"),
                      self._comboProjectActivated)
         self.connect(self.ui.comboPhase, SIGNAL("activated(const QString&)"),
@@ -110,126 +87,151 @@ class TimeregWindow(QMainWindow):
                      self._processError)
 
     def _smartQueryChanged(self, smartquery):
-        """
+        """ <-- self.ui.comboSmartQuery, SIGNAL("editTextChanged(QString)")
         Avvia la query al servizio remoto di achievo tramite la cli
         """
-        if smartquery != "" or self._response_projects == []:
-            smartquery = "%"+unicode(smartquery)
-            self.remote.query(smartquery=smartquery)
-
-    def _updateComboBoxes(self, combo=None):
-        """
-        Aggiorna i combobox in modo che contengano
-        l'unione dei progetti visti durante la sessione
-        """
-        for p in self._response_projects:
-            self.projects.add(p.get("prj"))
-            self.phases.setdefault(p.get("prj"), set())
-            self.phases[p.get("prj")].add(p.get("pha"))
-            self.phases[None].add(p.get("pha"))
-            self.activities.setdefault((p.get("prj"), p.get("pha")), set())
-            self.activities[(p.get("prj"), p.get("pha"))].add(p.get("act"))
-            self.activities[(None,None)].add(p.get("act"))
-                    
-        if combo == None and len(self._response_projects) >= 1:
-            project = p.get("prj")
-            phase = p.get("pha")
-            activity = p.get("act")
-            newtime = p.get("hmtime")
-            self.ui.comboProject.clear()
-            self.ui.comboProject.addItems(sorted(list(self.projects)))
-            self.ui.comboPhase.clear()
-            self.ui.comboPhase.addItems(sorted(list(self.phases[project])))
-            self.ui.comboActivity.clear()
-            self.ui.comboActivity.addItems(sorted(list(self.activities[(project,phase)])))
-        else:
-            project = unicode(self.ui.comboProject.currentText()) or None
-            phase = unicode(self.ui.comboPhase.currentText()) or None
-            activity = unicode(self.ui.comboActivity.currentText()) or None
-            newtime = unicode(self.ui.comboTimeWorked.currentText())
-            
-            if combo == "Project" or len(self._response_projects) == 1:
-                self.ui.comboPhase.clear()
-                self.ui.comboPhase.addItems(sorted(list(self.phases[project])))
-            elif combo == "Phase" or len(self._response_projects) == 1:
-                self.ui.comboActivity.clear()
-                self.ui.comboActivity.addItems(sorted(list(self.activities[(project,phase)])))
-            
-            smartquery_dict = self._parseSmartQuery()
-            smartquery_dict["in_prj"] = project or smartquery_dict["in_prj"]
-            smartquery_dict["in_pha"] = phase or smartquery_dict["in_pha"]
-            smartquery_dict["in_act"] = activity or smartquery_dict["in_act"]
-            smartquery_dict["in_hmtime"] = newtime or smartquery_dict["in_hmtime"]
-            self._setSmartQuery(smartquery_dict)
+        debug("_smartQueryChanged: %s" % smartquery)
+        smartquery = unicode(smartquery).strip()
+        self.remote.query(smartquery=smartquery)
+        self.notify(self.tr("Searching..."))
 
     def _projectsChanged(self, projects):
-        """
+        """ <-- self.remote, SIGNAL("queryOK")
         Aggiorna l'interfaccia in funzione del numero di progetti
         restituiti dalla ricerca in Achievo:
+        n == 0) la smartquery non corrisponde a nessuna tripla prj-pha-act
         n == 1) è possibile procedere con la registrazione
-        n == 0) reimposto il campo della smartquery non modificato
-                sulla ricerca generica %
-                Se scelgo una coppia Phase - Activity che non esiste, mantengo
-                il campo associato all'ultimo combo modificato dall'utente
-        n >= 2) Non è possibile registrare le ore
+        n >  1) Non è possibile registrare le ore
         """
         debug("_projectsChanged %s" % len(projects))
 
         self._response_projects = projects
-        self._updateComboBoxes()
 
-        #TODO: spostare projects[0] in _baseproject, in modo che sia il
-        #      modello di ciò che viene visualizzato
-
-        if len(self._response_projects) == 1:
-            p = self._response_projects[0]
-
-            idx = self.ui.comboProject.findText(p.get("prj"))
-            self.ui.comboProject.setCurrentIndex(idx)
-
-            idx = self.ui.comboPhase.findText(p.get("pha"))
-            self.ui.comboPhase.setCurrentIndex(idx)
-
-            idx = self.ui.comboActivity.findText(p.get("act"))
-            self.ui.comboActivity.setCurrentIndex(idx)
-
-            idx = self.ui.comboTimeWorked.findText(p.get("hmtime") or "00:00")
-            self.ui.comboTimeWorked.setCurrentIndex(idx)
-
-            self.ui.labelExactTime.setText(p.get("in_hmtime"))
-            self.ui.labelTimeWorked.setEnabled(p.get("hmtime") != "00:00")
-
-            self.ui.txtRemark.setPlainText((p.text or "").strip())
-
-            self.ui.labelRemark.setEnabled(p.text != "")
-            self.ui.btnSave.setEnabled(p.get("hmtime") != "00:00" and p.text != "")
-            self.ui.labelProject.setEnabled(True)
-            self.ui.labelPhase.setEnabled(True)
-            self.ui.labelActivity.setEnabled(True)
-            self.ui.btnDelete.setEnabled(True)
+        if len(self._response_projects) != 0:
+            debug("_baseproject.merge()")
+            self._baseproject.merge(self._response_projects)
         else:
-            self._disableAll()
+            debug("_baseproject.reset()")
+            self._baseproject.reset()
+        debug("_projectsChanged: _baseproject %s" % self._baseproject)
+        self._updateGui()
+        self.notify(self.tr(""))
+
+    def _updateGui(self):
+        debug("_updateGui")
+        self._updateComboBoxes()
+        p = self._baseproject
+        self._disableAll()
+
+        idx = self.ui.comboProject.findText(p.get("prj") or self.empty_combo)
+        self.ui.comboProject.setCurrentIndex(idx)
+        self.ui.labelProject.setEnabled(p.get("prj") != None)
+
+        idx = self.ui.comboPhase.findText(p.get("pha") or self.empty_combo)
+        self.ui.comboPhase.setCurrentIndex(idx)
+        self.ui.labelPhase.setEnabled(p.get("pha") != None)
+
+        idx = self.ui.comboActivity.findText(p.get("act") or self.empty_combo)
+        self.ui.comboActivity.setCurrentIndex(idx)
+        self.ui.labelActivity.setEnabled(p.get("act") != None)
+
+        idx = self.ui.comboTimeWorked.findText(p.get("hmtime") or "00:00")
+        self.ui.comboTimeWorked.setCurrentIndex(idx)
+
+        self.ui.labelExactTime.setText(p.get("in_hmtime") or "00:00")
+        self.ui.labelTimeWorked.setEnabled(p.get("hmtime") != "00:00")
+
+        self.ui.txtRemark.setPlainText((p.get("remark") or "").strip())
+
+        self.ui.labelRemark.setEnabled(p.get("remark") != None)
+        self.ui.btnSave.setEnabled(p.get("hmtime") != "00:00" and p.get("remark") != None)
+
+        self.ui.btnDelete.setEnabled(True)
+        self.ui.comboProject.setEnabled(True)
+        self.ui.comboPhase.setEnabled(True)
+        self.ui.comboActivity.setEnabled(True)
+        self.ui.comboTimeWorked.setEnabled(True)
+
+    def _disableAll(self):
+        self.ui.labelProject.setEnabled(False)
+        self.ui.labelPhase.setEnabled(False)
+        self.ui.labelActivity.setEnabled(False)
+        self.ui.labelTimeWorked.setEnabled(False)
+        self.ui.labelRemark.setEnabled(False)
+        self.ui.btnSave.setEnabled(False)
+        self.ui.btnDelete.setEnabled(False)
+
+    def _updateComboBoxes(self, combo=None, combotext=None):
+        """
+        Aggiorna i combobox in modo che contengano
+        l'unione dei progetti visti durante la sessione
+        """
+        combotext = unicode(combotext)
+        debug("_updateComboBoxes %s %s" % (combo, combotext))
+        # Aggiorna la lista di progetti, fasi e attività
+        # usata per riempire i combobox
+        for p in self._response_projects:
+            self._ppa.setdefault(p.get("prj"), {})
+            self._ppa[p.get("prj")].setdefault(p.get("pha"), {})
+            self._ppa[p.get("prj")][p.get("pha")].setdefault(p.get("act"), {})
+
+        if combo == "Project":
+            self._baseproject.set("in_prj", combotext)
+            self._baseproject.set("pha", None)
+            self._baseproject.set("act", None)
+            self._baseproject.set("in_pha", "%")
+            self._baseproject.set("in_act", "%")
+        elif combo == "Phase":
+            self._baseproject.set("in_pha", combotext)
+            self._baseproject.set("act", None)
+            self._baseproject.set("in_act", "%")
+        elif combo == "Activity":
+            self._baseproject.set("in_act", combotext)
+        elif combo == "TimeWorked":
+            self._baseproject.set("in_hmtime", combotext)
+
+        if combo != None:
+            smartquery = self._baseproject.getSmartQuery()
+            self._setSmartQuery(smartquery)
+
+        project = self._baseproject.get("prj")
+        phase = self._baseproject.get("pha")
+        activity = self._baseproject.get("act")
+
+        self.ui.comboProject.clear()
+        self.ui.comboPhase.clear()
+        self.ui.comboActivity.clear()
+        self.ui.comboProject.addItems([self.empty_combo]+sorted(self._ppa.keys()))
+        if project != None:
+            self.ui.comboPhase.addItems([self.empty_combo]+sorted(self._ppa[project].keys()))
+            if phase != None:
+                self.ui.comboActivity.addItems([self.empty_combo]+sorted(self._ppa[project][phase].keys()))
 
     def _timeregStarted(self):
-        debug("_timeregStarted")
+        #debug("_timeregStarted")
+        pass
 
     def _registrationDone(self, eresp):
-        debug("_registrationDone")
-        eresp[0].set("activitydate", self._response_projects[0].get("activitydate"))
-        self.emit(SIGNAL("registrationDone"), eresp)
-        self._baseproject = None
-        self._close()
+        #debug("_registrationDone")
+        self.emit(SIGNAL("registrationDone"), self._baseproject)
+        self._baseproject.reset()
+        self.ui.close()
 
-    def _close(self):
+    def cancel(self):
         self._setupGui()
         self.ui.close()
 
     def _timeregErr(self):
-        debug("_timeregError")
+        #debug("_timeregError")
+        pass
 
     def _searchStarted(self):
-        debug("_searchStarted")
+        #debug("_searchStarted")
         self.ui.btnSave.setEnabled(False)
+        self.ui.comboProject.setEnabled(False)
+        self.ui.comboPhase.setEnabled(False)
+        self.ui.comboActivity.setEnabled(False)
+        self.ui.comboTimeWorked.setEnabled(False)
 
     def _processError(self, qperror, exitcode):
         debug("_processError %s, %s" % (qperror, exitcode))
@@ -237,68 +239,129 @@ class TimeregWindow(QMainWindow):
             self.err.showMessage(self.tr("Errore nel processo interfaccia con Achievo:\n") +
                                  "%s, %s" % (qperror, exitcode))
 
-    def _parseSmartQuery(self):
-        origtext = unicode(self.ui.comboSmartQuery.lineEdit().text())
-        return libRemoteTimereg.parseSmartQuery(origtext)
-
-    def _setSmartQuery(self, smartquery_dict):
-        keys = "in_prj in_pha in_act in_hmtime in_remark".split()
-        print "_setSmartQuery", smartquery_dict
-        qstring = " ".join([smartquery_dict.get(k, "") or "" for k in keys]).strip()
-        self.ui.comboSmartQuery.setEditText(qstring)
+    def _setSmartQuery(self, smartquery):
+        debug("_setSmartQuery", smartquery)
+        self.ui.comboSmartQuery.setEditText(smartquery)
         self.ui.comboSmartQuery.setFocus()
-    
-    
+
     def _comboProjectActivated(self, combotext):
-        self._updateComboBoxes("Project")
+        self._updateComboBoxes("Project", combotext)
 
     def _comboPhaseActivated(self, combotext):
-        self._updateComboBoxes("Phase")
+        self._updateComboBoxes("Phase", combotext)
 
     def _comboActivityActivated(self, combotext):
-        self._updateComboBoxes("Activity")
+        self._updateComboBoxes("Activity", combotext)
 
     def _comboTimeWorkedActivated(self, combotext):
-        self._updateComboBoxes("TimeWorked")
+        self._updateComboBoxes("TimeWorked", combotext)
 
     def timereg(self):
         self.ui.btnSave.setEnabled(False)
-        p = self._response_projects[0]
+        p = self._baseproject
         activitydate = str(self.ui.dateTimeregDate.date().toString("yyyy-MM-dd"))
         p.set("activitydate", activitydate)
         params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime activitydate".split()])
-        params["remark"] = p.text
-        if self._baseproject.get("id") != None:
+        params["remark"] = p.get("remark")
+        if not self._baseproject.isNew():
+            debug("-------------> Update")
             params["id"] = self._baseproject.get("id")
-        debug(str(params))
+        else:
+            debug("-------------> New")
         self.remote.timereg(**params)
         self.notify(self.tr("Saving..."))
 
     def setupEdit(self, project):
-        self._baseproject = project
-        if self._baseproject.get("id") != None:
+        self._baseproject = AchievoProject(project)
+        debug("setupEdit %s" % self._baseproject)
+        if not self._baseproject.isNew():
             self.ui.btnDelete.setText(self.tr("Delete"))
-        self.ui.dateTimeregDate.setDate(QDate.fromString(project.get("activitydate"), "yyyy-MM-dd"))
-        smartquery_dict = dict(project.items() + [("remark", project.text)])
-        #TODO: i nomi dei campi cambiano troppe volte
-        #      questo hack duplica i valori in attesa di rinominate uniformemente
-        #      i campi tra php e pyuac e tra timereg, query e timereport
-        for k in dict(smartquery_dict):
-            smartquery_dict["in_"+k] = smartquery_dict[k]
-            del smartquery_dict[k]
-        self._setSmartQuery(smartquery_dict)
+        self.ui.dateTimeregDate.setDate(QDate.fromString(self._baseproject.get("activitydate"),
+                                                         "yyyy-MM-dd"))
+        smartquery = self._baseproject.getSmartQuery()
+        self._setSmartQuery(smartquery)
+        #dovrebbe partire ediTextChanged -> _smartQueryChanged
+        #ma se la stringa rimane invariata (cioè quando è vuota) non parte
+        if smartquery == "":
+            self._smartQueryChanged(smartquery)
+        self.notify(self.tr("Loading..."))
 
     def delete(self):
-        if self._baseproject.get("id") != None:
-             self.remote.delete(id=self._baseproject.get("id"))
-             self.notify(self.tr("Deleting..."))
-             self._baseproject = None
+        if not self._baseproject.isNew():
+            debug("-------------> Delete")
+            self.remote.delete(id=self._baseproject.get("id"))
+            self.notify(self.tr("Deleting..."))
         else:
-             self._setupGui()
-    
+            debug("-------------> Reset")
+            self.notify(self.tr("Resetting..."))
+            self._setupGui()
+
     def notify(self, msg, timeout=0):
         self.ui.statusBar.showMessage(msg, timeout)
 
+class AchievoProject:
+    """
+    Classe che decora il progetto xml con alcune metodi di utilità
+    """
+    keys = "prj pha act hmtime remark".split()
+
+    def __init__(self, eproject=None):
+        if eproject == None:
+            eproject = ET.fromstring("<record></record>")
+        self.data = copy.deepcopy(eproject)
+
+    def isNew(self):
+        return self.data.get("id") == None
+
+    def isComplete(self):
+        for key in self.keys:
+            if self.get(key) in [None, ""]:
+                return False
+        return True
+
+    def get(self, key):
+        if key in ["remark", "in_remark"]:
+            return self.data.text
+        else:
+            return self.data.get(key)
+
+    def set(self, key, val):
+        if key in ["remark", "in_remark"]:
+            self.data.text = val
+        else:
+            if val != None:
+                self.data.set(key, val)
+            elif key in self.data.attrib:
+                del self.data.attrib[key]
+
+    def items(self):
+        return self.data.items() + [("remark", self.data.text)]
+
+    def merge(self, others):
+        # metto a None tutti gli attributi ambigui
+        values = {}
+        for c, other in enumerate(others):
+            for k, v in other.items()+[("remark", other.text)]:
+                values.setdefault(k, set())
+                if v != None:
+                    values[k].add(v)
+        for k, v in values.items():
+            if len(v) == 1:
+               self.set(k, list(v)[0])
+
+    def reset(self):
+        for key in self.data.attrib.keys():
+            if key != "id":
+                del self.data.attrib[key]
+
+    def getSmartQuery(self):
+        smartquery = " ".join([self.get("in_%s" % key) or "" for key in self.keys])
+        if smartquery.strip() == "":
+            return smartquery.strip()
+        return smartquery.strip()+" "
+
+    def __str__(self):
+        return ET.tostring(self.data, "UTF-8")
 
 if __name__ == "__main__":
     app = TimeregApplication(sys.argv)

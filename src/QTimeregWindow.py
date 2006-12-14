@@ -99,11 +99,8 @@ class TimeregWindow(QMainWindow):
 
     def _projectsChanged(self, projects):
         """ <-- self.remote, SIGNAL("queryOK")
-        Aggiorna l'interfaccia in funzione del numero di progetti
+        Aggiorna lo stato interno in funzione dei progetti
         restituiti dalla ricerca in Achievo:
-        n == 0) la smartquery non corrisponde a nessuna tripla prj-pha-act
-        n == 1) è possibile procedere con la registrazione
-        n >  1) Non è possibile registrare le ore
         """
         debug("_projectsChanged %s" % len(projects))
 
@@ -120,6 +117,9 @@ class TimeregWindow(QMainWindow):
         self.notify(self.tr(""))
 
     def _updateGui(self):
+        """
+        Aggiorna lo stato visuale della gui in funzione dello stato interno
+        """
         debug("_updateGui")
         self._updateComboBoxes()
         p = self._baseproject
@@ -166,7 +166,7 @@ class TimeregWindow(QMainWindow):
     def _updateComboBoxes(self, combo=None, combotext=None):
         """
         Aggiorna i combobox in modo che contengano
-        l'unione dei progetti visti durante la sessione
+        l'unione dei valori visti durante la sessione
         """
         combotext = unicode(combotext)
         debug("_updateComboBoxes %s %s" % (combo, combotext))
@@ -203,11 +203,14 @@ class TimeregWindow(QMainWindow):
         self.ui.comboProject.clear()
         self.ui.comboPhase.clear()
         self.ui.comboActivity.clear()
-        self.ui.comboProject.addItems([self.empty_combo]+sorted(self._ppa.keys()))
+        #self.ui.comboProject.addItems([self.empty_combo]+sorted(self._ppa.keys()))
+        self.ui.comboProject.addItems(sorted(self._ppa.keys()))
         if project != None:
-            self.ui.comboPhase.addItems([self.empty_combo]+sorted(self._ppa[project].keys()))
+            #self.ui.comboPhase.addItems([self.empty_combo]+sorted(self._ppa[project].keys()))
+            self.ui.comboPhase.addItems(sorted(self._ppa[project].keys()))
             if phase != None:
-                self.ui.comboActivity.addItems([self.empty_combo]+sorted(self._ppa[project][phase].keys()))
+                #self.ui.comboActivity.addItems([self.empty_combo]+sorted(self._ppa[project][phase].keys()))
+                self.ui.comboActivity.addItems(sorted(self._ppa[project][phase].keys()))
 
     def _timeregStarted(self):
         #debug("_timeregStarted")

@@ -34,7 +34,7 @@ function tokenize($s)
     $s = preg_replace("/\s+/", " ", $s);
     $s = trim($s);
 
-    return split (" ", $s);
+    return split(" ", $s);
 }
 
 class query extends atkNode
@@ -81,7 +81,7 @@ class query extends atkNode
             {
                 for ($activity_len = 0; $activity_len <= sizeof($tokens) - ($prj_len + $phase_len); ++$activity_len)
                 {
-                    $prj = join(" ", array_slice($tokens, 0, $prj_len)); 
+                    $prj = join(" ", array_slice($tokens, 0, $prj_len));
                     $phase = join(" ", array_slice($tokens, $prj_len, $phase_len));
                     $activity = join(" ", array_slice($tokens, $prj_len + $phase_len, $activity_len));
                     $hours = join(" ", array_slice($tokens, $prj_len + $phase_len + $activity_len, 1));
@@ -108,7 +108,7 @@ class query extends atkNode
         {
             $sql .= "
                 SELECT
-                    $k AS k, 
+                    $k AS k,
                     project.name AS prj,
                     phase.name AS pha,
                     activity.name AS act,
@@ -125,7 +125,7 @@ class query extends atkNode
                     project.status = 'active' AND
                     project_person.personid = " . $g_user["id"] . " AND
                     (
-                    (" . smartLike("project.name", $guesses[$k]["in_prj"]) . ") AND
+                    (" . smartLike("project.name", "%".$guesses[$k]["in_prj"]) . ") AND
                     (" . smartLike("phase.name", $guesses[$k]["in_pha"]) . ") AND
                     (" . smartLike("activity.name", $guesses[$k]["in_act"]) . ")
                     )";
@@ -143,7 +143,7 @@ class query extends atkNode
             $results[$i] = array_merge($results[$i], $guesses[$k]);
         }
 
-        echo make_xml("query", "OK", $results);
+        echo make_xml("query", "OK", $results, $bodykey="in_remark");
 
         exit;
     }

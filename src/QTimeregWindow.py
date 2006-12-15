@@ -26,8 +26,6 @@ from QRemoteTimereg import RemoteTimereg
 
 class TimeregWindow(QMainWindow):
 
-    empty_combo = "------"
-
     def __init__(self, parent, auth):
         QMainWindow.__init__(self, parent)
         self._baseproject = AchievoProject()
@@ -125,15 +123,15 @@ class TimeregWindow(QMainWindow):
         p = self._baseproject
         self._disableAll()
 
-        idx = self.ui.comboProject.findText(p.get("prj") or self.empty_combo)
+        idx = self.ui.comboProject.findText(p.get("prj") or "")
         self.ui.comboProject.setCurrentIndex(idx)
         self.ui.labelProject.setEnabled(p.get("prj") != None)
 
-        idx = self.ui.comboPhase.findText(p.get("pha") or self.empty_combo)
+        idx = self.ui.comboPhase.findText(p.get("pha") or "")
         self.ui.comboPhase.setCurrentIndex(idx)
         self.ui.labelPhase.setEnabled(p.get("pha") != None)
 
-        idx = self.ui.comboActivity.findText(p.get("act") or self.empty_combo)
+        idx = self.ui.comboActivity.findText(p.get("act") or "")
         self.ui.comboActivity.setCurrentIndex(idx)
         self.ui.labelActivity.setEnabled(p.get("act") != None)
 
@@ -203,13 +201,10 @@ class TimeregWindow(QMainWindow):
         self.ui.comboProject.clear()
         self.ui.comboPhase.clear()
         self.ui.comboActivity.clear()
-        #self.ui.comboProject.addItems([self.empty_combo]+sorted(self._ppa.keys()))
         self.ui.comboProject.addItems(sorted(self._ppa.keys()))
         if project != None:
-            #self.ui.comboPhase.addItems([self.empty_combo]+sorted(self._ppa[project].keys()))
             self.ui.comboPhase.addItems(sorted(self._ppa[project].keys()))
             if phase != None:
-                #self.ui.comboActivity.addItems([self.empty_combo]+sorted(self._ppa[project][phase].keys()))
                 self.ui.comboActivity.addItems(sorted(self._ppa[project][phase].keys()))
 
     def _timeregStarted(self):

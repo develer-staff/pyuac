@@ -31,8 +31,9 @@ class LoginDialog(QDialog):
         self.ui = uic.loadUi("pyuac_auth.ui", self)
         self.ui.editAchievoUri.setText(config["achievouri"])
         self.ui.editUsername.setText(config["username"])
-        self.connect(self.ui.buttonBox, SIGNAL("accepted()"), self.login)
-        self.connect(self.ui.buttonBox, SIGNAL("rejected()"), self.cancel)
+        self.connect(self.ui, SIGNAL("accepted()"), self.login)
+        self.connect(self.ui, SIGNAL("rejected()"), self.cancel)
+        self.connect(self.ui, SIGNAL("finished()"), self.cancel)
         self.ui.editPassword.setFocus()
 
     def login(self):
@@ -52,7 +53,7 @@ class TimeBrowseWindow(QMainWindow):
         QMainWindow.__init__(self)
         self.ui = uic.loadUi("pyuac_browse.ui", self)
         self.login = LoginDialog(self, config)
-        self.login.show()
+        self.login.exec_()
         self.err = QErrorMessage(self)
         self.projects = None
         self._setupGui()

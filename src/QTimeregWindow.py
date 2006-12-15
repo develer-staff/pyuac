@@ -24,6 +24,32 @@ except ImportError:
 from pyuac_utils import *
 from QRemoteTimereg import RemoteTimereg
 
+class ASettings(QSettings):
+    """
+    Aggiunge una interfaccia più semplice per le array
+    Converte in e restituisce valori QVariant
+    """
+    def getArray(self, prefix, keys):
+        res = []
+        size = self.beginReadArray(prefix)
+        for i in range(size):
+            self.setArrayIndex(i)
+            item = {}
+            for k in keys:
+                item[k] = self.value(k)
+            res.append(item)
+        self.endArray()
+        return res
+
+    def setArray(self, prefix, data):
+        self.beginWriteArray(prefix)
+        for i, item in enumerate(data):
+            self.setArrayIndex(i)
+            for k, v in item.items():
+                self.setValue(k, QVariant(v))
+        self.endArray()
+
+
 class TimeregWindow(QMainWindow):
 
     def __init__(self, parent, auth):
@@ -33,8 +59,8 @@ class TimeregWindow(QMainWindow):
         self.ui = uic.loadUi("pyuac_edit.ui", self)
         self.remote = RemoteTimereg(self, auth)
         self.err = QErrorMessage(self)
-        self.completer = QCompleter(["",], self)
-        self.completer.setCaseSensitivity(Qt.CaseInsensitive)
+        self.settings = ASettings("Develer", "PyUAC")
+        self.completer = QCompleter([], self.ui.comboSmartQuery.lineEdit())
         self._completer_list = []
         self._response_projects = []
         self._ppa = {}
@@ -55,7 +81,10 @@ class TimeregWindow(QMainWindow):
         self.ui.txtRemark.setReadOnly(True)
         self.ui.comboSmartQuery.lineEdit().setText("")
         self.ui.comboSmartQuery.lineEdit().setCompleter(self.completer)
+        self.completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.ui.comboSmartQuery.setFocus()
+        for row in self.settings.getArray("lru", ["ppa"]):
+            self.ui.comboSmartQuery.addItem(row["ppa"].toString())
 
     def _connectSlots(self):
         self.connect(self.ui.comboSmartQuery, SIGNAL("editTextChanged(QString)"),
@@ -214,20 +243,27 @@ class TimeregWindow(QMainWindow):
 
         # La stringa di completamento deve proporre il nome esteso del nodo
         # attivo e mantenere la stringa inserita (se univoca) per ciò che è
-        # già stato eseguito
-        _completer = []
+        # già stato eseguito <<<< da decidere
         if project == None:
             _completer = self._ppa.keys()
         else:
-            _base = self._baseproject.get("in_prj")+" "
-            _completer = [_base+pha for pha in self._ppa[project].keys()]
-            if phase != None:
-                _base = self._baseproject.get("in_prj")+" "+self._baseproject.get("in_pha")+" "
-                _completer = [_base+act for act in self._ppa[project][phase].keys()]
+            if phase == None:
+                _base = self._baseproject.get("in_prj")+" "
+                _completer = [_base+pha for pha in self._ppa[project].keys()]
+            else:
+                if activity == None:
+                    _base = self._baseproject.get("in_prj")+" "+self._baseproject.get("in_pha")+" "
+                    _completer = [_base+act for act in self._ppa[project][phase].keys()]
+                else:
+                    _completer = []
 
         if _completer != self._completer_list:
             self.completer.setModel(QStringListModel(_completer, self.completer))
             self._completer_list = _completer
+
+        if combo == None and self.ui.isVisible():
+            #altrimenti compare anche a finestra invisibile...
+            self.completer.complete()
 
         debug("self.completer %s" % _completer)
 
@@ -237,6 +273,13 @@ class TimeregWindow(QMainWindow):
 
     def _registrationDone(self, eresp):
         #debug("_registrationDone")
+        lru = self.settings.getArray("lru", ["ppa"])
+        new_ppa = self._baseproject.getPPA()+" "
+        if new_ppa not in [row["ppa"].toString() for row in lru]:
+            lru.insert(0, {"ppa": new_ppa})
+            if len(lru) > 2:
+                lru.pop()
+        self.settings.setArray("lru", lru)
         self.emit(SIGNAL("registrationDone"), self._baseproject)
         self._baseproject.reset()
         self.ui.close()
@@ -357,6 +400,9 @@ class AchievoProject:
             return self.data.text
         else:
             return self.data.get(key)
+
+    def getPPA(self):
+        return " ".join([self.get(k) for k in self.keys[:3]])
 
     def set(self, key, val):
         if key in ["remark", "in_remark"]:

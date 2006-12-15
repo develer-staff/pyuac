@@ -316,6 +316,12 @@ class AchievoProject:
     def isNew(self):
         return self.data.get("id") == None
 
+    def isUnivocal(self):
+        for key in self.keys[:3]:
+            if self.get(key) in [None, ""]:
+                return False
+        return True
+
     def isComplete(self):
         for key in self.keys:
             if self.get(key) in [None, ""]:
@@ -346,11 +352,12 @@ class AchievoProject:
         for c, other in enumerate(others):
             for k, v in other.items()+[("remark", other.text)]:
                 values.setdefault(k, set())
-                if v != None:
-                    values[k].add(v)
+                values[k].add(v)
         for k, v in values.items():
             if len(v) == 1:
-               self.set(k, list(v)[0])
+                self.set(k, list(v)[0])
+            else:
+                self.set(k, None)
 
     def reset(self):
         for key in self.data.attrib.keys():

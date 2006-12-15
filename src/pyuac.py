@@ -12,11 +12,11 @@ import getpass
 
 ########################## Congiguration ###############################
 
-config = {"achievouri": "https://www.develer.com/groupware/",
+config = {"achievouri": "http://www.develer.com/groupware/",
           "username": getpass.getuser()}
 
-config = {"achievouri": "http://www.develer.com/~naufraghi/achievo/",
-          "username": "matteo"}
+#config = {"achievouri": "http://www.develer.com/~naufraghi/achievo/",
+#          "username": "matteo"}
 
 ########################## Congiguration ###############################
 

@@ -37,6 +37,7 @@ class LoginDialog(QDialog):
         self.ui.editPassword.setFocus()
 
     def login(self):
+        debug("login")
         auth = [self.ui.editAchievoUri.text()]
         auth += [self.ui.editUsername.text()]
         auth += [self.ui.editPassword.text()]
@@ -44,6 +45,7 @@ class LoginDialog(QDialog):
         self.ui.close()
 
     def cancel(self):
+        debug("cancel")
         self.emit(SIGNAL("cancel"))
         self.ui.close()
 
@@ -53,11 +55,11 @@ class TimeBrowseWindow(QMainWindow):
         QMainWindow.__init__(self)
         self.ui = uic.loadUi("pyuac_browse.ui", self)
         self.login = LoginDialog(self, config)
-        self.login.exec_()
         self.err = QErrorMessage(self)
         self.projects = None
         self._setupGui()
         self._connectSlots()
+        self.login.exec_()
 
     def _connectSlots(self):
         self.connect(self.login, SIGNAL("login"),
@@ -94,6 +96,7 @@ class TimeBrowseWindow(QMainWindow):
         """ <-- self.login, SIGNAL("login")
         Riceve i valori inseriti nella form di login e completa l'avvio
         """
+        debug("_login")
         self.remote = RemoteTimereg(self, auth)
         self.edit = TimeregWindow(self, auth)
         self._connectRemote()
@@ -106,6 +109,8 @@ class TimeBrowseWindow(QMainWindow):
         # Short-circuit Signals (from python to python)
         self.connect(self.edit, SIGNAL("registrationDone"),
                      self._slotRegistrationDone)
+        self.connect(self.remote, SIGNAL("timereportStarted"),
+                     self._slotTimereportStarted)
         self.connect(self.remote, SIGNAL("timereportOK"),
                      self._slotUpdateTimereport)
         self.connect(self.remote, SIGNAL("processError"),
@@ -166,8 +171,11 @@ class TimeBrowseWindow(QMainWindow):
         """
         reportdate = qdate.toString("yyyy-MM-dd")
         self.notify(self.tr("Searching..."))
-        self.ui.btnEdit.setEnabled(False)
         self.remote.timereport(date=reportdate)
+
+    def _slotTimereportStarted(self):
+        self.ui.btnEdit.setEnabled(False)
+        self.ui.btnTimereg.setEnabled(False)
         self.ui.tableTimereg.setRowCount(0)
 
     def _slotUpdateTimereport(self, eprojects):
@@ -199,6 +207,7 @@ class TimeBrowseWindow(QMainWindow):
         self.notify(self.tr("Totale ore del giorno: ") + "%s" % min2hmtime(total_time))
         self.ui.tableTimereg.resizeRowsToContents()
         self.ui.btnEdit.setEnabled(len(eprojects) != 0)
+        self.ui.btnTimereg.setEnabled(True)
 
     def _slotProcessError(self, qperror, exitcode):
         """ <-- self.remote, SIGNAL("processError")

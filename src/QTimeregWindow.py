@@ -27,11 +27,15 @@ from QRemoteTimereg import RemoteTimereg
 class TimeregWindow(QMainWindow):
 
     def __init__(self, parent, auth):
+        debug("TimeregWindow.__init__")
         QMainWindow.__init__(self, parent)
         self._baseproject = AchievoProject()
         self.ui = uic.loadUi("pyuac_edit.ui", self)
         self.remote = RemoteTimereg(self, auth)
         self.err = QErrorMessage(self)
+        self.completer = QCompleter(["",], self)
+        self.completer.setCaseSensitivity(Qt.CaseInsensitive)
+        self._completer_list = []
         self._response_projects = []
         self._ppa = {}
         self._connectSlots()
@@ -39,7 +43,7 @@ class TimeregWindow(QMainWindow):
         self._smartQueryChanged("")
 
     def _setupGui(self):
-        debug("_setupGui")
+        debug("TimeregWindow._setupGui")
         self.ui.dateTimeregDate.setDate(QDate.currentDate())
         self.ui.comboTimeWorked.clear()
         for htext in timerange(8, 15):
@@ -50,6 +54,7 @@ class TimeregWindow(QMainWindow):
         self.ui.txtRemark.setPlainText("")
         self.ui.txtRemark.setReadOnly(True)
         self.ui.comboSmartQuery.lineEdit().setText("")
+        self.ui.comboSmartQuery.lineEdit().setCompleter(self.completer)
         self.ui.comboSmartQuery.setFocus()
 
     def _connectSlots(self):
@@ -206,6 +211,25 @@ class TimeregWindow(QMainWindow):
             self.ui.comboPhase.addItems(sorted(self._ppa[project].keys()))
             if phase != None:
                 self.ui.comboActivity.addItems(sorted(self._ppa[project][phase].keys()))
+
+        # La stringa di completamento deve proporre il nome esteso del nodo
+        # attivo e mantenere la stringa inserita (se univoca) per ciò che è
+        # già stato eseguito
+        _completer = []
+        if project == None:
+            _completer = self._ppa.keys()
+        else:
+            _base = self._baseproject.get("in_prj")+" "
+            _completer = [_base+pha for pha in self._ppa[project].keys()]
+            if phase != None:
+                _base = self._baseproject.get("in_prj")+" "+self._baseproject.get("in_pha")+" "
+                _completer = [_base+act for act in self._ppa[project][phase].keys()]
+
+        if _completer != self._completer_list:
+            self.completer.setModel(QStringListModel(_completer, self.completer))
+            self._completer_list = _completer
+
+        debug("self.completer %s" % _completer)
 
     def _timeregStarted(self):
         #debug("_timeregStarted")

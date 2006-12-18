@@ -79,7 +79,7 @@ def serve(params, oneshot=False):
     """
     try:
         #Cerca di inizializzare la classe con i parametri forniti
-        remote = libRemoteTimereg.RemoteTimereg(*params)
+        remote = RemoteTimereg(*params)
     except urllib2.HTTPError:
         exit("CONNECTION_ERROR", True)
     except ExpatError:

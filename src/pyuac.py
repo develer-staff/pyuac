@@ -8,7 +8,7 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import getpass
+import sys, getpass
 
 ########################## Congiguration ###############################
 
@@ -24,6 +24,7 @@ from QTimeBrowseWindow import *
 
 class TimeregApplication(QApplication):
     def __init__(self, args):
+        print "TimeregApplication(QApplication).__init__"
         QApplication.__init__(self, args)
         win = TimeBrowseWindow(config)
         win.show()

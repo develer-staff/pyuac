@@ -130,7 +130,7 @@ class RemoteTimereg:
             try:
                 p.set("hmtime", timeRound(self._smartquery_dict["in_hmtime"]))
             except ValueError:
-                p.set("hmtime", "00:00")
+                p.set("hmtime", "")
         return self._projects
 
     def timereport(self, date):

@@ -85,7 +85,7 @@ class TimeBrowseWindow(QMainWindow):
         Riceve i valori inseriti nella form di login e completa l'avvio
         """
         debug("_login")
-        self.remote = RemoteTimereg(self, auth)
+        self.remote = QRemoteTimereg(self, auth)
         self.edit = TimeregWindow(self, auth)
         self._connectRemote()
         self._slotTimereport(QDate.currentDate())
@@ -192,7 +192,7 @@ class TimeBrowseWindow(QMainWindow):
                 self.ui.tableTimereg.setItem(r, c, cell)
                 if c != 4:
                     self.ui.tableTimereg.resizeColumnToContents(c)
-        self.notify(self.tr("Totale ore del giorno: ") + "%s" % min2hmtime(total_time))
+        self.notify(self.tr("Day total: ") + "%s" % min2hmtime(total_time))
         self.ui.tableTimereg.resizeRowsToContents()
         self.ui.btnEdit.setEnabled(len(eprojects) != 0)
         self.ui.btnTimereg.setEnabled(True)
@@ -205,7 +205,7 @@ class TimeBrowseWindow(QMainWindow):
         if exitcode == "RESPONSE_ERROR":
             self.login.show()
         else:
-            self.err.showMessage(self.tr("Errore nel processo interfaccia con Achievo:\n") +
+            self.err.showMessage(self.tr("Error contacting Achievo:\n") +
                                  "%s, %s" % (qperror, exitcode))
 
     def notify(self, msg, timeout=0):

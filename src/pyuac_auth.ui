@@ -78,6 +78,12 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>editAchievoUri</tabstop>
+  <tabstop>editUsername</tabstop>
+  <tabstop>editPassword</tabstop>
+  <tabstop>buttonBox</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

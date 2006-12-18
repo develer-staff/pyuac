@@ -9,13 +9,17 @@
 # Author: Matteo Bertini <naufraghi@develer.com>
 
 from pyuac_utils import *
-import libRemoteTimereg, pyuac_cli
+from libRemoteTimereg import *
+import pyuac_cli
 
 from PyQt4 import uic
+print __name__, "from PyQt4 import uic"
 from PyQt4.QtCore import *
+print __name__, "from PyQt4.QtCore import *"
 from PyQt4.QtGui import *
+print __name__, "from PyQt4.QtGui import *"
 
-class RemoteTimereg(QObject):
+class QRemoteTimereg(QObject):
     """
     Classe per la gestione asincrona della libreria RemoteAchievo
     La classe è mappata direttamente sui metodi di RemoteAchievo
@@ -35,7 +39,7 @@ class RemoteTimereg(QObject):
         Imposta per l'esecuzione le azioni definite in RemoteTimereg
         ed avvia sync()
         """
-        if action in libRemoteTimereg.RemoteTimereg.actions:
+        if action in RemoteTimereg.actions:
             def _action(**kwargs):
                 self._actions_params[action] = self.encode(action, **kwargs)
                 self.sync()
@@ -109,8 +113,11 @@ class RemoteTimereg(QObject):
             self._error(5, exitcode)
         resp = str(self.process.readAllStandardOutput())
         if resp != "":
-            #debug("_ready %s" % resp)
-            eresp = ET.fromstring(resp)
+            try:
+                eresp = ET.fromstring(resp)
+            except ExpatError:
+                debug("_ready @@@%s@@@" % resp)
+                raise
             node = eresp.get("node")
             msg = eresp.get("msg")
             self.emit(SIGNAL(node+msg), eresp)

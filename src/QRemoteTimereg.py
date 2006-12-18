@@ -28,9 +28,12 @@ class QRemoteTimereg(QObject):
     def __init__(self, parent, auth):
         QObject.__init__(self, parent)
         self.process = QProcess(self)
+        self._whaiting = False
+        self._resp = ""
         self.auth = auth
         self._actions_params = {}
         self.connect(self.process, SIGNAL("finished(int)"), self._ready)
+        self.connect(self.process, SIGNAL("readyReadStandardOutput()"), self._ready)
         self.connect(self.process, SIGNAL("error(QProcess::ProcessError)"),
                      self._error)
 
@@ -49,7 +52,7 @@ class QRemoteTimereg(QObject):
 
     def close(self):
         #blocco in chiusura ed aspetto la terminazione del processo
-        self.process.waitForFinished()
+        self.process.waitForFinished(300)
 
     def encode(self, action, **kwargs):
         """
@@ -78,8 +81,10 @@ class QRemoteTimereg(QObject):
             if not __debug__:
                 params += ["-O"]
             params += ["pyuac_cli.py"]
-            self.process.start(executable, params+self.auth+["--oneshot"])
+            self.process.start(executable, params+self.auth+["--silent"])
+        if not self._whaiting:
             self.process.write(qstring+"\n")
+            self._whaiting = True
             return True
         else:
             return False
@@ -93,13 +98,13 @@ class QRemoteTimereg(QObject):
             timeregStarted
             timereportStarted
         """
-        #debug("Sync")
+        debug("<!-- Sync -->")
         for action, cmdline in self._actions_params.items():
             if self.execute(cmdline):
                 del self._actions_params[action]
                 self.emit(SIGNAL(action+"Started"))
 
-    def _ready(self, exitcode):
+    def _ready(self, exitcode=0):
         """ <-- SIGNAL("finished(int)"), self._ready
         Provvede a emettere i segnali adatti alla risposta ottenuta:
             whoami[OK|Err](ElemetTree)
@@ -108,21 +113,27 @@ class QRemoteTimereg(QObject):
             timereport[OK|Err](ElemetTree)
             emptyResponse
         """
-        #debug("Ready")
+        debug("<!-- Ready -->")
         if exitcode != pyuac_cli.exits.index("OK"):
             self._error(5, exitcode)
-        resp = str(self.process.readAllStandardOutput())
-        if resp != "":
+
+        self._resp += str(self.process.readAllStandardOutput())
+        if self._resp.find("</response>") == -1:
+            return
+
+        if self._resp not in ["", "\n"]:
             try:
-                eresp = ET.fromstring(resp)
+                eresp = ET.fromstring(self._resp)
             except ExpatError:
-                debug("_ready @@@%s@@@" % resp)
+                debug("_ready @@@%s@@@" % self._resp)
                 raise
             node = eresp.get("node")
             msg = eresp.get("msg")
             self.emit(SIGNAL(node+msg), eresp)
         else:
             self.emit(SIGNAL("emptyResponse"))
+        self._resp = ""
+        self._whaiting = False
         #appena il processo ha terminato il lavoro controllo la coda con
         self.sync()
 

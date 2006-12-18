@@ -12,8 +12,8 @@ import cgi
 from libRemoteTimereg import *
 
 docs = """  Uso:
-    http://domain.com/achievo/ user password [--oneshot]
-    [--oneshot] attiva la modalità a comando singolo"""
+    http://domain.com/achievo/ user password [--silent]
+    [--silent] attiva la modalità silenziosa"""
 
 def checkParams(params):
     if len(sys.argv[1:]) < 3:
@@ -23,7 +23,7 @@ def checkParams(params):
         #esattamente tre, parte in modalità interattiva
         return sys.argv[1:4], False
     else:
-        #almeno 4, parte in modalità oneshot
+        #almeno 4, parte in modalità silent
         return sys.argv[1:4], True
 
 def parseCommand(cmdline):
@@ -69,7 +69,7 @@ def execute(remote, action, params):
     res = ET.tostring(eres, "utf-8")
     return res
 
-def serve(params, oneshot=False):
+def serve(params, silent=False):
     """
     Questa funzione aspetta l'input dell'utente in forma
     di POST http e redirige la chiamata:
@@ -88,24 +88,24 @@ def serve(params, oneshot=False):
     while True:
         #Gira aspettando righe di comando della forma:
         # action?url_encoded=params&other=params
-        prompt = (not oneshot) and "remote: " or ""
+        prompt = (not silent) and "remote: " or ""
         cmdline = raw_input(prompt).strip()
         action, params = parseCommand(cmdline)
         if action in remote.actions:
             print execute(remote, action, params)
-            if oneshot:
-                exit("OK")
+            #if silent:
+            #    exit("OK")
         elif action == "q":
             exit("OK")
-        elif not oneshot:
+        elif not silent:
             print help(remote)
         else:
             exit("ACTION_ERROR")
 
 if __name__=="__main__":
-    params, oneshot = checkParams(sys.argv[1:])
+    params, silent = checkParams(sys.argv[1:])
     if params:
-        serve(params, oneshot=oneshot)
+        serve(params, silent=silent)
     else:
         print docs
         exit("PARAMS_ERROR")

@@ -323,12 +323,12 @@ class TimeregWindow(QMainWindow):
         pass
 
     def _searchStarted(self):
-        #debug("_searchStarted")
-        self.ui.btnSave.setEnabled(False)
-        self.ui.comboProject.setEnabled(False)
-        self.ui.comboPhase.setEnabled(False)
-        self.ui.comboActivity.setEnabled(False)
-        self.ui.comboTimeWorked.setEnabled(False)
+        debug("_searchStarted")
+        #self.ui.btnSave.setEnabled(False)
+        #self.ui.comboProject.setEnabled(False)
+        #self.ui.comboPhase.setEnabled(False)
+        #self.ui.comboActivity.setEnabled(False)
+        #self.ui.comboTimeWorked.setEnabled(False)
 
     def _processError(self, qperror, exitcode):
         debug("_processError %s, %s" % (qperror, exitcode))

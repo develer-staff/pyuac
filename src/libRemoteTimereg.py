@@ -9,19 +9,8 @@
 # Author: Matteo Bertini <naufraghi@develer.com>
 #
 
-import urllib, urllib2, time, datetime, sys
-from xml.parsers.expat import ExpatError
-from htmlentitydefs import entitydefs
-
+import urllib, urllib2
 from pyuac_utils import *
-
-try:
-    from xml.etree import ElementTree as ET
-except ImportError:
-    try:
-        from elementtree import ElementTree as ET
-    except ImportError:
-        raise ImportError, "ElementTree (or py2.5) needed"
 
 ACHIEVO_ENCODING = "ISO-8859-1"
 

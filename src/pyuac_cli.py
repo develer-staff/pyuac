@@ -8,19 +8,8 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import sys, cgi, urllib2
-
-from xml.parsers.expat import ExpatError
-try:
-    from xml.etree import ElementTree as ET
-except ImportError:
-    try:
-        from elementtree import ElementTree as ET
-    except ImportError:
-        raise ImportError, "ElementTree (or py2.5) needed"
-
-import libRemoteTimereg
-from pyuac_utils import *
+import cgi
+from libRemoteTimereg import *
 
 docs = """  Uso:
     http://domain.com/achievo/ user password [--oneshot]

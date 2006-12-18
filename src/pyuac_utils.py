@@ -8,7 +8,15 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import re, datetime, time
+import sys, re, datetime, time
+
+try:
+    from xml.etree import ElementTree as ET
+except ImportError:
+    try:
+        from elementtree import ElementTree as ET
+    except ImportError:
+        raise ImportError, "ElementTree (or py2.5) needed"
 
 def debug(msg, level="debug"):
     if __debug__:

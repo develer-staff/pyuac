@@ -8,21 +8,12 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import sys, urllib
+from pyuac_utils import *
+import libRemoteTimereg, pyuac_cli
+
 from PyQt4 import uic
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-
-try:
-    from xml.etree import ElementTree as ET
-except ImportError:
-    try:
-        from elementtree import ElementTree as ET
-    except ImportError:
-        raise ImportError, "ElementTree (or py2.5) needed"
-
-from pyuac_utils import *
-import libRemoteTimereg, pyuac_cli
 
 class RemoteTimereg(QObject):
     """

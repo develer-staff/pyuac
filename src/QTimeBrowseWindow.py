@@ -8,22 +8,10 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import sys
-from PyQt4 import uic
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-
-try:
-    from xml.etree import ElementTree as ET
-except ImportError:
-    try:
-        from elementtree import ElementTree as ET
-    except ImportError:
-        raise ImportError, "ElementTree (or py2.5) needed"
-
 from pyuac_utils import *
-from QRemoteTimereg import RemoteTimereg
-from QTimeregWindow import TimeregWindow, AchievoProject
+
+from QRemoteTimereg import *
+from QTimeregWindow import *
 
 class LoginDialog(QDialog):
     def __init__(self, parent, config):

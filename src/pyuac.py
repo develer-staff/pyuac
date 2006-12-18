@@ -20,20 +20,7 @@ config = {"achievouri": "http://www.develer.com/groupware/",
 
 ########################## Congiguration ###############################
 
-import sys
-from PyQt4 import uic
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-
-try:
-    from xml.etree import ElementTree as ET
-except ImportError:
-    try:
-        from elementtree import ElementTree as ET
-    except ImportError:
-        raise ImportError, "ElementTree (or py2.5) needed"
-
-from QTimeBrowseWindow import TimeBrowseWindow
+from QTimeBrowseWindow import *
 
 class TimeregApplication(QApplication):
     def __init__(self, args):

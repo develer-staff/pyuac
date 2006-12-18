@@ -8,21 +8,10 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import sys, copy
-from PyQt4 import uic
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-
-try:
-    from xml.etree import ElementTree as ET
-except ImportError:
-    try:
-        from elementtree import ElementTree as ET
-    except ImportError:
-        raise ImportError, "ElementTree (or py2.5) needed"
+import copy
 
 from pyuac_utils import *
-from QRemoteTimereg import RemoteTimereg
+from QRemoteTimereg import *
 
 class ASettings(QSettings):
     """

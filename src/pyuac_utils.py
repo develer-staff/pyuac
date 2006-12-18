@@ -9,6 +9,7 @@
 # Author: Matteo Bertini <naufraghi@develer.com>
 
 import sys, re, datetime, time
+from xml.parsers.expat import ExpatError
 
 try:
     from xml.etree import ElementTree as ET
@@ -83,25 +84,41 @@ def parseSmartQuery(smartquery):
     """
     Analizza una stringa e restisuisce un dizionario
 
-    >>> parseSmartQuery("pro pha act 2:30 commento")
-    {'in_prj': 'pro', 'in_hmtime': '2:30', 'in_remark': 'commento', 'in_act': 'act', 'in_pha': 'pha'}
-    >>> parseSmartQuery("pro pha act 2 commento")
-    {'in_prj': 'pro', 'in_hmtime': '2', 'in_remark': 'commento', 'in_act': 'act', 'in_pha': 'pha'}
-    >>> parseSmartQuery("pro pha act commento")
-    {'in_prj': 'pro', 'in_hmtime': '', 'in_remark': 'commento', 'in_act': 'act', 'in_pha': 'pha'}
-    >>> parseSmartQuery("pro pha act")
-    {'in_prj': 'pro', 'in_hmtime': '', 'in_remark': '', 'in_act': 'act', 'in_pha': 'pha'}
+    >>> parseSmartQuery("pro pha act 2:30 commento bla bla ")
+    {'in_prj': 'pro', 'in_hmtime': '2:30', 'in_remark': 'commento bla bla', 'in_act': 'act', 'in_pha': 'pha'}
+    >>> parseSmartQuery("pro pha act 2 commento bla bla ")
+    {'in_prj': 'pro', 'in_hmtime': '2:00', 'in_remark': 'commento bla bla', 'in_act': 'act', 'in_pha': 'pha'}
+    >>> parseSmartQuery("pro pha act commento bla bla ")
+    {'in_prj': 'pro', 'in_hmtime': '', 'in_remark': 'commento bla bla', 'in_act': 'act', 'in_pha': 'pha'}
+    >>> parseSmartQuery("pro2 pha act")
+    {'in_prj': 'pro2', 'in_hmtime': '', 'in_remark': '', 'in_act': 'act', 'in_pha': 'pha'}
     >>> parseSmartQuery("pro pha")
     {'in_prj': 'pro', 'in_hmtime': '', 'in_remark': '', 'in_act': '', 'in_pha': 'pha'}
+    >>> parseSmartQuery("pro 2:30 bla bla")
+    {'in_prj': 'pro', 'in_hmtime': '2:30', 'in_remark': 'bla bla', 'in_act': '', 'in_pha': ''}
+    >>> parseSmartQuery("")
+    {'in_prj': '', 'in_hmtime': '', 'in_remark': '', 'in_act': '', 'in_pha': ''}
     """
-    getsq = re.compile("""
-        (?P<in_prj>[^ ]+|)\ *
-        (?P<in_pha>[^ ]+|)\ *
-        (?P<in_act>[^ ]+|)\ *
-        (?P<in_hmtime>\d{1,2}:\d{1,2}|\d{1,2}|)\ *
-        (?P<in_remark>.*|)
-        """, re.VERBOSE + re.DOTALL)
-    res = getsq.search(smartquery).groupdict()
-    if res["in_hmtime"] and ":" not in res["in_hmtime"]:
-        res["in_hmtime"] += ":00"
+    res = {}
+    gethmtime = re.compile("\W\d+:?\d*")
+    getppa = re.compile("(?P<in_prj>[^\s]+|)\s*(?P<in_pha>[^\s]+|)\s*(?P<in_act>[^\s]+|)\s*(?P<in_remark>.*|)")
+    parts = gethmtime.split(smartquery, 1)
+    res = getppa.search(parts[0]).groupdict()
+    try:
+        res["in_hmtime"] = gethmtime.search(smartquery).group().strip()
+        if ":" not in res["in_hmtime"]:
+            res["in_hmtime"] += ":00"
+    except AttributeError:
+        res["in_hmtime"] = ""
+    if len(parts) > 1:
+        res["in_remark"] = parts[1].strip()
+    else:
+        res["in_remark"] = res["in_remark"].strip()
     return res
+
+if __name__ == "__main__":
+    try:
+        import nose
+        nose.runmodule()
+    except ImportError:
+        pass

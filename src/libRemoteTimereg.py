@@ -88,10 +88,7 @@ class RemoteTimereg:
             else:
                 kwargs[key] = val.encode(ACHIEVO_ENCODING)
         qstring = urllib.urlencode(params.items() + kwargs.items(), doseq=True)
-        #if __debug__:
-            #debug("##### Dispatch: %s" % qstring)
         page = urllib2.urlopen(self._dispatchurl, qstring).read()
-        #debug("_urlDispatch " + page)
         return ET.fromstring(page)
 
     def whoami(self):
@@ -121,7 +118,7 @@ class RemoteTimereg:
         # "project", "phase", "activity" è cambiata
         if _ppa != _old_ppa or (_ppa.strip() == _old_ppa.strip() == ""):
             self._projects = self._urlDispatch("query", input=_ppa)
-        #debug("Search results: %s" % ET.tostring(self._projects))
+        
         for p in self._projects[:1]:
             # riempio tutti i campi necessari alla registrazione
             # delle ore lavorate solo nel primo progetto.

@@ -132,7 +132,7 @@ class QRemoteTimereg(QObject):
         else:
             self.emit(SIGNAL("emptyResponse"))
         self._resp = ""
-        self._whaiting = False
+        self._waiting = False
         #appena il processo ha terminato il lavoro controllo la coda con
         self.sync()
 

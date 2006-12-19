@@ -211,7 +211,7 @@ class TimeregWindow(QMainWindow):
         self.ui.btnDelete.setEnabled(False)
 
     def _updateComboBoxes(self, combo=None, combotext=None):
-        """
+        """ <-- _updateGui() e dai combo
         Aggiorna i combobox in modo che contengano
         l'unione dei valori visti durante la sessione
         """
@@ -338,7 +338,7 @@ class TimeregWindow(QMainWindow):
         pass
 
     def _searchStarted(self):
-        debug("_searchStarted")
+        debug("%s _searchStarted" % __name__)
         #self.ui.btnSave.setEnabled(False)
         #self.ui.comboProject.setEnabled(False)
         #self.ui.comboPhase.setEnabled(False)
@@ -388,9 +388,7 @@ class TimeregWindow(QMainWindow):
             self.ui.btnDelete.setText(self.tr("Delete"))
         self.ui.dateTimeregDate.setDate(QDate.fromString(self._baseproject.get("activitydate"),
                                                          "yyyy-MM-dd"))
-        smartquery = self._baseproject.getSmartQuery()
-        self._setSmartQuery(smartquery)
-        self._smartQueryEdited(smartquery)
+        self._updateSmartQuery(self._baseproject.getSmartQuery())
         self.notify(self.tr("Loading..."))
 
     def delete(self):

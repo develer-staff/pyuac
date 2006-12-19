@@ -28,7 +28,7 @@ class QRemoteTimereg(QObject):
     def __init__(self, parent, auth):
         QObject.__init__(self, parent)
         self.process = QProcess(self)
-        self._whaiting = False
+        self._waiting = False
         self._resp = ""
         self.auth = auth
         self._actions_params = {}
@@ -42,7 +42,7 @@ class QRemoteTimereg(QObject):
         Imposta per l'esecuzione le azioni definite in RemoteTimereg
         ed avvia sync()
         """
-        if action in RemoteTimereg.actions:
+        if action in RemoteTimereg.actions.keys() + ["q"]:
             def _action(**kwargs):
                 self._actions_params[action] = self.encode(action, **kwargs)
                 self.sync()
@@ -51,8 +51,7 @@ class QRemoteTimereg(QObject):
             raise AttributeError
 
     def close(self):
-        #blocco in chiusura ed aspetto la terminazione del processo
-        self.process.waitForFinished(300)
+        self.q()
 
     def encode(self, action, **kwargs):
         """
@@ -82,9 +81,9 @@ class QRemoteTimereg(QObject):
                 params += ["-O"]
             params += ["pyuac_cli.py"]
             self.process.start(executable, params+self.auth+["--silent"])
-        if not self._whaiting:
+        if not self._waiting:
             self.process.write(qstring+"\n")
-            self._whaiting = True
+            self._waiting = True
             return True
         else:
             return False
@@ -98,7 +97,7 @@ class QRemoteTimereg(QObject):
             timeregStarted
             timereportStarted
         """
-        debug("<!-- Sync -->")
+        debug("%s <!-- Sync -->" % __name__)
         for action, cmdline in self._actions_params.items():
             if self.execute(cmdline):
                 del self._actions_params[action]
@@ -113,7 +112,7 @@ class QRemoteTimereg(QObject):
             timereport[OK|Err](ElemetTree)
             emptyResponse
         """
-        debug("<!-- Ready -->")
+        debug("%s <!-- Ready -->" % __name__)
         if exitcode != pyuac_cli.exits.index("OK"):
             self._error(5, exitcode)
 

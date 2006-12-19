@@ -51,6 +51,7 @@ class TimeregWindow(QMainWindow):
         self.settings = ASettings("Develer", "PyUAC")
         self.completer = QCompleter([], self)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
+        self.completer.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
         self.ui.editSmartQuery.setCompleter(self.completer)
         self._completer_list = []
         self._response_projects = []
@@ -72,10 +73,10 @@ class TimeregWindow(QMainWindow):
         self.ui.txtRemark.setReadOnly(True)
         self.ui.editSmartQuery.setText("")
         self.ui.editSmartQuery.setFocus()
-        self.ui.comboSmartQuery.clear()
-        self.ui.comboSmartQuery.addItem("")
+        self.ui.comboPPAlru.clear()
+        self.ui.comboPPAlru.addItem("")
         for row in self.settings.getArray("lru", ["ppa-%s" % self.remote.auth[1]]):
-            self.ui.comboSmartQuery.addItem(row["ppa-%s" % self.remote.auth[1]].toString())
+            self.ui.comboPPAlru.addItem(row["ppa-%s" % self.remote.auth[1]].toString())
 
     def _connectSlots(self):
         self.connect(self.ui.editSmartQuery, SIGNAL("textEdited(QString)"),
@@ -84,7 +85,7 @@ class TimeregWindow(QMainWindow):
                      self.timereg)
         self.connect(self.ui.editSmartQuery.completer(), SIGNAL("activated(const QString&)"),
                      self._completerActivated)
-        self.connect(self.ui.comboSmartQuery, SIGNAL("activated(const QString&)"),
+        self.connect(self.ui.comboPPAlru, SIGNAL("activated(const QString&)"),
                      self._updateSmartQuery)
         self.connect(self.ui.btnSave, SIGNAL("clicked()"),
                      self.timereg)
@@ -189,7 +190,10 @@ class TimeregWindow(QMainWindow):
         self.ui.txtRemark.setPlainText((p.get("remark") or "").strip())
 
         self.ui.labelRemark.setEnabled(p.get("remark") != None)
-        self.ui.btnSave.setEnabled(p.get("hmtime") != "00:00" and p.get("remark") != None)
+        self.ui.btnSave.setEnabled(p.isComplete())
+
+        #deselezione lru
+        self.ui.comboPPAlru.setCurrentIndex(0)
 
         self.ui.btnDelete.setEnabled(True)
         self.ui.comboProject.setEnabled(True)
@@ -212,6 +216,7 @@ class TimeregWindow(QMainWindow):
         l'unione dei valori visti durante la sessione
         """
         combotext = unicode(combotext)
+
         debug("_updateComboBoxes %s %s" % (combo, combotext))
         # Aggiorna la lista di progetti, fasi e attività
         # usata per riempire i combobox
@@ -245,15 +250,25 @@ class TimeregWindow(QMainWindow):
             self._baseproject.set("in_hmtime", combotext)
             self._baseproject.set("hmtime", combotext)
 
+        
+        def endsWithSpace(msg):
+            if msg:
+                return msg[-1] == " "
+            else:
+                return False
 
-        # se il progetto inserito identifica univocamente un nome
-        if project != None and project != self._baseproject.get("in_prj"):
-            self._baseproject.set("in_prj", project)
-            self._setSmartQuery(self._baseproject.getSmartQuery())
+        # se il progetto inserito identifica univocamente un nome e
+        # la smartquery termina con spazio (questo permette di non
+        # interferire brutalmente con le modifiche fatte dall'utente)
+        if project != None and project != self._baseproject.get("in_prj")
+            smartquery = unicode(self.ui.editSmartQuery.text())
+            if endsWithSpace(smartquery):
+                self._baseproject.set("in_prj", project)
+                self._setSmartQuery(self._baseproject.getSmartQuery())
+
         # se ho attivato un combo
         if combo != None:
-            self._setSmartQuery(self._baseproject.getSmartQuery())
-            self._smartQueryEdited(self._baseproject.getSmartQuery())
+            self._updateSmartQuery(self._baseproject.getSmartQuery())
             return
 
         self.ui.comboProject.clear()
@@ -282,6 +297,7 @@ class TimeregWindow(QMainWindow):
                     else:
                         _completer = []
 
+            # se ho già scritto hmtime e commento, li aggiungo al completer
             for c, v in enumerate(_completer):
                 _completer[c] = " ".join([_completer[c], hmtime, remark]).strip()
 
@@ -292,8 +308,7 @@ class TimeregWindow(QMainWindow):
             if combo == None and self.ui.isVisible():
                 #altrimenti compare anche a finestra invisibile...
                 self.completer.complete()
-
-            debug("self.completer %s" % _completer)
+                debug("self.completer %s" % _completer)
 
         _updateCompleter()
 

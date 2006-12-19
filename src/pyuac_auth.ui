@@ -58,21 +58,21 @@
    <item row="0" column="0" >
     <widget class="QLabel" name="labelAchievoUri" >
      <property name="text" >
-      <string>Achievo Uri</string>
+      <string>Achievo Uri:</string>
      </property>
     </widget>
    </item>
    <item row="2" column="0" >
     <widget class="QLabel" name="labelUsername" >
      <property name="text" >
-      <string>Username</string>
+      <string>Username:</string>
      </property>
     </widget>
    </item>
    <item row="2" column="1" >
     <widget class="QLabel" name="labelPassowrd" >
      <property name="text" >
-      <string>Password</string>
+      <string>Password:</string>
      </property>
     </widget>
    </item>

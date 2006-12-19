@@ -3,8 +3,8 @@
  <widget class="QMainWindow" name="TimeBrowserWindow" >
   <property name="geometry" >
    <rect>
-    <x>50</x>
-    <y>60</y>
+    <x>0</x>
+    <y>0</y>
     <width>500</width>
     <height>400</height>
    </rect>
@@ -55,7 +55,7 @@
     <item row="2" column="0" colspan="2" >
      <widget class="QPushButton" name="btnEdit" >
       <property name="text" >
-       <string>Edit Timereg</string>
+       <string>Edit Timereg...</string>
       </property>
      </widget>
     </item>
@@ -86,7 +86,7 @@
        </sizepolicy>
       </property>
       <property name="text" >
-       <string>Add New Timereg</string>
+       <string>Add New Timereg...</string>
       </property>
      </widget>
     </item>

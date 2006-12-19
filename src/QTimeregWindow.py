@@ -260,7 +260,7 @@ class TimeregWindow(QMainWindow):
         # se il progetto inserito identifica univocamente un nome e
         # la smartquery termina con spazio (questo permette di non
         # interferire brutalmente con le modifiche fatte dall'utente)
-        if project != None and project != self._baseproject.get("in_prj")
+        if project != None and project != self._baseproject.get("in_prj"):
             smartquery = unicode(self.ui.editSmartQuery.text())
             if endsWithSpace(smartquery):
                 self._baseproject.set("in_prj", project)

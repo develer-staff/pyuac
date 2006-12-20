@@ -127,6 +127,7 @@ class TimeBrowseWindow(QMainWindow):
 
     def _slotTimeEdit(self, row=None, column=None):
         """ <-- self.ui.btnEdit, SIGNAL("clicked()")
+                self.ui.tableTimereg, SIGNAL("cellDoubleClicked(int,int)")
         Prepara un template con i dati della riga selezionata
         ed avvia la form di modifica
         """

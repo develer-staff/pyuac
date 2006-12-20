@@ -116,6 +116,11 @@ def parseSmartQuery(smartquery):
         res["in_remark"] = res["in_remark"].strip()
     return res
 
+def strlike(str1, str2):
+    op1 = str1.lower().find(str2.lower()) != -1
+    op2 = str2.lower().find(str1.lower()) != -1
+    return op1 or op2
+
 if __name__ == "__main__":
     try:
         import nose

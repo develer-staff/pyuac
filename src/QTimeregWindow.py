@@ -56,6 +56,7 @@ class TimeregWindow(QMainWindow):
         self._completer_list = []
         self._response_projects = []
         self._ppa = {}
+        self._projects = set()
         self._connectSlots()
         self._setupGui()
         self._smartQueryEdited("")
@@ -220,7 +221,9 @@ class TimeregWindow(QMainWindow):
         debug("_updateComboBoxes %s %s" % (combo, combotext))
         # Aggiorna la lista di progetti, fasi e attività
         # usata per riempire i combobox
+        self._ppa = {}
         for p in self._response_projects:
+            self._projects.add(p.get("prj"))
             self._ppa.setdefault(p.get("prj"), {})
             self._ppa[p.get("prj")].setdefault(p.get("pha"), {})
             self._ppa[p.get("prj")][p.get("pha")].setdefault(p.get("act"), {})
@@ -249,8 +252,11 @@ class TimeregWindow(QMainWindow):
         elif combo == "TimeWorked":
             self._baseproject.set("in_hmtime", combotext)
             self._baseproject.set("hmtime", combotext)
+        # se ho attivato un combo
+        if combo != None:
+            self._updateSmartQuery(self._baseproject.getSmartQuery())
+            return
 
-        
         def endsWithSpace(msg):
             if msg:
                 return msg[-1] == " "
@@ -260,21 +266,26 @@ class TimeregWindow(QMainWindow):
         # se il progetto inserito identifica univocamente un nome e
         # la smartquery termina con spazio (questo permette di non
         # interferire brutalmente con le modifiche fatte dall'utente)
-        if project != None and project != self._baseproject.get("in_prj"):
+        if project != None:
             smartquery = unicode(self.ui.editSmartQuery.text())
-            if endsWithSpace(smartquery):
+            if project != self._baseproject.get("in_prj"):
                 self._baseproject.set("in_prj", project)
-                self._setSmartQuery(self._baseproject.getSmartQuery())
-
-        # se ho attivato un combo
-        if combo != None:
-            self._updateSmartQuery(self._baseproject.getSmartQuery())
-            return
+                if endsWithSpace(smartquery):
+                    self._setSmartQuery(self._baseproject.getSmartQuery())
+            if phase != None:
+                if phase != self._baseproject.get("in_pha"):
+                    self._baseproject.set("in_pha", phase)
+                    if endsWithSpace(smartquery):
+                        self._setSmartQuery(self._baseproject.getSmartQuery())
+                if activity != None and activity != self._baseproject.get("in_act"):
+                    self._baseproject.set("in_act", activity)
+                    if endsWithSpace(smartquery):
+                        self._setSmartQuery(self._baseproject.getSmartQuery())
 
         self.ui.comboProject.clear()
         self.ui.comboPhase.clear()
         self.ui.comboActivity.clear()
-        self.ui.comboProject.addItems(sorted(self._ppa.keys()))
+        self.ui.comboProject.addItems(sorted(list(self._projects)))
         if project != None:
             self.ui.comboPhase.addItems(sorted(self._ppa[project].keys()))
             if phase != None:
@@ -285,7 +296,7 @@ class TimeregWindow(QMainWindow):
             # attivo e mantenere la stringa inserita (se univoca) per ciò che è
             # già stato eseguito <<<< da decidere
             if project == None:
-                _completer = self._ppa.keys()
+                _completer = [pro for pro in self._ppa.keys()]# if strlike(pro, self._baseproject.get("in_prj"))]
             else:
                 if phase == None:
                     _base = self._baseproject.get("prj")+" "
@@ -301,6 +312,7 @@ class TimeregWindow(QMainWindow):
             for c, v in enumerate(_completer):
                 _completer[c] = " ".join([_completer[c], hmtime, remark]).strip()
 
+            _completer.sort()
             if _completer != self._completer_list:
                 self.completer.setModel(QStringListModel(_completer, self.completer))
                 self._completer_list = _completer
@@ -421,6 +433,12 @@ class AchievoProject:
     def isUnivocal(self):
         for key in self.keys[:3]:
             if self.get(key) in [None, ""]:
+                return False
+        return True
+
+    def isSync(self):
+        for key in self.keys[:3]:
+            if self.get(key) != self.get("in_%s" % key):
                 return False
         return True
 

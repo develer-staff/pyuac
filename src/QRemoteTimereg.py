@@ -8,6 +8,8 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
+import sys
+
 from pyuac_utils import *
 from libRemoteTimereg import *
 import pyuac_cli
@@ -75,12 +77,18 @@ class QRemoteTimereg(QObject):
         """
         if self.process.state() == self.process.NotRunning:
             #debug("execute(%s)" % qstring)
-            executable = sys.executable
-            params = ["-u"]
-            if not __debug__:
-                params += ["-O"]
-            params += ["pyuac_cli.py"]
-            self.process.start(executable, params+self.auth+["--silent"])
+
+            if not hasattr(sys, "frozen") or not sys.frozen:
+                executable = sys.executable
+                params = ["-u"]
+                if not __debug__:
+                    params += ["-O"]
+                params += ["pyuac_cli.py"]
+                self.process.start(executable, params+self.auth+["--silent"])
+            else:
+                executable = "pyuac_cli.exe"
+                self.process.start(executable, self.auth+["--silent"])
+
         if not self._waiting:
             self.process.write(qstring+"\n")
             self._waiting = True

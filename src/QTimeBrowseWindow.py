@@ -8,6 +8,8 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
+import os, sys
+
 from pyuac_utils import *
 
 from QRemoteTimereg import *
@@ -16,7 +18,13 @@ from QTimeregWindow import *
 class LoginDialog(QDialog):
     def __init__(self, parent, config):
         QDialog.__init__(self, parent)
-        self.ui = uic.loadUi("pyuac_auth.ui", self)
+
+        _path = 'pyuac_auth.ui'
+        if hasattr(sys, "frozen") and sys.frozen:
+            _path = os.path.join(os.path.dirname(sys.executable), _path)
+
+        self.ui = uic.loadUi(_path, self)
+
         self.ui.editAchievoUri.setText(config["achievouri"])
         self.ui.editUsername.setText(config["username"])
         self.connect(self.ui, SIGNAL("accepted()"), self.login)
@@ -41,7 +49,13 @@ class LoginDialog(QDialog):
 class TimeBrowseWindow(QMainWindow):
     def __init__(self, config):
         QMainWindow.__init__(self)
-        self.ui = uic.loadUi("pyuac_browse.ui", self)
+
+        _path = 'pyuac_browse.ui'
+        if hasattr(sys, "frozen") and sys.frozen:
+            _path = os.path.join(os.path.dirname(sys.executable), _path)
+
+        self.ui = uic.loadUi(_path, self)
+
         self.login = LoginDialog(self, config)
         self.err = QErrorMessage(self)
         self.projects = None

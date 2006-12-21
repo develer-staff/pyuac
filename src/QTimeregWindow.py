@@ -8,7 +8,7 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import sys, copy
+import os, sys, copy
 
 from pyuac_utils import *
 from QRemoteTimereg import *
@@ -45,7 +45,13 @@ class TimeregWindow(QMainWindow):
         debug("TimeregWindow.__init__")
         QMainWindow.__init__(self, parent)
         self._baseproject = AchievoProject()
-        self.ui = uic.loadUi("pyuac_edit.ui", self)
+
+        _path = 'pyuac_edit.ui'
+        if hasattr(sys, "frozen") and sys.frozen:
+            _path = os.path.join(os.path.dirname(sys.executable), _path)
+
+        self.ui = uic.loadUi(_path, self)
+
         self.remote = QRemoteTimereg(self, auth)
         self.err = QErrorMessage(self)
         self.settings = ASettings("Develer", "PyUAC")

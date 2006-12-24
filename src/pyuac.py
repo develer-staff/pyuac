@@ -27,7 +27,6 @@ class TimeregApplication(QApplication):
         print "TimeregApplication(QApplication).__init__"
         QApplication.__init__(self, args)
         win = TimeBrowseWindow(config)
-        win.show()
         sys.exit(self.exec_())
 
 if __name__ == "__main__":

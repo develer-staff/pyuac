@@ -61,7 +61,7 @@ class TimeBrowseWindow(QMainWindow):
         self.projects = None
         self._setupGui()
         self._connectSlots()
-        self.login.exec_()
+        self.login.show()
 
     def _connectSlots(self):
         self.connect(self.login, SIGNAL("login"),
@@ -103,6 +103,7 @@ class TimeBrowseWindow(QMainWindow):
         self.edit = TimeregWindow(self, auth)
         self._connectRemote()
         self._slotTimereport(QDate.currentDate())
+        self.ui.show()
 
     def _connectRemote(self):
         """
@@ -120,7 +121,7 @@ class TimeBrowseWindow(QMainWindow):
 
     def _slotNewTimereg(self):
         """ <-- self.ui.btnTimereg, SIGNAL("clicked()")
-        Imposta la data selezioneta nel template ed
+        Imposta la data selezionata nel template ed
         avvia la finestra di inserimento nuova registrazione
         """
         selected_date = unicode(self.ui.dateEdit.date().toString("yyyy-MM-dd"))
@@ -131,6 +132,7 @@ class TimeBrowseWindow(QMainWindow):
 
     def _slotClose(self):
         """ <-- self.ui.btnQuit, SIGNAL("clicked()")
+            <-- self.login, SIGNAL("cancel")
         Chiude l'applicazione provvedendo a terminare tutti i processi
         """
         self.notify(self.tr("Closing..."))

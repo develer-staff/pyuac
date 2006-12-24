@@ -61,7 +61,7 @@ class TimeregWindow(QMainWindow):
         self.ui.editSmartQuery.setCompleter(self.completer)
         self._completer_list = []
         self._response_projects = []
-        self._ppa = {}
+        self._all_ppa = {}
         self._projects = set()
         self._connectSlots()
         self._setupGui()
@@ -227,12 +227,18 @@ class TimeregWindow(QMainWindow):
         debug("_updateComboBoxes %s %s" % (combo, combotext))
         # Aggiorna la lista di progetti, fasi e attività
         # usata per riempire i combobox
-        self._ppa = {}
+        
+        _ppa = {}
         for p in self._response_projects:
             self._projects.add(p.get("prj"))
-            self._ppa.setdefault(p.get("prj"), {})
-            self._ppa[p.get("prj")].setdefault(p.get("pha"), {})
-            self._ppa[p.get("prj")][p.get("pha")].setdefault(p.get("act"), {})
+            self._all_ppa.setdefault(p.get("prj"), {})
+            self._all_ppa[p.get("prj")].setdefault(p.get("pha"), {})
+            self._all_ppa[p.get("prj")][p.get("pha")].setdefault(p.get("act"), {})
+            _ppa.setdefault(p.get("prj"), {})
+            _ppa[p.get("prj")].setdefault(p.get("pha"), {})
+            _ppa[p.get("prj")][p.get("pha")].setdefault(p.get("act"), {})
+        if self._baseproject.isUnivocal():
+            _ppa = self._all_ppa
 
         project = self._baseproject.get("prj")
         phase = self._baseproject.get("pha")
@@ -293,24 +299,24 @@ class TimeregWindow(QMainWindow):
         self.ui.comboActivity.clear()
         self.ui.comboProject.addItems(sorted(list(self._projects)))
         if project != None:
-            self.ui.comboPhase.addItems(sorted(self._ppa[project].keys()))
+            self.ui.comboPhase.addItems(sorted(_ppa[project].keys()))
             if phase != None:
-                self.ui.comboActivity.addItems(sorted(self._ppa[project][phase].keys()))
+                self.ui.comboActivity.addItems(sorted(_ppa[project][phase].keys()))
 
         def _updateCompleter():
             # La stringa di completamento deve proporre il nome esteso del nodo
             # attivo e mantenere la stringa inserita (se univoca) per ciò che è
             # già stato eseguito <<<< da decidere
             if project == None:
-                _completer = [pro for pro in self._ppa.keys()]# if strlike(pro, self._baseproject.get("in_prj"))]
+                _completer = [pro for pro in _ppa.keys()]# if strlike(pro, self._baseproject.get("in_prj"))]
             else:
                 if phase == None:
                     _base = self._baseproject.get("prj")+" "
-                    _completer = [_base+pha for pha in self._ppa[project].keys()]
+                    _completer = [_base+pha for pha in _ppa[project].keys()]
                 else:
                     if activity == None or not self._baseproject.get("in_act"):
                         _base = self._baseproject.get("prj")+" "+self._baseproject.get("pha")+" "
-                        _completer = [_base+act for act in self._ppa[project][phase].keys()]
+                        _completer = [_base+act for act in _ppa[project][phase].keys()]
                     else:
                         _completer = []
 

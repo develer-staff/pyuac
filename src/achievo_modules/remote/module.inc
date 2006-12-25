@@ -1,4 +1,12 @@
 <?php
+/*
+ * Copyright 2007 Develer S.r.l. (http://www.develer.com/)
+ * All rights reserved.
+ *
+ * $Id: $
+ * Author: Matteo Bertini <naufraghi@develer.com>
+ */
+
 //TODO: sistemare i permessi... una volta capiti...
     class mod_remote extends atkModule
     {

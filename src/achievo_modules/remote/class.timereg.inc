@@ -1,4 +1,12 @@
 <?php
+/*
+ * Copyright 2007 Develer S.r.l. (http://www.develer.com/)
+ * All rights reserved.
+ *
+ * $Id: $
+ * Author: Matteo Bertini <naufraghi@develer.com>
+ */
+
 include_once (moduleDir("timestats")."class.hours.inc");
 
 //XML stuff da http://www.xml.com/pub/a/2003/03/19/dive-into-xml.html

@@ -25,8 +25,7 @@ def debug(msg, level="debug"):
 
 def min2hmtime(mins):
     """
-    Converte un intero che rappresenta i minuti
-    in forma di orario hh:mm
+    Converts an integer representing minutes in the hh:mm form
 
     >>> min2hmtime(120)
     '02:00'
@@ -37,8 +36,7 @@ def min2hmtime(mins):
 
 def hmtime2min(hmtime):
     """
-    Converte un intero che rappresenta un orario hh:mm
-    in forma di minuti
+    Converts a string in the form hh:mm in minutes
 
     >>> hmtime2min('02:00')
     120
@@ -49,8 +47,8 @@ def hmtime2min(hmtime):
 
 def timerange(max_hours, time_step, min_step=0):
     """
-    Restituisce una lista di stringhe con orari da
-    0:00 a max_hours con passo time_step
+    Returns a string list with times from
+    *min_step* to *max_hours* with step *time_step*
 
     >>> [i for i in timerange(2, 15, 1)]
     ['00:15', '00:30', '00:45', '01:00', '01:15', '01:30', '01:45', '02:00']
@@ -63,8 +61,7 @@ def timerange(max_hours, time_step, min_step=0):
 
 def timeRound(in_time, step_time=15):
     """
-    Arrotonda la stringa hh:mm alla risoluzione inviata
-    e restituisce un oggetto timedelta:
+    Rounds the string hh:mm to the provided resolution
 
     >>> timeRound("2:44")
     '02:45'
@@ -82,7 +79,7 @@ def timeRound(in_time, step_time=15):
 
 def parseSmartQuery(smartquery):
     """
-    Analizza una stringa e restisuisce un dizionario
+    Parse the provided string in a dictionary
 
     >>> parseSmartQuery("pro pha act 2:30 commento bla bla ")
     {'in_prj': 'pro', 'in_hmtime': '2:30', 'in_remark': 'commento bla bla', 'in_act': 'act', 'in_pha': 'pha'}

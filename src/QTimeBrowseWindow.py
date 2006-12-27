@@ -24,9 +24,11 @@ class LoginDialog(QDialog):
             _path = os.path.join(os.path.dirname(sys.executable), _path)
 
         self.ui = uic.loadUi(_path, self)
-
-        self.ui.editAchievoUri.setText(config["achievouri"])
-        self.ui.editUsername.setText(config["username"])
+        self.settings = QSettings("Develer", "PyUAC")
+        _achievouri = self.settings.value("achievouri", QVariant(config["achievouri"])).toString()
+        _username = self.settings.value("username", QVariant(config["username"])).toString()
+        self.ui.editAchievoUri.setText(_achievouri)
+        self.ui.editUsername.setText(_username)
         self.connect(self.ui, SIGNAL("accepted()"), self.login)
         self.connect(self.ui, SIGNAL("rejected()"), self.cancel)
         self.connect(self.ui, SIGNAL("finished()"), self.cancel)
@@ -34,6 +36,8 @@ class LoginDialog(QDialog):
 
     def login(self):
         debug("login")
+        self.settings.setValue("achievouri", QVariant(self.ui.editAchievoUri.text()))
+        self.settings.setValue("username", QVariant(self.ui.editUsername.text()))
         auth = [self.ui.editAchievoUri.text()]
         auth += [self.ui.editUsername.text()]
         auth += [self.ui.editPassword.text()]

@@ -11,19 +11,19 @@
 import cgi
 from libRemoteTimereg import *
 
-docs = """  Uso:
+docs = """  Use:
     http://domain.com/achievo/ user password [--silent]
-    [--silent] attiva la modalità silenziosa"""
+    [--silent] silent mode (no prompt, no help messages)"""
 
 def checkParams(params):
     if len(sys.argv[1:]) < 3:
-        #meno di 3 parametri non va
+        # less than 3 params is invalid
         return False, False
     elif len(sys.argv[1:]) == 3:
-        #esattamente tre, parte in modalità interattiva
+        # exactly 3 params, interactive mode
         return sys.argv[1:4], False
     else:
-        #almeno 4, parte in modalità silent
+        # at least 4 params, silent mode
         return sys.argv[1:4], True
 
 def parseCommand(cmdline):
@@ -31,13 +31,13 @@ def parseCommand(cmdline):
     action = action_params[0]
     params = {}
     if len(action_params) > 1:
-        # parse_qsl restutuisce una lista del tipo
-        # [('par1', 'var'), ('par2', 'var1'), ('par2', 'var2')] da convertire in
+        # parse_qsl returns a list like
+        # [('par1', 'var'), ('par2', 'var1'), ('par2', 'var2')] that we turn into a dict
         # => {'par1': 'var',
         #     'par2', ['var1','var2']}
         for k, v in cgi.parse_qsl(action_params[1], keep_blank_values=True):
-            # str(k) perchè poi le chiavi del dizionario
-            # verranno usate come keyword arguments
+            # str(k) because dict keys well be used as
+            # keyword arguments
             k = str(k)
             v = v.decode("utf-8")
             if params.setdefault(k, v) != v:
@@ -48,7 +48,7 @@ def parseCommand(cmdline):
     return action, params
 
 def help(remote):
-    res = ["Usare una delle azioni definite:"]
+    res = ["Use one of the defined actions:"]
     res += ["  q: Quit"]
     res += ["  %s: %s" % (action, description) for action, description in remote.actions.items()]
     return "\n".join(res)
@@ -60,7 +60,7 @@ def exit(mode, verbose=False):
     sys.exit(exits.index(mode))
 
 def execute(remote, action, params):
-    #Cerco di mappare l'azione su un metodo
+    # Try to map the action on the correct method
     func = getattr(remote, action)
     if params:
         eres = func(**params)
@@ -71,14 +71,14 @@ def execute(remote, action, params):
 
 def serve(params, silent=False):
     """
-    Questa funzione aspetta l'input dell'utente in forma
-    di POST http e redirige la chiamata:
+    This function accepts the user input in http POST format
+    and redirects tha call:
       action?param1=var1&param2=var2
-    sul metodo *action* di RemoteTimereg, se questo è
-    presente nel dizionario di azioni permesse (e documentate)
+    on the *action* method of RemoteTimereg, if this method
+    is present in the allowed and documented action dict
     """
     try:
-        #Cerca di inizializzare la classe con i parametri forniti
+        # Try to set up the class with the provided params
         remote = RemoteTimereg(*params)
     except urllib2.HTTPError:
         exit("CONNECTION_ERROR", True)
@@ -86,15 +86,13 @@ def serve(params, silent=False):
         exit("RESPONSE_ERROR", True)
 
     while True:
-        #Gira aspettando righe di comando della forma:
+        # Loops waiting for input in the form:
         # action?url_encoded=params&other=params
         prompt = (not silent) and "remote: " or ""
         cmdline = raw_input(prompt).strip()
         action, params = parseCommand(cmdline)
         if action in remote.actions:
             print execute(remote, action, params)
-            #if silent:
-            #    exit("OK")
         elif action == "q":
             exit("OK")
         elif not silent:

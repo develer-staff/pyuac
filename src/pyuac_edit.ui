@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>612</width>
-    <height>410</height>
+    <height>419</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -64,6 +64,9 @@
            <property name="textInteractionFlags" >
             <enum>Qt::NoTextInteraction</enum>
            </property>
+           <property name="buddy" >
+            <cstring>editSmartQuery</cstring>
+           </property>
           </widget>
          </item>
          <item>
@@ -82,7 +85,10 @@
          <item>
           <widget class="QLabel" name="labelLRU" >
            <property name="text" >
-            <string>Recent:</string>
+            <string>&amp;Recent:</string>
+           </property>
+           <property name="buddy" >
+            <cstring>comboPPAlru</cstring>
            </property>
           </widget>
          </item>
@@ -374,12 +380,12 @@
  <tabstops>
   <tabstop>editSmartQuery</tabstop>
   <tabstop>btnSave</tabstop>
+  <tabstop>comboPPAlru</tabstop>
   <tabstop>dateTimeregDate</tabstop>
   <tabstop>comboProject</tabstop>
   <tabstop>comboPhase</tabstop>
   <tabstop>comboActivity</tabstop>
   <tabstop>comboTimeWorked</tabstop>
-  <tabstop>comboPPAlru</tabstop>
   <tabstop>btnDelete</tabstop>
   <tabstop>btnCancel</tabstop>
   <tabstop>txtRemark</tabstop>

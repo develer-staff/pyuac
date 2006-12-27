@@ -10,15 +10,17 @@
 
 import sys, getpass
 
-########################## Congiguration ###############################
+########################## Configuration ###############################
 
-config = {"achievouri": "http://www.develer.com/groupware/",
-          "username": getpass.getuser()}
+config = {
+          "achievouri": "http://www.develer.com/groupware/",
+          "username": getpass.getuser(),
+          }
 
 #config = {"achievouri": "http://www.develer.com/~naufraghi/achievo/",
 #          "username": "matteo"}
 
-########################## Congiguration ###############################
+########################## Configuration ###############################
 
 from QTimeBrowseWindow import *
 

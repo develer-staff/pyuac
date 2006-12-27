@@ -94,6 +94,14 @@
   </widget>
   <widget class="QStatusBar" name="statusBar" />
  </widget>
+ <tabstops>
+  <tabstop>btnTimereg</tabstop>
+  <tabstop>tableTimereg</tabstop>
+  <tabstop>btnEdit</tabstop>
+  <tabstop>btnQuit</tabstop>
+  <tabstop>btnToday</tabstop>
+  <tabstop>dateEdit</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

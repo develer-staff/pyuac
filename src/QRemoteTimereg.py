@@ -111,8 +111,9 @@ class QRemoteTimereg(QObject):
                 del self._actions_params[action]
                 self.emit(SIGNAL(action+"Started"))
 
-    def _ready(self, exitcode=0):
-        """ <-- SIGNAL("finished(int)"), self._ready
+    def _ready(self, exitcode=None):
+        """ <-- self.process, SIGNAL("finished(int)")
+            <-- self.process, SIGNAL("readyReadStandardOutput()")
         Provvede a emettere i segnali adatti alla risposta ottenuta:
             whoami[OK|Err](ElemetTree)
             query[OK|Err](ElemetTree)
@@ -120,8 +121,8 @@ class QRemoteTimereg(QObject):
             timereport[OK|Err](ElemetTree)
             emptyResponse
         """
-        debug("%s <!-- Ready -->" % __name__)
-        if exitcode != pyuac_cli.exits.index("OK"):
+        debug("%s <!-- Ready(%s) -->" % (__name__, exitcode))
+        if exitcode != None:
             self._error(5, exitcode)
 
         self._resp += str(self.process.readAllStandardOutput())

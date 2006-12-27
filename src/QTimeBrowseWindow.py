@@ -116,6 +116,8 @@ class TimeBrowseWindow(QMainWindow):
         # Short-circuit Signals (from python to python)
         self.connect(self.edit, SIGNAL("registrationDone"),
                      self._slotRegistrationDone)
+        self.connect(self.edit, SIGNAL("processError"),
+                     self._slotProcessError)
         self.connect(self.remote, SIGNAL("timereportStarted"),
                      self._slotTimereportStarted)
         self.connect(self.remote, SIGNAL("timereportOK"),
@@ -218,16 +220,18 @@ class TimeBrowseWindow(QMainWindow):
         self.ui.btnEdit.setEnabled(len(eprojects) != 0)
         self.ui.btnTimereg.setEnabled(True)
 
-    def _slotProcessError(self, qperror, exitcode):
+    def _slotProcessError(self, process_error, exitcode):
         """ <-- self.remote, SIGNAL("processError")
         Visualizza un messaggio di errore
         """
         #debug("_slotProcessError %s, %s" % (qperror, exitcode), "warning")
         if exitcode == "RESPONSE_ERROR":
             self.login.show()
+        elif exitcode == "OK":
+            self._slotClose()
         else:
             self.err.showMessage(self.tr("Error contacting Achievo:\n") +
-                                 "%s, %s" % (qperror, exitcode))
+                                 "%s, %s" % (process_error, exitcode))
 
     def notify(self, msg, timeout=0):
         """

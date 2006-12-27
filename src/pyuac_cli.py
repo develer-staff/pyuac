@@ -89,7 +89,10 @@ def serve(params, silent=False):
         # Loops waiting for input in the form:
         # action?url_encoded=params&other=params
         prompt = (not silent) and "remote: " or ""
-        cmdline = raw_input(prompt).strip()
+        try:
+            cmdline = raw_input(prompt).strip()
+        except KeyboardInterrupt:
+            exit("OK")
         action, params = parseCommand(cmdline)
         if action in remote.actions:
             print execute(remote, action, params)

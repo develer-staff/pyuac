@@ -369,11 +369,9 @@ class TimeregWindow(QMainWindow):
         #self.ui.comboActivity.setEnabled(False)
         #self.ui.comboTimeWorked.setEnabled(False)
 
-    def _processError(self, qperror, exitcode):
-        debug("_processError %s, %s" % (qperror, exitcode))
-        if self.ui.isVisible():
-            self.err.showMessage(self.tr("Errore nel processo interfaccia con Achievo:\n") +
-                                 "%s, %s" % (qperror, exitcode))
+    def _processError(self, process_error, exitcode):
+        debug("_processError %s, %s" % (process_error, exitcode))
+        self.emit(SIGNAL("processError"), process_error, exitcode)
 
     def _comboProjectActivated(self, combotext):
         self._updateComboBoxes("Project", combotext)

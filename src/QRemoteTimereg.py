@@ -155,7 +155,6 @@ class QRemoteTimereg(QObject):
         process_error = process_errors.split()[process_error]
         if exitcode != None:
             exitcode = pyuac_cli.exits[exitcode]
-        debug("Err(%s, %s): %s" % (process_error, exitcode, str(self.process.readAllStandardError())))
-        self.emit(SIGNAL("processError"), process_error, exitcode)
-
-
+        errstr = str(self.process.readAllStandardError())
+        debug("Err(%s, %s): %s" % (process_error, exitcode, errstr))
+        self.emit(SIGNAL("processError"), process_error, exitcode, errstr)

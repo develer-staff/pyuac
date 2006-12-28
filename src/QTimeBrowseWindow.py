@@ -220,7 +220,7 @@ class TimeBrowseWindow(QMainWindow):
         self.ui.btnEdit.setEnabled(len(eprojects) != 0)
         self.ui.btnTimereg.setEnabled(True)
 
-    def _slotProcessError(self, process_error, exitcode):
+    def _slotProcessError(self, process_error, exitcode, errstr):
         """ <-- self.remote, SIGNAL("processError")
         Visualizza un messaggio di errore
         """
@@ -231,7 +231,7 @@ class TimeBrowseWindow(QMainWindow):
             self._slotClose()
         else:
             self.err.showMessage(self.tr("Error contacting Achievo:\n") +
-                                 "%s, %s" % (process_error, exitcode))
+                                 "%s, %s, %s" % (process_error, exitcode, errstr))
 
     def notify(self, msg, timeout=0):
         """

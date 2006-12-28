@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 #-*- coding: utf-8 -*-
 #
 # Copyright 2006 Develer S.r.l. (http://www.develer.com/)
@@ -33,4 +33,3 @@ class TimeregApplication(QApplication):
 
 if __name__ == "__main__":
     app = TimeregApplication(sys.argv)
-    #2 m a 2:34 prova prova èàò

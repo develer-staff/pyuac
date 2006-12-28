@@ -9,7 +9,7 @@
 # Author: Matteo Bertini <naufraghi@develer.com>
 #
 
-import urllib, urllib2
+import urllib, urllib2, urlparse
 from pyuac_utils import *
 
 ACHIEVO_ENCODING = "ISO-8859-1"
@@ -52,11 +52,9 @@ class RemoteTimereg:
         if user is not None and password is not None:
             self.user = user
             self.password = password
-        auth = urllib.urlencode({"auth_user": self.user,
-                                 "auth_pw": self.password})
         self._setupAuth()
         #refresh Achievo session
-        urllib2.urlopen(self._loginurl, auth).read()
+        urllib2.urlopen(self._loginurl).read()
         return self._urlDispatch("whoami")
 
     def _setupAuth(self):
@@ -64,8 +62,11 @@ class RemoteTimereg:
         Imposta l'autenticazione http e la gestione dei cookies
         """
         passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        passman.add_password(None, self._loginurl, self.user, self.password)
-        passman.add_password(None, self._dispatchurl, self.user, self.password)
+        # WARN: basic-auth using a URI which is not a pure hostname is
+        # broken in Python 2.4.[0123]. This patch fixed it:
+        # http://svn.python.org/view/python/trunk/Lib/urllib2.py?rev=45815&r1=43556&r2=45815
+        host = urlparse.urlparse(self._achievouri)[1]
+        passman.add_password(None, host, self.user, self.password)
         auth_handler = urllib2.HTTPBasicAuthHandler(passman)
         cookie_handler = urllib2.HTTPCookieProcessor()
         opener = urllib2.build_opener(auth_handler, cookie_handler)

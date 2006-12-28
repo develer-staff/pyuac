@@ -80,10 +80,12 @@ def serve(params, silent=False):
     try:
         # Try to set up the class with the provided params
         remote = RemoteTimereg(*params)
-    except urllib2.HTTPError:
-        exit("CONNECTION_ERROR", True)
-    except ExpatError:
-        exit("RESPONSE_ERROR", True)
+    except IOError, e:
+        print >>sys.stderr, e
+        exit("CONNECTION_ERROR")
+    except ExpatError, e:
+        print >>sys.stderr, e
+        exit("RESPONSE_ERROR")
 
     while True:
         # Loops waiting for input in the form:

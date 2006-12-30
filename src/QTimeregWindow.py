@@ -84,6 +84,7 @@ class TimeregWindow(QMainWindow):
         self.ui.comboPPAlru.addItem("")
         for row in self.settings.getArray("lru", ["ppa-%s" % self.remote.auth[1]]):
             self.ui.comboPPAlru.addItem(row["ppa-%s" % self.remote.auth[1]].toString())
+        self.notify(self.tr("Type something in the smartquery field or use combos."))
 
     def _connectSlots(self):
         self.connect(self.ui.editSmartQuery, SIGNAL("textEdited(QString)"),
@@ -146,7 +147,6 @@ class TimeregWindow(QMainWindow):
         debug(u"_smartQueryEdited: '%s'" % smartquery)
         smartquery = unicode(smartquery).strip()
         self.remote.query(smartquery=smartquery)
-        self.notify(self.tr("Searching..."))
 
     def _projectsChanged(self, projects):
         """ <-- self.remote, SIGNAL("queryOK")
@@ -225,104 +225,112 @@ class TimeregWindow(QMainWindow):
         combotext = unicode(combotext)
 
         debug("_updateComboBoxes %s %s" % (combo, combotext))
+        
+        _bp = self._baseproject
+        
+        def _updateBaseproject(combo, combotext):
+            if combo == "Project":
+                _bp.set("in_prj", combotext)
+                _bp.set("prj", combotext)
+                _bp.set("pha", None)
+                _bp.set("act", None)
+            elif combo == "Phase":
+                _bp.set("in_pha", combotext)
+                _bp.set("pha", combotext)
+                _bp.set("act", None)
+            elif combo == "Activity":
+                _bp.set("in_act", combotext)
+                _bp.set("act", combotext)
+            elif combo == "TimeWorked":
+                _bp.set("in_hmtime", combotext)
+                _bp.set("hmtime", combotext)
+            # se ho attivato un combo
+            if combo != None:
+                self._updateSmartQuery(_bp.getSmartQuery())
+                return
+        _updateBaseproject(combo, combotext) 
+
         # Aggiorna la lista di progetti, fasi e attività
         # usata per riempire i combobox
-        
-        _ppa = {}
-        for p in self._response_projects:
-            self._projects.add(p.get("prj"))
-            self._all_ppa.setdefault(p.get("prj"), {})
-            self._all_ppa[p.get("prj")].setdefault(p.get("pha"), {})
-            self._all_ppa[p.get("prj")][p.get("pha")].setdefault(p.get("act"), {})
-            _ppa.setdefault(p.get("prj"), {})
-            _ppa[p.get("prj")].setdefault(p.get("pha"), {})
-            _ppa[p.get("prj")][p.get("pha")].setdefault(p.get("act"), {})
-        if self._baseproject.isUnivocal():
-            _ppa = self._all_ppa
+        def _updatePpa():
+            _ppa = {}
+            for p in self._response_projects:
+                self._projects.add(p.get("prj"))
+                self._all_ppa.setdefault(p.get("prj"), {})
+                self._all_ppa[p.get("prj")].setdefault(p.get("pha"), {})
+                self._all_ppa[p.get("prj")][p.get("pha")].setdefault(p.get("act"), {})
+                _ppa.setdefault(p.get("prj"), {})
+                _ppa[p.get("prj")].setdefault(p.get("pha"), {})
+                _ppa[p.get("prj")][p.get("pha")].setdefault(p.get("act"), {})
+            if _bp.isUnivocal():
+                _ppa = self._all_ppa
+            return _ppa
+        _ppa = _updatePpa()
 
-        project = self._baseproject.get("prj")
-        phase = self._baseproject.get("pha")
-        activity = self._baseproject.get("act")
-        hmtime = self._baseproject.get("hmtime") or ""
-        remark = self._baseproject.get("remark") or ""
-
-        if combo == "Project":
-            self._baseproject.set("in_prj", combotext)
-            self._baseproject.set("prj", combotext)
-            self._baseproject.set("pha", None)
-            self._baseproject.set("act", None)
-            #self._baseproject.set("in_pha", "%")
-            #self._baseproject.set("in_act", "%")
-        elif combo == "Phase":
-            self._baseproject.set("in_pha", combotext)
-            self._baseproject.set("pha", combotext)
-            self._baseproject.set("act", None)
-            #self._baseproject.set("in_act", "%")
-        elif combo == "Activity":
-            self._baseproject.set("in_act", combotext)
-            self._baseproject.set("act", combotext)
-        elif combo == "TimeWorked":
-            self._baseproject.set("in_hmtime", combotext)
-            self._baseproject.set("hmtime", combotext)
-        # se ho attivato un combo
-        if combo != None:
-            self._updateSmartQuery(self._baseproject.getSmartQuery())
-            return
-
-        def endsWithSpace(msg):
-            if msg:
-                return msg[-1] == " "
-            else:
-                return False
-
-        # se il progetto inserito identifica univocamente un nome e
-        # la smartquery termina con spazio (questo permette di non
-        # interferire brutalmente con le modifiche fatte dall'utente)
-        if project != None:
-            smartquery = unicode(self.ui.editSmartQuery.text())
-            if project != self._baseproject.get("in_prj"):
-                self._baseproject.set("in_prj", project)
-                if endsWithSpace(smartquery):
-                    self._setSmartQuery(self._baseproject.getSmartQuery())
-            if phase != None:
-                if phase != self._baseproject.get("in_pha"):
-                    self._baseproject.set("in_pha", phase)
+        def _updateSmartquery():
+            def endsWithSpace(msg):
+                return msg[-1:] == " "
+            # se il progetto inserito identifica univocamente un nome e
+            # la smartquery termina con spazio (questo permette di non
+            # interferire brutalmente con le modifiche fatte dall'utente)
+            if _bp.get("prj") != None:
+                smartquery = unicode(self.ui.editSmartQuery.text())
+                if _bp.get("prj") != _bp.get("in_prj"):
+                    _bp.set("in_prj", _bp.get("prj"))
                     if endsWithSpace(smartquery):
-                        self._setSmartQuery(self._baseproject.getSmartQuery())
-                if activity != None and activity != self._baseproject.get("in_act"):
-                    self._baseproject.set("in_act", activity)
-                    if endsWithSpace(smartquery):
-                        self._setSmartQuery(self._baseproject.getSmartQuery())
+                        self._setSmartQuery(_bp.getSmartQuery())
+                if _bp.get("pha") != None:
+                    if _bp.get("pha") != _bp.get("in_pha"):
+                        _bp.set("in_pha", _bp.get("pha"))
+                        if endsWithSpace(smartquery):
+                            self._setSmartQuery(_bp.getSmartQuery())
+                    if _bp.get("act") != None and _bp.get("act") != _bp.get("in_act"):
+                        _bp.set("in_act", _bp.get("act"))
+                        if endsWithSpace(smartquery):
+                            self._setSmartQuery(_bp.getSmartQuery())
+        _updateSmartquery()
 
-        self.ui.comboProject.clear()
-        self.ui.comboPhase.clear()
-        self.ui.comboActivity.clear()
-        self.ui.comboProject.addItems(sorted(list(self._projects)))
-        if project != None:
-            self.ui.comboPhase.addItems(sorted(_ppa[project].keys()))
-            if phase != None:
-                self.ui.comboActivity.addItems(sorted(_ppa[project][phase].keys()))
+        def _updateCombos():
+            self.ui.comboProject.clear()
+            self.ui.comboPhase.clear()
+            self.ui.comboActivity.clear()
+            self.ui.comboProject.addItems(sorted(list(self._projects)))
+            if _bp.get("prj") != None:
+                self.ui.comboPhase.addItems(sorted(_ppa[_bp.get("prj")].keys()))
+                if _bp.get("pha") != None:
+                    prj = _bp.get("prj")
+                    pha = _bp.get("pha")
+                    self.ui.comboActivity.addItems(sorted(_ppa[prj][pha].keys()))
+        _updateCombos()
 
         def _updateCompleter():
             # La stringa di completamento deve proporre il nome esteso del nodo
             # attivo e mantenere la stringa inserita (se univoca) per ciò che è
             # già stato eseguito <<<< da decidere
+            project = _bp.get("prj")
+            phase = _bp.get("pha")
+            activity = _bp.get("act")
+            hmtime = _bp.get("hmtime")
             if project == None:
-                _completer = [pro for pro in _ppa.keys()]# if strlike(pro, self._baseproject.get("in_prj"))]
+                _completer = [pro for pro in _ppa.keys()]
             else:
                 if phase == None:
-                    _base = self._baseproject.get("prj")+" "
-                    _completer = [_base+pha for pha in _ppa[project].keys()]
+                    _base = project+" "
+                    _completer = [_base + pha for pha in _ppa[project].keys()]
                 else:
-                    if activity == None or not self._baseproject.get("in_act"):
-                        _base = self._baseproject.get("prj")+" "+self._baseproject.get("pha")+" "
-                        _completer = [_base+act for act in _ppa[project][phase].keys()]
+                    if activity == None or not _bp.get("in_act"):
+                        _base = project+" "+phase+" "
+                        _completer = [_base + act for act in _ppa[project][phase].keys()]
                     else:
-                        _completer = []
+                        if hmtime not in timerange(8, 15):
+                            _base = project+" "+phase+" "+activity+" "
+                            _completer = [_base + hmtime for hmtime in timerange(8, 15)]
+                        else:
+                            _completer = []
 
-            # se ho già scritto hmtime e commento, li aggiungo al completer
+            # se ho già scritto il commento, lo aggiungo al completer
             for c, v in enumerate(_completer):
-                _completer[c] = " ".join([_completer[c], hmtime, remark]).strip()
+                _completer[c] = " ".join([_completer[c], _bp.get("remark") or ""]).strip()
 
             _completer.sort()
             if _completer != self._completer_list:
@@ -333,7 +341,6 @@ class TimeregWindow(QMainWindow):
                 #altrimenti compare anche a finestra invisibile...
                 self.completer.complete()
                 debug("self.completer %s" % _completer)
-
         _updateCompleter()
 
     def _timeregStarted(self):
@@ -369,9 +376,9 @@ class TimeregWindow(QMainWindow):
         #self.ui.comboActivity.setEnabled(False)
         #self.ui.comboTimeWorked.setEnabled(False)
 
-    def _processError(self, process_error, exitcode):
-        debug("_processError %s, %s" % (process_error, exitcode))
-        self.emit(SIGNAL("processError"), process_error, exitcode)
+    def _processError(self, process_error, exitcode, errstr):
+        debug("_processError %s, %s: %s" % (process_error, exitcode, errstr))
+        self.emit(SIGNAL("processError"), process_error, exitcode, errstr)
 
     def _comboProjectActivated(self, combotext):
         self._updateComboBoxes("Project", combotext)
@@ -462,10 +469,7 @@ class AchievoProject:
         if key in ["remark", "in_remark"]:
             return self.data.text
         else:
-            if self.data.get(key) != None:
-                return self.data.get(key).replace(" ", "_")
-            else:
-                return self.data.get(key)
+            return self.data.get(key)
 
     def getPPA(self):
         return " ".join([self.get(k) for k in self.keys[:3]])

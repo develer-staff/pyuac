@@ -33,7 +33,7 @@ function isTime($time)
 
 function smartLike($field, $s)
 {
-    return "LOWER($field) LIKE LOWER('$s%')";
+    return "LOWER($field) LIKE LOWER('%$s%')";
 }
 
 function tokenize($s)
@@ -133,7 +133,7 @@ class query extends atkNode
                     project.status = 'active' AND
                     project_person.personid = " . $g_user["id"] . " AND
                     (
-                    (" . smartLike("project.name", "%".$guesses[$k]["in_prj"]) . ") AND
+                    (" . smartLike("project.name", $guesses[$k]["in_prj"]) . ") AND
                     (" . smartLike("phase.name", $guesses[$k]["in_pha"]) . ") AND
                     (" . smartLike("activity.name", $guesses[$k]["in_act"]) . ")
                     )";

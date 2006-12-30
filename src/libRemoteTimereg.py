@@ -52,9 +52,12 @@ class RemoteTimereg:
         if user is not None and password is not None:
             self.user = user
             self.password = password
+        # Renew Achievo login to keep the session alive
+        auth = urllib.urlencode({"auth_user": self.user,
+                                 "auth_pw": self.password})
         self._setupAuth()
-        #refresh Achievo session
-        urllib2.urlopen(self._loginurl).read()
+        # refresh Achievo session
+        urllib2.urlopen(self._loginurl, auth).read()
         return self._urlDispatch("whoami")
 
     def _setupAuth(self):
@@ -70,8 +73,6 @@ class RemoteTimereg:
         auth_handler = urllib2.HTTPBasicAuthHandler(passman)
         cookie_handler = urllib2.HTTPCookieProcessor()
         opener = urllib2.build_opener(auth_handler, cookie_handler)
-        #installa come opener di default per urllib2
-        #FIXME: e se fosse multithread con due auth diverse?
         urllib2.install_opener(opener)
 
     def _urlDispatch(self, node, action="search", **kwargs):
@@ -80,8 +81,8 @@ class RemoteTimereg:
         """
         params = {"atknodetype": "remote.%s" % node,
                   "atkaction": action}
-        #This is the way PHP accepts arrays,
-        #without [] it gets only the last value.
+        # This is the way PHP accepts arrays,
+        # without [] it gets only the last value.
         for key, val in kwargs.items():
             if type(val) == list:
                 del kwargs[key]
@@ -90,7 +91,12 @@ class RemoteTimereg:
                 kwargs[key] = val.encode(ACHIEVO_ENCODING)
         qstring = urllib.urlencode(params.items() + kwargs.items(), doseq=True)
         page = urllib2.urlopen(self._dispatchurl, qstring).read()
-        return ET.fromstring(page)
+        try:
+            return ET.fromstring(page)
+        except:
+            debug(page)
+            open("lastpage.log", "w+").write(page)
+            raise
 
     def whoami(self):
         """
@@ -106,27 +112,12 @@ class RemoteTimereg:
         Ottiene la lista dei progetti/fasi/attività coerenti
         con la smart-string inviata, restituisce un ElementTree
         """
-        #Se vuota converte in "trova tutto"
-        # % permette la ricerca anche all'interno del nome del progetto
-        #FIXME: nel sever, SQL INJECT?
-        _smartquery_dict = parseSmartQuery(smartquery)
-        _ppa = " ".join([_smartquery_dict[k] for k in
-                        ["in_prj", "in_pha", "in_act"]])
-        _old_ppa = " ".join([self._smartquery_dict[k] for k in
-                            ["in_prj", "in_pha", "in_act"]])
-        self._smartquery_dict = _smartquery_dict
-        # Fa la query al server solo se la parte
-        # "project", "phase", "activity" è cambiata
-        if _ppa != _old_ppa or (_ppa.strip() == _old_ppa.strip() == ""):
-            self._projects = self._urlDispatch("query", input=_ppa)
+        self._projects = self._urlDispatch("query", input=smartquery)
         
         for p in self._projects[:1]:
-            # riempio tutti i campi necessari alla registrazione
-            # delle ore lavorate solo nel primo progetto.
-            p.text = self._smartquery_dict["in_remark"]
-            p.set("in_hmtime",  self._smartquery_dict["in_hmtime"])
+            #TODO: move serverside using Achievo funcs
             try:
-                p.set("hmtime", timeRound(self._smartquery_dict["in_hmtime"]))
+                p.set("hmtime", timeRound(p.get("in_hmtime")))
             except ValueError:
                 p.set("hmtime", "")
         return self._projects
@@ -151,13 +142,13 @@ class RemoteTimereg:
                   "entrydate": time.strftime("%Y%m%d", time.gmtime()),
                   "remark": remark,
                   "userid": "person.id=%s" % self.userid}
-        #TODO: fare in modo che il server prenda userid dalla sessione corrente
-        if id == None: #save new record
+        #TODO: The server should get the userid from the current session
+        if id == None: # save new record
             epage = self._urlDispatch("timereg", action="save", **kwargs)
-        else: #update
+        else: # update
             kwargs["id"] = id
             kwargs["atkprimkey"] = "hours.id=%s" % id
-            #TODO: scoprire quale dei due viene usato da achievo per l'update
+            #TODO: find out which is the one used by Achievo
             epage = self._urlDispatch("timereg", action="edit", **kwargs)
         return epage
 

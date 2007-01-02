@@ -31,7 +31,6 @@ class LoginDialog(QDialog):
         self.ui.editUsername.setText(_username)
         self.connect(self.ui, SIGNAL("accepted()"), self.login)
         self.connect(self.ui, SIGNAL("rejected()"), self.cancel)
-        self.connect(self.ui, SIGNAL("finished()"), self.cancel)
         self.ui.editPassword.setFocus()
 
     def login(self):
@@ -78,8 +77,6 @@ class TimeBrowseWindow(QMainWindow):
                      self._slotClose)
         self.connect(self.ui.btnToday, SIGNAL("clicked()"),
                      self._setupGui)
-        self.connect(self.ui.btnEdit, SIGNAL("clicked()"),
-                     self._slotTimeEdit)
         self.connect(self.ui.dateEdit, SIGNAL("dateChanged(const QDate&)"),
                      self._slotTimereport)
         self.connect(self.ui.tableTimereg, SIGNAL("cellDoubleClicked(int,int)"),
@@ -139,22 +136,21 @@ class TimeBrowseWindow(QMainWindow):
     def _slotClose(self):
         """ <-- self.ui.btnQuit, SIGNAL("clicked()")
             <-- self.login, SIGNAL("cancel")
+            <-- self.login, SIGNAL("cancel")
         Chiude l'applicazione provvedendo a terminare tutti i processi
         """
         self.notify(self.tr("Closing..."))
         if "remote" in dir(self):
             self.remote.close()
             self.edit.remote.close()
+        print "Closing..."
         self.ui.close()
 
-    def _slotTimeEdit(self, row=None, column=None):
-        """ <-- self.ui.btnEdit, SIGNAL("clicked()")
-                self.ui.tableTimereg, SIGNAL("cellDoubleClicked(int,int)")
+    def _slotTimeEdit(self, row, column):
+        """ <-- self.ui.tableTimereg, SIGNAL("cellDoubleClicked(int,int)")
         Prepara un template con i dati della riga selezionata
         ed avvia la form di modifica
         """
-        if row == None:
-            row = self.ui.tableTimereg.currentRow()
         project_template = AchievoProject()
         print self.projects[row].items()
         for k in project_template.keys:
@@ -185,7 +181,6 @@ class TimeBrowseWindow(QMainWindow):
         self.remote.timereport(date=reportdate)
 
     def _slotTimereportStarted(self):
-        self.ui.btnEdit.setEnabled(False)
         self.ui.btnTimereg.setEnabled(False)
         self.ui.tableTimereg.setRowCount(0)
 
@@ -217,7 +212,6 @@ class TimeBrowseWindow(QMainWindow):
                     self.ui.tableTimereg.resizeColumnToContents(c)
         self.notify(self.tr("Day total: ") + "%s" % min2hmtime(total_time))
         self.ui.tableTimereg.resizeRowsToContents()
-        self.ui.btnEdit.setEnabled(len(eprojects) != 0)
         self.ui.btnTimereg.setEnabled(True)
 
     def _slotProcessError(self, process_error, exitcode, errstr):

@@ -52,13 +52,6 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="0" colspan="2" >
-     <widget class="QPushButton" name="btnEdit" >
-      <property name="text" >
-       <string>Edit Timereg...</string>
-      </property>
-     </widget>
-    </item>
     <item row="1" column="0" colspan="3" >
      <widget class="QTableWidget" name="tableTimereg" >
       <property name="editTriggers" >
@@ -90,6 +83,21 @@
       </property>
      </widget>
     </item>
+    <item row="2" column="0" colspan="2" >
+     <widget class="QLabel" name="labelInfo" >
+      <property name="font" >
+       <font>
+        <italic>true</italic>
+       </font>
+      </property>
+      <property name="text" >
+       <string>Double click on a row to edit or delete</string>
+      </property>
+      <property name="alignment" >
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QStatusBar" name="statusBar" />
@@ -97,7 +105,6 @@
  <tabstops>
   <tabstop>btnTimereg</tabstop>
   <tabstop>tableTimereg</tabstop>
-  <tabstop>btnEdit</tabstop>
   <tabstop>btnQuit</tabstop>
   <tabstop>btnToday</tabstop>
   <tabstop>dateEdit</tabstop>

@@ -13,31 +13,6 @@ import os, sys, copy
 from pyuac_utils import *
 from QRemoteTimereg import *
 
-class ASettings(QSettings):
-    """
-    Aggiunge una interfaccia più semplice per le array
-    Converte in e restituisce valori QVariant
-    """
-    def getArray(self, prefix, keys):
-        res = []
-        size = self.beginReadArray(prefix)
-        for i in range(size):
-            self.setArrayIndex(i)
-            item = {}
-            for k in keys:
-                item[k] = self.value(k)
-            res.append(item)
-        self.endArray()
-        return res
-
-    def setArray(self, prefix, data):
-        self.beginWriteArray(prefix)
-        for i, item in enumerate(data):
-            self.setArrayIndex(i)
-            for k, v in item.items():
-                self.setValue(k, QVariant(v))
-        self.endArray()
-
 
 class TimeregWindow(QMainWindow):
 

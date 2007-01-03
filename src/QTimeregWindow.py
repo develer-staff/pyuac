@@ -14,33 +14,25 @@ from pyuac_utils import *
 from QRemoteTimereg import *
 
 
-class TimeregWindow(QMainWindow):
+class TimeregWindow(QMainWindow, QAchievoWindow):
 
     def __init__(self, parent, auth):
         debug("TimeregWindow.__init__")
         QMainWindow.__init__(self, parent)
-        self._baseproject = AchievoProject()
+        self.__setup__(auth, 'pyuac_edit.ui')
 
-        _path = 'pyuac_edit.ui'
-        if hasattr(sys, "frozen") and sys.frozen:
-            _path = os.path.join(os.path.dirname(sys.executable), _path)
-
-        self.ui = uic.loadUi(_path, self)
-
-        self.remote = QRemoteTimereg(self, auth)
-        self.err = QErrorMessage(self)
-        self.settings = ASettings("Develer", "PyUAC")
         self.completer = QCompleter([], self)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.completer.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
         self.ui.editSmartQuery.setCompleter(self.completer)
         self._completer_list = []
+
+        self._baseproject = AchievoProject()
         self._response_projects = []
         self._all_ppa = {}
         self._projects = set()
         self._connectSlots()
         self._setupGui()
-        self._smartQueryEdited("")
 
     def _setupGui(self):
         debug("TimeregWindow._setupGui")
@@ -60,6 +52,7 @@ class TimeregWindow(QMainWindow):
         for row in self.settings.getArray("lru", ["ppa-%s" % self.remote.auth[1]]):
             self.ui.comboPPAlru.addItem(row["ppa-%s" % self.remote.auth[1]].toString())
         self.notify(self.tr("Type something in the smartquery field or use combos."))
+        self._smartQueryEdited("")
 
     def _connectSlots(self):
         self.connect(self.ui.editSmartQuery, SIGNAL("textEdited(QString)"),
@@ -75,7 +68,7 @@ class TimeregWindow(QMainWindow):
         self.connect(self.ui.btnDelete, SIGNAL("clicked()"),
                      self.delete)
         self.connect(self.ui.btnCancel, SIGNAL("clicked()"),
-                     self.cancel)
+                     self._slotClose)
         self.connect(self.ui.comboProject, SIGNAL("activated(const QString&)"),
                      self._comboProjectActivated)
         self.connect(self.ui.comboPhase, SIGNAL("activated(const QString&)"),
@@ -96,8 +89,6 @@ class TimeregWindow(QMainWindow):
                      self._registrationDone)
         self.connect(self.remote, SIGNAL("timeregErr"),
                      self._timeregErr)
-        self.connect(self.remote, SIGNAL("processError"),
-                     self._processError)
 
     def _completerActivated(self, smartquery):
         smartquery = unicode(smartquery).strip()
@@ -105,11 +96,17 @@ class TimeregWindow(QMainWindow):
         self._smartQueryEdited(smartquery)
 
     def _updateSmartQuery(self, smartquery):
+        """
+        Updates the smartquery starting a new query
+        """
         debug(u"_updateSmartQuery '%s'" % smartquery)
         self._setSmartQuery(smartquery)
         self._smartQueryEdited(smartquery)
 
     def _setSmartQuery(self, smartquery):
+        """
+        Updates the smartquery with no side effects
+        """
         debug(u"_setSmartQuery '%s'" % smartquery)
         self.ui.editSmartQuery.setText(smartquery)
         self.ui.editSmartQuery.setFocus()
@@ -135,9 +132,7 @@ class TimeregWindow(QMainWindow):
         if len(self._response_projects) != 0:
             debug("_baseproject.merge()")
             self._baseproject.merge(self._response_projects)
-        #else:
-        #    debug("_baseproject.reset()")
-        #    self._baseproject.reset()
+
         debug("_projectsChanged: _baseproject %s" % self._baseproject)
         self._updateGui()
         self.notify(self.tr(""))
@@ -165,13 +160,13 @@ class TimeregWindow(QMainWindow):
 
         idx = self.ui.comboTimeWorked.findText(p.get("hmtime") or "00:00")
         self.ui.comboTimeWorked.setCurrentIndex(idx)
-
-        self.ui.labelExactTime.setText(p.get("in_hmtime") or "00:00")
         self.ui.labelTimeWorked.setEnabled(p.get("hmtime") != "00:00")
 
-        self.ui.txtRemark.setPlainText((p.get("remark") or "").strip())
+        self.ui.labelExactTime.setText(p.get("in_hmtime") or "00:00")
 
+        self.ui.txtRemark.setPlainText((p.get("remark") or "").strip())
         self.ui.labelRemark.setEnabled(p.get("remark") != None)
+
         self.ui.btnSave.setEnabled(p.isComplete())
 
         #deselezione lru
@@ -200,9 +195,9 @@ class TimeregWindow(QMainWindow):
         combotext = unicode(combotext)
 
         debug("_updateComboBoxes %s %s" % (combo, combotext))
-        
+
         _bp = self._baseproject
-        
+
         def _updateBaseproject(combo, combotext):
             if combo == "Project":
                 _bp.set("in_prj", combotext)
@@ -223,7 +218,7 @@ class TimeregWindow(QMainWindow):
             if combo != None:
                 self._updateSmartQuery(_bp.getSmartQuery())
                 return
-        _updateBaseproject(combo, combotext) 
+        _updateBaseproject(combo, combotext)
 
         # Aggiorna la lista di progetti, fasi e attività
         # usata per riempire i combobox
@@ -269,19 +264,16 @@ class TimeregWindow(QMainWindow):
             self.ui.comboProject.clear()
             self.ui.comboPhase.clear()
             self.ui.comboActivity.clear()
-            self.ui.comboProject.addItems(sorted(list(self._projects)))
+            self.ui.comboProject.addItems([""]+sorted(list(self._projects)))
             if _bp.get("prj") != None:
-                self.ui.comboPhase.addItems(sorted(_ppa[_bp.get("prj")].keys()))
+                self.ui.comboPhase.addItems([""]+sorted(_ppa[_bp.get("prj")].keys()))
                 if _bp.get("pha") != None:
                     prj = _bp.get("prj")
                     pha = _bp.get("pha")
-                    self.ui.comboActivity.addItems(sorted(_ppa[prj][pha].keys()))
+                    self.ui.comboActivity.addItems([""]+sorted(_ppa[prj][pha].keys()))
         _updateCombos()
 
         def _updateCompleter():
-            # La stringa di completamento deve proporre il nome esteso del nodo
-            # attivo e mantenere la stringa inserita (se univoca) per ciò che è
-            # già stato eseguito <<<< da decidere
             project = _bp.get("prj")
             phase = _bp.get("pha")
             activity = _bp.get("act")
@@ -297,9 +289,9 @@ class TimeregWindow(QMainWindow):
                         _base = project+" "+phase+" "
                         _completer = [_base + act for act in _ppa[project][phase].keys()]
                     else:
-                        if hmtime not in timerange(8, 15):
+                        if hmtime not in timerange(8, 15, 1):
                             _base = project+" "+phase+" "+activity+" "
-                            _completer = [_base + hmtime for hmtime in timerange(8, 15)]
+                            _completer = [_base + hmtime for hmtime in timerange(8, 15, 1)]
                         else:
                             _completer = []
 
@@ -333,11 +325,7 @@ class TimeregWindow(QMainWindow):
         self.settings.setArray("lru", lru)
         self.emit(SIGNAL("registrationDone"), self._baseproject)
         self._baseproject.reset()
-        self.cancel()
-
-    def cancel(self):
-        self._setupGui()
-        self.ui.close()
+        self._slotClose()
 
     def _timeregErr(self):
         #debug("_timeregError")
@@ -345,15 +333,7 @@ class TimeregWindow(QMainWindow):
 
     def _searchStarted(self):
         debug("%s _searchStarted" % __name__)
-        #self.ui.btnSave.setEnabled(False)
-        #self.ui.comboProject.setEnabled(False)
-        #self.ui.comboPhase.setEnabled(False)
-        #self.ui.comboActivity.setEnabled(False)
-        #self.ui.comboTimeWorked.setEnabled(False)
-
-    def _processError(self, process_error, exitcode, errstr):
-        debug("_processError %s, %s: %s" % (process_error, exitcode, errstr))
-        self.emit(SIGNAL("processError"), process_error, exitcode, errstr)
+        self._disableAll()
 
     def _comboProjectActivated(self, combotext):
         self._updateComboBoxes("Project", combotext)
@@ -404,9 +384,6 @@ class TimeregWindow(QMainWindow):
             debug("-------------> Reset")
             self.notify(self.tr("Resetting..."))
             self._setupGui()
-
-    def notify(self, msg, timeout=0):
-        self.ui.statusBar.showMessage(msg, timeout)
 
 class AchievoProject:
     """
@@ -479,9 +456,6 @@ class AchievoProject:
                 self.set(k, list(v)[0])
             else:
                 self.set(k, None)
-#        for k, v in self.outitems():
-#            if v != None:
-#                self.set("in_%s" % k, v)
 
     def reset(self):
         for key in self.data.attrib.keys():
@@ -496,7 +470,3 @@ class AchievoProject:
 
     def __str__(self):
         return ET.tostring(self.data, "UTF-8")
-
-if __name__ == "__main__":
-    app = TimeregApplication(sys.argv)
-    #2 m a 2:34 prova prova èàò

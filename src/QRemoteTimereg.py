@@ -48,6 +48,53 @@ class ASettings(QSettings):
         self.endArray()
 
 
+class QAchievoWindow:
+    """
+    Base class for Achievo GUI
+    """
+    @staticmethod
+    def loadUi(_path, _base):
+        if hasattr(sys, "frozen") and sys.frozen:
+            _path = os.path.join(os.path.dirname(sys.executable), _path)
+        return uic.loadUi(_path, _base)
+    
+    def __setup__(self, auth=None, _path=None):
+        if _path != None:
+            self.ui = QAchievoWindow.loadUi(_path, self)
+        if auth != None:
+            self.remote = QRemoteTimereg(self, auth)
+            self.connect(self.remote, SIGNAL("processError"),
+                         self._slotProcessError)
+        self.err = QErrorMessage(self)
+        self.settings = ASettings("Develer", "PyUAC")
+
+    def notify(self, msg, timeout=0):
+        """
+        Visualizza un messaggio nella barra di stato
+        """
+        try:
+            self.ui.statusBar.showMessage(msg, timeout)
+        except AttributeError:
+            pass
+
+    def _slotClose(self):
+        print "Closing..."
+        if "remote" in dir(self):
+            self.remote.close()
+        self.close()
+
+    def _slotProcessError(self, process_error, exitcode, errstr):
+        """ <-- self.remote, SIGNAL("processError")
+        Visualizza un messaggio di errore
+        """
+        if exitcode == "OK":
+            self._slotClose()        
+        else:
+            self.emit(SIGNAL("processError"), process_error, exitcode, errstr)
+            self.err.showMessage(self.tr("Error contacting Achievo:\n") +
+                                 "%s, %s, %s" % (process_error, exitcode, errstr))
+
+
 class QRemoteTimereg(QObject):
     """
     Classe per la gestione asincrona della libreria RemoteAchievo
@@ -103,7 +150,6 @@ class QRemoteTimereg(QObject):
         viene invocato da sync()
         """
         if self.process.state() == self.process.NotRunning:
-            #debug("execute(%s)" % qstring)
 
             if not hasattr(sys, "frozen") or not sys.frozen:
                 executable = sys.executable
@@ -119,7 +165,7 @@ class QRemoteTimereg(QObject):
         if not self._waiting:
             self.process.write(qstring+"\n")
             self._waiting = True
-            return True
+            return self._waiting
         else:
             return False
 

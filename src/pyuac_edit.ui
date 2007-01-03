@@ -2,9 +2,6 @@
  <author>naufraghi@develer.com</author>
  <class>TimeregWindow</class>
  <widget class="QMainWindow" name="TimeregWindow" >
-  <property name="windowModality" >
-   <enum>Qt::WindowModal</enum>
-  </property>
   <property name="geometry" >
    <rect>
     <x>0</x>

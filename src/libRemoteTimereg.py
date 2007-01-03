@@ -94,8 +94,7 @@ class RemoteTimereg:
         try:
             return ET.fromstring(page)
         except:
-            debug(page)
-            open("lastpage.log", "w+").write(page)
+            debug(page.decode(ACHIEVO_ENCODING))
             raise
 
     def whoami(self):

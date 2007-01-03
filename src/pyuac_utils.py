@@ -21,10 +21,7 @@ except ImportError:
 
 def debug(msg, level="debug"):
     if __debug__:
-        try:
-            print msg
-        except UnicodeDecodeError:
-            print repr(msg)
+        print msg
 
 def min2hmtime(mins):
     """

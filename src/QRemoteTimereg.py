@@ -112,6 +112,7 @@ class QRemoteTimereg(QObject):
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"), self._ready)
         self.connect(self.process, SIGNAL("error(QProcess::ProcessError)"),
                      self._error)
+        self.login(achievouri=auth[0], user=auth[1], password=auth[2])
 
     def __getattr__(self, action):
         """
@@ -157,10 +158,10 @@ class QRemoteTimereg(QObject):
                 if not __debug__:
                     params += ["-O"]
                 params += ["pyuac_cli.py"]
-                self.process.start(executable, params+self.auth+["--silent"])
+                self.process.start(executable, params+["--silent"])
             else:
                 executable = "pyuac_cli.exe"
-                self.process.start(executable, self.auth+["--silent"])
+                self.process.start(executable, ["--silent"])
 
         if not self._waiting:
             self.process.write(qstring+"\n")

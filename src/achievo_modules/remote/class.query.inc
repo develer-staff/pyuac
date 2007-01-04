@@ -41,6 +41,7 @@ function tokenize($s)
     // Trim extra spaces
     $s = preg_replace("/\s+/", " ", $s);
     $s = trim($s);
+    $s = addslashes($s);
 
     return split(" ", $s);
 }

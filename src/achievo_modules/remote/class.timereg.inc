@@ -25,8 +25,8 @@ function is_valid_date($date)
 
 function xml_encode($var)
 {
+    $var = stripslashes($var);
     return htmlspecialchars($var, ENT_COMPAT, "iso-8859-1");
-    //return str_replace(array("&gt;", "&lt;", "&quot;", "&amp;"), array(">", "<", "\"", "&"), $var);
 }
 
 function make_xml($node, $msg, $results, $bodykey="")

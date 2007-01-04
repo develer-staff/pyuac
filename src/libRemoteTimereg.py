@@ -34,7 +34,7 @@ class RemoteTimereg:
         self._projects = ET.fromstring("<response />")
         self._login_done = False
         self._auth_done = False
-        
+
     def login(self, achievouri, user, password):
         """
         Classe di interfaccia per il modulo Achievo "remote"
@@ -116,7 +116,7 @@ class RemoteTimereg:
         con la smart-string inviata, restituisce un ElementTree
         """
         self._projects = self._urlDispatch("query", input=smartquery)
-        
+
         for p in self._projects[:1]:
             #TODO: move serverside using Achievo funcs
             try:

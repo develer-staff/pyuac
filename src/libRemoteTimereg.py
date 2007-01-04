@@ -22,16 +22,24 @@ class RemoteTimereg:
     I metodi accettano parametri standard e restituiscono un oggetto ElementTree.
     """
 
-    actions = {"query": "Search the project matching the smartquery",
+    actions = {"login": "Log into an Achievo server (uri, user, pwd)",
+               "query": "Search the project matching the smartquery",
                "whoami": "Returns login info",
                "timereg": "Register worked time",
                "delete": "Delete the timered by id",
                "timereport": "Report time registered in the provided date"}
 
-    def __init__(self, achievouri, user, password):
+    def __init__(self):
+        self._smartquery_dict = parseSmartQuery("")
+        self._projects = ET.fromstring("<response />")
+        self._login_done = False
+        self._auth_done = False
+        
+    def login(self, achievouri, user, password):
         """
         Classe di interfaccia per il modulo Achievo "remote"
         Fornire la path di achievo, username e password
+        Restituisce il nome utente e rinfresca la sessione di Achievo
         """
         self.user = user
         self.userid = 0
@@ -39,26 +47,21 @@ class RemoteTimereg:
         self._achievouri = achievouri
         self._loginurl = urllib.basejoin(self._achievouri, "index.php")
         self._dispatchurl = urllib.basejoin(self._achievouri, "dispatch.php")
+        self._keepalive()
+        self._login_done = True
+        return self.whoami()
 
-        self._smartquery_dict = parseSmartQuery("")
-        self._projects = ET.fromstring("<response />")
-
-        self.whoami()
-
-    def _login(self, user=None, password=None):
+    def _keepalive(self):
         """
         Restituisce il nome utente e rinfresca la sessione di Achievo
         """
-        if user is not None and password is not None:
-            self.user = user
-            self.password = password
         # Renew Achievo login to keep the session alive
         auth = urllib.urlencode({"auth_user": self.user,
                                  "auth_pw": self.password})
-        self._setupAuth()
+        if not self._auth_done:
+            self._setupAuth()
         # refresh Achievo session
         urllib2.urlopen(self._loginurl, auth).read()
-        return self._urlDispatch("whoami")
 
     def _setupAuth(self):
         """
@@ -74,6 +77,7 @@ class RemoteTimereg:
         cookie_handler = urllib2.HTTPCookieProcessor()
         opener = urllib2.build_opener(auth_handler, cookie_handler)
         urllib2.install_opener(opener)
+        self._auth_done = True
 
     def _urlDispatch(self, node, action="search", **kwargs):
         """
@@ -101,7 +105,7 @@ class RemoteTimereg:
         """
         Restituisce il nome utente della sessione attiva
         """
-        elogin = self._login()
+        elogin = self._urlDispatch("whoami")
         if self.userid == 0:
             self.userid = elogin[0].get("id")
         return elogin

@@ -11,20 +11,18 @@
 import cgi
 from libRemoteTimereg import *
 
-docs = """  Use:
-    http://domain.com/achievo/ user password [--silent]
-    [--silent] silent mode (no prompt, no help messages)"""
+docs = """  Usage:
+    pyuac_cli [--silent] silent mode (no prompt, no help messages)"""
 
 def checkParams(params):
-    if len(sys.argv[1:]) < 3:
-        # less than 3 params is invalid
-        return False, False
-    elif len(sys.argv[1:]) == 3:
-        # exactly 3 params, interactive mode
-        return sys.argv[1:4], False
+    if len(sys.argv[1:]) < 1:
+        # interactive mode
+        return [], False
+    elif sys.argv[1] == "--silent":
+        # silent mode
+        return [], True
     else:
-        # at least 4 params, silent mode
-        return sys.argv[1:4], True
+        return False, False
 
 def parseCommand(cmdline):
     action_params = cmdline.split("?", 1)
@@ -107,7 +105,7 @@ def serve(params, silent=False):
 
 if __name__=="__main__":
     params, silent = checkParams(sys.argv[1:])
-    if params:
+    if params != False:
         serve(params, silent=silent)
     else:
         print docs

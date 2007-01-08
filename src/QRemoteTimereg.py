@@ -57,7 +57,7 @@ class QAchievoWindow:
         if hasattr(sys, "frozen") and sys.frozen:
             _path = os.path.join(os.path.dirname(sys.executable), _path)
         return uic.loadUi(_path, _base)
-    
+
     def __setup__(self, auth=None, _path=None):
         if _path != None:
             self.ui = QAchievoWindow.loadUi(_path, self)
@@ -88,7 +88,7 @@ class QAchievoWindow:
         Visualizza un messaggio di errore
         """
         if exitcode == "OK":
-            self._slotClose()        
+            self._slotClose()
         else:
             self.emit(SIGNAL("processError"), process_error, exitcode, errstr)
             self.err.showMessage(self.tr("Error contacting Achievo:\n") +
@@ -154,7 +154,7 @@ class QRemoteTimereg(QObject):
 
             if not hasattr(sys, "frozen") or not sys.frozen:
                 executable = sys.executable
-                params = ["-u"]
+                params = []#["-u"]
                 if not __debug__:
                     params += ["-O"]
                 params += ["pyuac_cli.py"]

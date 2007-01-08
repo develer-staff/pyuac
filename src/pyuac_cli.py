@@ -96,6 +96,7 @@ def serve(params, silent=False):
         action, params = parseCommand(cmdline)
         if action in remote.actions:
             print execute(remote, action, params)
+            sys.stdout.flush()
         elif action == "q":
             exit("OK")
         elif not silent:

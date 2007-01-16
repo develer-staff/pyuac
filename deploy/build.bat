@@ -1,5 +1,6 @@
 rmdir /S /Q distpyuac_onedir
-del warndistpyuac_onedir.txt
+rmdir /S /Q buildpyuac_onedir
+del warnpyuac_onedir.txt
 del pyuac.exe
 del pyuac_cli.exe
 

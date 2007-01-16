@@ -55,6 +55,7 @@ class QAchievoWindow:
     @staticmethod
     def loadUi(_path, _base):
         if hasattr(sys, "frozen") and sys.frozen:
+            import os
             _path = os.path.join(os.path.dirname(sys.executable), _path)
         return uic.loadUi(_path, _base)
 

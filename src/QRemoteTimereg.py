@@ -8,7 +8,7 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import sys
+import sys, os
 
 from pyuac_utils import *
 from libRemoteTimereg import *
@@ -161,7 +161,10 @@ class QRemoteTimereg(QObject):
                 params += ["pyuac_cli.py"]
                 self.process.start(executable, params+["--silent"])
             else:
-                executable = "pyuac_cli.exe"
+                if os.name == "posix":
+                    executable = "./pyuac_cli.exe"
+                else:
+                    executable = "pyuac_cli.exe"
                 self.process.start(executable, ["--silent"])
 
         if not self._waiting:

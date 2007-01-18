@@ -162,7 +162,7 @@ class QRemoteTimereg(QObject):
                 self.process.start(executable, params+["--silent"])
             else:
                 if os.name == "posix":
-                    executable = "./pyuac_cli.exe"
+                    executable = "./pyuac_cli"
                 else:
                     executable = "pyuac_cli.exe"
                 self.process.start(executable, ["--silent"])

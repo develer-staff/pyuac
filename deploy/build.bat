@@ -1,8 +1,6 @@
 rmdir /S /Q distpyuac_onedir
 rmdir /S /Q buildpyuac_onedir
 del warnpyuac_onedir.txt
-del pyuac.exe
-del pyuac_cli.exe
 
 python pyinstaller/configure.py
 python pyinstaller/Build.py pyuac_onedir.spec

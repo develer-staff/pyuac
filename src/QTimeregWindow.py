@@ -13,6 +13,7 @@ import os, sys, copy
 from pyuac_utils import *
 from QRemoteTimereg import *
 
+LRU_LEN = 5
 
 class TimeregWindow(QMainWindow, QAchievoWindow):
 
@@ -307,7 +308,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             if combo == None and self.ui.isVisible():
                 #altrimenti compare anche a finestra invisibile...
                 self.completer.complete()
-                debug("self.completer %s" % _completer)
+                #debug("self.completer %s" % _completer)
         _updateCompleter()
 
     def _timeregStarted(self):
@@ -316,12 +317,14 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
 
     def _registrationDone(self, eresp):
         #debug("_registrationDone")
-        lru = self.settings.getArray("lru", ["ppa-%s" % self.remote.auth[1]])
-        new_ppa = self._baseproject.getPPA()+" "
-        if new_ppa not in [row["ppa-%s" % self.remote.auth[1]].toString() for row in lru]:
-            lru.insert(0, {"ppa-%s" % self.remote.auth[1]: new_ppa})
-            if len(lru) > 2:
-                lru.pop()
+        username = self.remote.auth[1]
+        lru = self.settings.getArray("lru", ["ppa-%s" % username])
+        new_ppa = {"ppa-%s" % username: QVariant(self._baseproject.getPPA()+" ")}
+        lru.insert(0, new_ppa)
+        if new_ppa in lru[1:]:
+            lru.pop(lru.index(new_ppa, 1))
+        while len(lru) >= LRU_LEN:
+            lru.pop()
         self.settings.setArray("lru", lru)
         self.emit(SIGNAL("registrationDone"), self._baseproject)
         self._baseproject.reset()

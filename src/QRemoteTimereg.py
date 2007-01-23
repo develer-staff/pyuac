@@ -161,10 +161,7 @@ class QRemoteTimereg(QObject):
                 params += ["pyuac_cli.py"]
                 self.process.start(executable, params+["--silent"])
             else:
-                if os.name == "nt":
-                    executable = "pyuac_cli.exe"
-                else:
-                    executable = "./pyuac_cli"
+                executable = "./pyuac_cli"
                 self.process.start(executable, ["--silent"])
 
         if not self._waiting:

@@ -1,0 +1,18 @@
+Index: objcreator.py
+===================================================================
+--- objcreator.py	(revision 9648)
++++ objcreator.py	(working copy)
+@@ -18,7 +18,12 @@
+         plugindir = os.path.join(os.path.split(__file__)[0],
+                                  "widget-plugins")
+         
+-        for filename in os.listdir(plugindir):
++        try:
++            files = os.listdir(plugindir)
++        except OSError:
++            files = []
++
++        for filename in files:
+             if not filename.endswith(".py"):
+                 continue
+             plugin_globals = {"MODULE" : MODULE,

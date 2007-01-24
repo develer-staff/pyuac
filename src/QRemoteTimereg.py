@@ -55,8 +55,10 @@ class QAchievoWindow:
     @staticmethod
     def loadUi(_path, _base):
         if hasattr(sys, "frozen") and sys.frozen:
-            import os
-            _path = os.path.join(os.path.dirname(sys.executable), _path)
+            if sys.platform != "darwin":
+                _path = os.path.join(os.path.dirname(sys.executable), _path)
+            else:
+                _path = os.path.join(os.environ['RESOURCEPATH'], _path)
         return uic.loadUi(_path, _base)
 
     def __setup__(self, auth=None, _path=None):
@@ -161,9 +163,14 @@ class QRemoteTimereg(QObject):
                 params += ["pyuac_cli.py"]
                 self.process.start(executable, params+["--silent"])
             else:
-                executable = "./pyuac_cli"
-                self.process.start(executable, ["--silent"])
-
+                if sys.platform != "darwin":
+                    executable = "./pyuac_cli"
+                    params = ["--silent"]
+                else:
+                    executable = sys.executable
+                    base = os.environ['RESOURCEPATH']
+                    params = [os.path.join(base, 'pyuac_cli.py'), "--silent"]
+                self.process.start(executable, params)
         if not self._waiting:
             self.process.write(qstring+"\n")
             self._waiting = True

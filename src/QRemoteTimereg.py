@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 #-*- coding: utf-8 -*-
 #
 # Copyright 2006 Develer S.r.l. (http://www.develer.com/)
@@ -167,7 +167,7 @@ class QRemoteTimereg(QObject):
                 self.process.start(executable, params+["--silent"])
             else:
                 if sys.platform != "darwin":
-                    executable = "./pyuac_cli"
+                    executable = os.path.join(os.path.dirname(sys.executable), "pyuac_cli")
                     params = ["--silent"]
                 else:
                     executable = sys.executable

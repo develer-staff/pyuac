@@ -21,6 +21,8 @@ except ImportError:
 
 def debug(msg, level="debug"):
     if __debug__:
+        if type(msg) != str:
+            msg = msg.encode("utf-8")
         print msg
 
 def min2hmtime(mins):

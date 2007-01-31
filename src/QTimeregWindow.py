@@ -13,7 +13,7 @@ import os, sys, copy
 from pyuac_utils import *
 from QRemoteTimereg import *
 
-LRU_LEN = 5
+LRU_LEN = 10
 
 class TimeregWindow(QMainWindow, QAchievoWindow):
 

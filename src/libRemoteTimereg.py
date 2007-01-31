@@ -27,7 +27,7 @@ class RemoteTimereg:
                "whoami": "Returns login info",
                "timereg": "Register worked time",
                "delete": "Delete the timered by id",
-               "timereport": "Report time registered in the provided date"}
+               "timereport": "Report time registered in the provided date[s]"}
 
     def __init__(self):
         self._smartquery_dict = parseSmartQuery("")
@@ -97,7 +97,7 @@ class RemoteTimereg:
         page = urllib2.urlopen(self._dispatchurl, qstring).read()
         try:
             return ET.fromstring(page)
-        except:
+        except ExpatError:
             debug(page.decode(ACHIEVO_ENCODING))
             raise
 
@@ -131,6 +131,13 @@ class RemoteTimereg:
         passati nel parametro date
         """
         return self._urlDispatch("timereport", date=date)
+
+    def timesummary(self, date_start, date_end):
+        """
+        Ottiene la lista delle ore registrate nei giorni
+        compresi nell'intervallo date_start <= date <= date_end
+        """
+        return self._urlDispatch("timesummary", date_start=date_start, date_end=date_end)
 
     def timereg(self, projectid, activityid, phaseid, hmtime, activitydate, remark, id=None):
         """

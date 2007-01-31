@@ -53,13 +53,15 @@ class QAchievoWindow:
     Base class for Achievo GUI
     """
     @staticmethod
-    def loadUi(_path, _base):
+    def loadUi(_path, _parent):
         if hasattr(sys, "frozen") and sys.frozen:
             if sys.platform != "darwin":
                 _path = os.path.join(os.path.dirname(sys.executable), _path)
             else:
                 _path = os.path.join(os.environ['RESOURCEPATH'], _path)
-        return uic.loadUi(_path, _base)
+        else:
+            _path = os.path.join(os.path.dirname(__file__), _path)
+        return uic.loadUi(_path, _parent)
 
     def __setup__(self, auth=None, _path=None):
         if _path != None:
@@ -157,10 +159,11 @@ class QRemoteTimereg(QObject):
 
             if not hasattr(sys, "frozen") or not sys.frozen:
                 executable = sys.executable
-                params = []#["-u"]
+                params = []
                 if not __debug__:
                     params += ["-O"]
-                params += ["pyuac_cli.py"]
+                pyuac_cli = os.path.join(os.path.dirname(__file__), "pyuac_cli.py")
+                params += [pyuac_cli]
                 self.process.start(executable, params+["--silent"])
             else:
                 if sys.platform != "darwin":

@@ -96,8 +96,11 @@ class QAchievoWindow:
             self._slotClose()
         else:
             self.emit(SIGNAL("processError"), process_error, exitcode, errstr)
-            self.err.showMessage(self.tr("Error contacting Achievo:\n") +
-                                 "%s, %s, %s" % (process_error, exitcode, errstr))
+            sep = ["-"*20]
+            msg  = [process_error] + sep
+            msg += [exitcode] + sep
+            msg += [errstr]  
+            self.err.showMessage(self.tr("Error contacting Achievo: ") + "\n".join(msg).replace("\n","<br>\n"))
 
 
 class QRemoteTimereg(QObject):
@@ -241,5 +244,8 @@ class QRemoteTimereg(QObject):
         if exitcode != None:
             exitcode = pyuac_cli.exits[exitcode]
         errstr = str(self.process.readAllStandardError())
-        debug("Err(%s, %s): %s" % (process_error, exitcode, errstr))
+        msg  = ["Err(%s, %s):" % (process_error, exitcode)]
+        msg += ["-"*20]
+        msg += [errstr]
+        debug("\n".join(msg))
         self.emit(SIGNAL("processError"), process_error, exitcode, errstr)

@@ -25,6 +25,10 @@ class timesummary extends atkNode
         $db = &atkGetDb();
         $date_start = $this->m_postvars['date_start'];
         $date_end = $this->m_postvars['date_end'];
+        $last_month_start  = mktime(0, 0, 0, date("m")-1, 1,  date("Y"));
+        $last_month_end = mktime(0, 0, 0, date("m"), 0,  date("Y"));
+        if ($date_start == "") $date_start = date("Y-m-d", $last_month_start);
+        if ($date_end == "") $date_end = date("Y-m-d", $last_month_end);
         // faccio un controllo per far passare solo le date
         // nel formato YYYY[-][M]M[-][D]D
         $date_start = str_replace("-","", $date_start);
@@ -47,7 +51,7 @@ class timesummary extends atkNode
         ";
         $results = $db->getRows($sql);
 
-        echo make_xml("timesummary", "OK", $results, $bodykey="remark");
+        echo make_xml("timesummary", "$date_start<=D<=$date_end", $results, $bodykey="remark");
         exit;
     }
 }

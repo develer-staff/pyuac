@@ -120,9 +120,53 @@ def strlike(str1, str2):
     op2 = str2.lower().find(str1.lower()) != -1
     return op1 or op2
 
+def parse_hhmm(val):
+    """
+    Restituisce un oggetto datetime da una stringa che rappresenta un ora
+
+    >>> print parse_hhmm("12:44")
+    1900-01-01 12:44:00
+    >>> print parse_hhmm("1612")
+    1900-01-01 16:12:00
+    >>> print parse_hhmm("321")
+    1900-01-01 03:21:00
+    """
+    try:
+        return datetime.datetime(*time.strptime(str(val), "%H:%M")[:-2])
+    except:
+        return datetime.datetime(*time.strptime(str(val), "%H%M")[:-2])
+
+def parse_hinterval(val):
+    """
+    Parse a time intervall and returns a timedelta
+
+    >>> print parse_hinterval("10:00-12:00")
+    2:00:00
+    >>> print parse_hinterval("300-530")
+    2:30:00
+    """
+    val1, val2 = val.split("-")
+    d1 = parse_hhmm(val1)
+    d2 = parse_hhmm(val2)
+    if d2 < d1:
+        d2 += datetime.timedelta(1)
+    return d2 - d1
+
+def parse_wtime(val):
+    vals = val.replace(" ","").split("+")
+    res = datetime.timedelta(0)
+    for ival in vals:
+        if "-" in ival:
+            res += parse_hinterval(ival)
+        else:
+            res += parse_hinterval("00:00-%s" % ival)
+    return str(res)
+
+
 if __name__ == "__main__":
     try:
         import nose
         nose.runmodule()
     except ImportError:
+        print "Testing skipped, nose not found"
         pass

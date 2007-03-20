@@ -6,7 +6,7 @@
     <x>0</x>
     <y>0</y>
     <width>600</width>
-    <height>400</height>
+    <height>444</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -16,43 +16,102 @@
    <iconset>../../../../../usr/share/pixmaps/gnome-set-time.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget" >
-   <layout class="QGridLayout" >
+   <layout class="QVBoxLayout" >
     <property name="margin" >
      <number>9</number>
     </property>
     <property name="spacing" >
      <number>6</number>
     </property>
-    <item row="0" column="0" >
-     <widget class="QPushButton" name="btnToday" >
-      <property name="sizePolicy" >
-       <sizepolicy>
-        <hsizetype>0</hsizetype>
-        <vsizetype>0</vsizetype>
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
+    <item>
+     <layout class="QHBoxLayout" >
+      <property name="margin" >
+       <number>0</number>
       </property>
-      <property name="text" >
-       <string>Today</string>
+      <property name="spacing" >
+       <number>6</number>
       </property>
-     </widget>
+      <item>
+       <widget class="QLabel" name="time_calculator_lbl" >
+        <property name="text" >
+         <string>Time Calculator:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="smart_time_edit" >
+        <property name="font" >
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text" >
+         <string>1045-1250+13:40-19:00</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="time_sum_lbl" >
+        <property name="font" >
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text" >
+         <string>0:00</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
-    <item row="0" column="1" >
-     <widget class="QDateEdit" name="dateEdit" >
-      <property name="displayFormat" >
-       <string>ddd dd/MMM/yyyy</string>
+    <item>
+     <layout class="QHBoxLayout" >
+      <property name="margin" >
+       <number>0</number>
       </property>
-     </widget>
-    </item>
-    <item row="2" column="2" >
-     <widget class="QPushButton" name="btnQuit" >
-      <property name="text" >
-       <string>Quit</string>
+      <property name="spacing" >
+       <number>6</number>
       </property>
-     </widget>
+      <item>
+       <widget class="QPushButton" name="btnToday" >
+        <property name="sizePolicy" >
+         <sizepolicy>
+          <hsizetype>0</hsizetype>
+          <vsizetype>0</vsizetype>
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text" >
+         <string>Today</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDateEdit" name="dateEdit" >
+        <property name="displayFormat" >
+         <string>ddd dd/MMM/yyyy</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnTimereg" >
+        <property name="sizePolicy" >
+         <sizepolicy>
+          <hsizetype>1</hsizetype>
+          <vsizetype>0</vsizetype>
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text" >
+         <string>Add New Timereg...</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
-    <item row="1" column="0" colspan="3" >
+    <item>
      <widget class="QTableWidget" name="tableTimereg" >
       <property name="editTriggers" >
        <set>QAbstractItemView::NoEditTriggers</set>
@@ -68,35 +127,37 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="2" >
-     <widget class="QPushButton" name="btnTimereg" >
-      <property name="sizePolicy" >
-       <sizepolicy>
-        <hsizetype>1</hsizetype>
-        <vsizetype>0</vsizetype>
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
+    <item>
+     <layout class="QHBoxLayout" >
+      <property name="margin" >
+       <number>0</number>
       </property>
-      <property name="text" >
-       <string>Add New Timereg...</string>
+      <property name="spacing" >
+       <number>6</number>
       </property>
-     </widget>
-    </item>
-    <item row="2" column="0" colspan="2" >
-     <widget class="QLabel" name="labelInfo" >
-      <property name="font" >
-       <font>
-        <italic>true</italic>
-       </font>
-      </property>
-      <property name="text" >
-       <string>Double click on a row to edit or delete</string>
-      </property>
-      <property name="alignment" >
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
+      <item>
+       <widget class="QLabel" name="labelInfo" >
+        <property name="font" >
+         <font>
+          <italic>true</italic>
+         </font>
+        </property>
+        <property name="text" >
+         <string>Double click on a row to edit or delete</string>
+        </property>
+        <property name="alignment" >
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnQuit" >
+        <property name="text" >
+         <string>Quit</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>

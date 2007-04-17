@@ -89,29 +89,50 @@ class timesummary extends atkNode
         $content .= session_form();
         
         $results = $this->get_timesummary();
-        $title = "Timereport ".$results["date_start"]." - ".$results["date_end"];
+        $title = "Timereport: ".$results["date_start"]." - ".$results["date_end"];
 
         $startdateatt = new atkDateAttribute("date_start","F d Y","d F Y", 0, $results["date_start"], AF_OBLIGATORY);
         $enddateatt = new atkDateAttribute("date_end","F d Y","d F Y", 0, $results["date_end"], AF_OBLIGATORY);
 
         $content .= "Da ".$startdateatt->edit()." a ".$enddateatt->edit();
 
-        $content .= "<table>\n";
-        $content .= "<tr><th>User Id</th><th>Progetto</th><th>Euro</th></tr>\n";
+        $content .= "<table border='1'>\n";
+        $content .= "<tr><th>User Id</th><th>Progetto</th><th>Ore</th><th>Euro</th></tr>\n";
+        $ore_progetto = array();
+        $ore_persona = array();
         foreach ($results['rows'] as $key => $r)
         {
-            atkdebug("Euro ora loop: ".var_export($r, 1));
+            if (!array_key_exists($r['prj'], $ore_progetto)) $ore_progetto[$r['prj']] = 0.0;
+            if (!array_key_exists($r['userid'], $ore_persona)) $ore_persona[$r['userid']] = 0.0;
+            $ore_progetto[$r['prj']] += $r['ore'];
+            $ore_persona[$r['userid']] += $r['ore'];
+
+            atkdebug("Euro ora loop: ".var_export($r, 1)." incr ore prj:".$ore_progetto[$r['prj']].", user:".$ore_persona[$r['userid']]);
+
             if (array_key_exists($r['userid'], $results['euro_ora_array']))
             {
                 $r['euro'] = $r['ore'] * $results['euro_ora_array'][$r['userid']];
             }
             else
             {
-                $r['euro'] = "!!".round($r['ore'], 2)."!! ore";
+                $r['euro'] = "Manca euro/h";
             }
-            $content .= "<tr><td>".$r['userid']."</td><td>".$r['prj']."</td><td>".$r['euro']."</td></tr>\n";
+            $content .= "<tr><td>".$r['userid']."</td><td>".$r['prj']."</td><td>".round($r['ore'], 2)."</td><td>".$r['euro']."</td></tr>\n";
         }
         $content .= "</table>";
+                
+        $content .= "<table border='1'><tr><th>Totale ore progetto</th><th>Totale ore persona</th></tr>";
+        $content .= "<tr><td>";
+        foreach ($ore_progetto as $key => $r)
+        {
+            $content .= "<b>$key</b>: $r<br/>";
+        }
+        $content .= "</td><td>";
+        foreach ($ore_persona as $key => $r)
+        {
+            $content .= "<b>$key</b>: $r<br/>";
+        }
+        $content .= "</td></tr></table>";
 
         $content .= "<table><tr><td>Inserire: nome_utente euro/h</td></tr>\n";
         $content .= "<tr><td><textarea rows='20' cols='80' name='euro_ora_text'>".$this->m_postvars['euro_ora_text']."</textarea>";

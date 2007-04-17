@@ -130,6 +130,7 @@ class timesummary extends atkNode
         // Tabella ore per progetto / ore per persona
         $content .= "<table border='1'><tr><th>Totale ore progetto</th><th>Totale ore persona</th></tr>";
         $content .= "<tr><td>";
+        ksort($ore_progetto); //Ordina per chiave, le persone sono già ordinate
         foreach ($ore_progetto as $key => $r)
         {
             $content .= "<b>$key</b>: $r<br/>";

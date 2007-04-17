@@ -23,6 +23,7 @@ class timesummary extends atkNode
 
         $db = &atkGetDb();
 
+        /* Accetta una data in ingresso oppure imposta l'intervallo all'ultimo mese appena concluso*/
         $last_month_start  = mktime(0, 0, 0, date("m")-1, 1, date("Y"));
         $last_month_end = mktime(0, 0, 0, date("m"), 0, date("Y"));
         $date_start = $this->m_postvars['date_start'];
@@ -36,6 +37,9 @@ class timesummary extends atkNode
         else
             $date_end = sprintf("%04d",$date_end["year"])."-".sprintf("%02d",$date_end["month"])."-".sprintf("%02d",$date_end["day"]);
 
+        /* Accetta un testo con due colonne:
+            username euro/ora
+        */
         $euro_ora_text = $this->m_postvars['euro_ora_text'];
         $euro_ora_array = array();
         foreach (explode("\n", $euro_ora_text) as $line)
@@ -61,7 +65,8 @@ class timesummary extends atkNode
                     activitydate <= '$date_end'";
         if (!$this->allowed("any_user")) $filter.= " AND hours.userid ='$userid' ";
         $groupby = "
-                GROUP BY userid, prj";
+                GROUP BY userid, prj
+                ORDER BY userid, prj";
 
         $sql = $select . $filter . $groupby;
 
@@ -96,6 +101,7 @@ class timesummary extends atkNode
 
         $content .= "Da ".$startdateatt->edit()." a ".$enddateatt->edit();
 
+        // Tabella ore lavorate per progetto
         $content .= "<table border='1'>\n";
         $content .= "<tr><th>User Id</th><th>Progetto</th><th>Ore</th><th>Euro</th></tr>\n";
         $ore_progetto = array();
@@ -120,7 +126,8 @@ class timesummary extends atkNode
             $content .= "<tr><td>".$r['userid']."</td><td>".$r['prj']."</td><td>".round($r['ore'], 2)."</td><td>".$r['euro']."</td></tr>\n";
         }
         $content .= "</table>";
-                
+        
+        // Tabella ore per progetto / ore per persona
         $content .= "<table border='1'><tr><th>Totale ore progetto</th><th>Totale ore persona</th></tr>";
         $content .= "<tr><td>";
         foreach ($ore_progetto as $key => $r)

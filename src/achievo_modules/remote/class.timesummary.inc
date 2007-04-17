@@ -107,14 +107,15 @@ class timesummary extends atkNode
             }
             else
             {
-                $r['euro'] = "!!".round($r['ore'], 1)."!! ore";
+                $r['euro'] = "!!".round($r['ore'], 2)."!! ore";
             }
             $content .= "<tr><td>".$r['userid']."</td><td>".$r['prj']."</td><td>".$r['euro']."</td></tr>\n";
         }
         $content .= "</table>";
 
-        $content .= "Inserire: nome_utente €/h</br>\n";
-        $content .= "<textarea rows='20' cols='80' name='euro_ora_text'>".$this->m_postvars['euro_ora_text']."</textarea>";
+        $content .= "<table><tr><td>Inserire: nome_utente euro/h</td></tr>\n";
+        $content .= "<tr><td><textarea rows='20' cols='80' name='euro_ora_text'>".$this->m_postvars['euro_ora_text']."</textarea>";
+        $content .= "</td></tr></table>\n";
 
         $content .= '<input type="submit" value="'.atktext("refresh").'"></form>';
         $content .= '<input type="hidden" name="atknodetype" value="'.$this->atkNodeType().'">';

@@ -139,18 +139,21 @@ class timesummary extends atkNode
         $content .= "</table>";
 
         // Tabella ore per progetto / ore per persona
-        $content .= "<table border='1'><tr><th>Totale ore progetto</th><th>Totale ore persona</th></tr>";
-        $content .= "<tr><td>";
-        ksort($progetti); //Ordina per chiave, le persone sono già ordinate
-        foreach ($progetti as $key => $r)
-        {
-            $content .= "<b>$key</b>: ".$r['ore']." ore, ".$r['euro']." euro<br/>";
-        }
+        $content .= "<table><tr><td>";
+            $content .= "<table border='1'><tr><th>Totale progetto</th><th>Ore</th><th>Euro</th></tr>";
+            ksort($progetti); //Ordina per chiave, le persone sono già ordinate
+            foreach ($progetti as $key => $r)
+            {
+                $content .= "<tr><th>$key</th><td>".$r['ore']."</td><td>".$r['euro']."</td></tr>";
+            }
+            $content .= "</table>";
         $content .= "</td><td>";
-        foreach ($persone as $key => $r)
-        {
-            $content .= "<b>$key</b>: ".$r['ore']." ore, ".$r['euro']." euro<br/>";
-        }
+            $content .= "<table border='1'><tr><th>Totale persona</th><th>ore</th><th>euro</th></tr>";
+            foreach ($persone as $key => $r)
+            {
+                $content .= "<tr><th>$key</th><td>".$r['ore']."</td><td>".$r['euro']."</td></tr>";
+            }
+            $content .= "</table>";
         $content .= "</td></tr></table>";
 
         $content .= "<table><tr><td>Inserire: nome_utente euro/h</td></tr>\n";

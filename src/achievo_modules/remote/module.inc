@@ -22,7 +22,7 @@
         }
         function getMenuItems()
         {
-          $this->menuitem("remote",
+          $this->menuitem("internal",
                           dispatch_url("remote.timesummary", "report"),
                           "main",true,370);
         }

@@ -15,7 +15,7 @@ class timesummary extends atkNode
     {
         $this->atkNode("timesummary");
     }
-    
+
     function get_timesummary()
     {
         global $g_user;
@@ -75,16 +75,16 @@ class timesummary extends atkNode
                      "euro_ora_array" => $euro_ora_array,
                      "rows" => $db->getRows($sql));
     }
-    
+
     function action_search()
     {
         atkdebug("timesummary Action search");
-        
+
         $results = $this->get_timesummary();
         echo make_xml("timesummary", "$date_start<=D<=$date_end", $results['rows'], $bodykey="remark");
         exit;
     }
-    
+
     function action_report()
     {
         $ui = &$this->getUi();
@@ -92,7 +92,7 @@ class timesummary extends atkNode
         $this->addStyle("style.css");
         $content = '<form action="dispatch.php" method="get" name="entryform">';
         $content .= session_form();
-        
+
         $results = $this->get_timesummary();
         $title = "Timereport: ".$results["date_start"]." - ".$results["date_end"];
 
@@ -100,20 +100,21 @@ class timesummary extends atkNode
         $enddateatt = new atkDateAttribute("date_end","F d Y","d F Y", 0, $results["date_end"], AF_OBLIGATORY);
 
         $content .= "Da ".$startdateatt->edit()." a ".$enddateatt->edit();
+        $content .= "<h2>$title</h2>";
 
         // Tabella ore lavorate per progetto
         $content .= "<table border='1'>\n";
         $content .= "<tr><th>User Id</th><th>Progetto</th><th>Ore</th><th>Euro</th></tr>\n";
-        $ore_progetto = array();
-        $ore_persona = array();
+        $progetti = array();
+        $persone = array();
         foreach ($results['rows'] as $key => $r)
         {
-            if (!array_key_exists($r['prj'], $ore_progetto)) $ore_progetto[$r['prj']] = 0.0;
-            if (!array_key_exists($r['userid'], $ore_persona)) $ore_persona[$r['userid']] = 0.0;
-            $ore_progetto[$r['prj']] += $r['ore'];
-            $ore_persona[$r['userid']] += $r['ore'];
+            if (!array_key_exists($r['prj'], $progetti)) $progetti[$r['prj']] = array("ore" => 0.0, "euro" => 0.0);
+            if (!array_key_exists($r['userid'], $persone)) $persone[$r['userid']] = array("ore" => 0.0, "euro" => 0.0);
+            $progetti[$r['prj']]['ore'] += $r['ore'];
+            $persone[$r['userid']]['ore'] += $r['ore'];
 
-            atkdebug("Euro ora loop: ".var_export($r, 1)." incr ore prj:".$ore_progetto[$r['prj']].", user:".$ore_persona[$r['userid']]);
+            atkdebug("Euro ora loop: ".var_export($r, 1)." incr ore prj:".var_export($progetti[$r['prj']], 1).", user:".var_export($persone[$r['userid']], 1));
 
             if (array_key_exists($r['userid'], $results['euro_ora_array']))
             {
@@ -123,22 +124,32 @@ class timesummary extends atkNode
             {
                 $r['euro'] = "Manca euro/h";
             }
+
+            if (is_numeric($progetti[$r['prj']]['euro']) and is_numeric($r['euro']))
+                $progetti[$r['prj']]['euro'] += $r['euro'];
+            else
+                $progetti[$r['prj']]['euro'] = "Manca euro/h";
+            if (is_numeric($persone[$r['userid']]['euro']) and is_numeric($r['euro']))
+                $persone[$r['userid']]['euro'] += $r['euro'];
+            else
+                $persone[$r['userid']]['euro'] = "Manca euro/h";
+
             $content .= "<tr><td>".$r['userid']."</td><td>".$r['prj']."</td><td>".round($r['ore'], 2)."</td><td>".$r['euro']."</td></tr>\n";
         }
         $content .= "</table>";
-        
+
         // Tabella ore per progetto / ore per persona
         $content .= "<table border='1'><tr><th>Totale ore progetto</th><th>Totale ore persona</th></tr>";
         $content .= "<tr><td>";
-        ksort($ore_progetto); //Ordina per chiave, le persone sono già ordinate
-        foreach ($ore_progetto as $key => $r)
+        ksort($progetti); //Ordina per chiave, le persone sono già ordinate
+        foreach ($progetti as $key => $r)
         {
-            $content .= "<b>$key</b>: $r<br/>";
+            $content .= "<b>$key</b>: ".$r['ore']." ore, ".$r['euro']." euro<br/>";
         }
         $content .= "</td><td>";
-        foreach ($ore_persona as $key => $r)
+        foreach ($persone as $key => $r)
         {
-            $content .= "<b>$key</b>: $r<br/>";
+            $content .= "<b>$key</b>: ".$r['ore']." ore, ".$r['euro']." euro<br/>";
         }
         $content .= "</td></tr></table>";
 

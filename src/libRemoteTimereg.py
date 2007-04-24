@@ -99,7 +99,7 @@ class RemoteTimereg:
             return ET.fromstring(page)
         except ExpatError:
             debug(page.decode(ACHIEVO_ENCODING))
-            raise
+            raise ExpatError, page.decode(ACHIEVO_ENCODING)
 
     def whoami(self):
         """

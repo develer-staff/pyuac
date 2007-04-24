@@ -129,8 +129,8 @@ class QRemoteTimereg(QObject):
         """
         if action in RemoteTimereg.actions.keys() + ["q"]:
             def _action(**kwargs):
-                self._actions_params[action] = self.encode(action, **kwargs)
-                self.sync()
+                self._actions_params[action] = self._encode(action, **kwargs)
+                self._sync()
             return _action
         else:
             raise AttributeError
@@ -138,7 +138,7 @@ class QRemoteTimereg(QObject):
     def close(self):
         self.q()
 
-    def encode(self, action, **kwargs):
+    def _encode(self, action, **kwargs):
         """
         Metodo che codifica il dizionario ricevuto con
         urllib.urlencode() e restituisce una stringa
@@ -153,13 +153,12 @@ class QRemoteTimereg(QObject):
         #debug("_encode "+qstring)
         return action + "?" + qstring
 
-    def execute(self, qstring):
+    def _execute(self, qstring):
         """
-        Avvia il processo e invia la qstring
-        viene invocato da sync()
+        Avvia il processo e invia la qstring.
+        Viene invocato da sync()
         """
         if self.process.state() == self.process.NotRunning:
-
             if not hasattr(sys, "frozen") or not sys.frozen:
                 executable = sys.executable
                 params = []
@@ -184,7 +183,7 @@ class QRemoteTimereg(QObject):
         else:
             return False
 
-    def sync(self):
+    def _sync(self):
         """
         Provvede ad eseguire le query in attesa
         ed emette i segnali adatti alla query avviata:
@@ -195,7 +194,7 @@ class QRemoteTimereg(QObject):
         """
         debug("%s <!-- Sync -->" % __name__)
         for action, cmdline in self._actions_params.items():
-            if self.execute(cmdline):
+            if self._execute(cmdline):
                 del self._actions_params[action]
                 self.emit(SIGNAL(action+"Started"))
 
@@ -231,7 +230,7 @@ class QRemoteTimereg(QObject):
         self._resp = ""
         self._waiting = False
         #appena il processo ha terminato il lavoro controllo la coda con
-        self.sync()
+        self._sync()
 
     def _error(self, process_error, exitcode=None):
         """ <-- self.process, SIGNAL("error(QProcess::ProcessError)")

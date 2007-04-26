@@ -9,6 +9,14 @@
 
 useattrib("atkdateattribute");
 
+function str_number_format($var, $digits)
+{
+    if (is_numeric($var))
+        return number_format($var, $digits);
+    else
+        return $var;
+}
+
 class timesummary extends atkNode
 {
     function timesummary()
@@ -134,7 +142,7 @@ class timesummary extends atkNode
             else
                 $persone[$r['userid']]['euro'] = "Manca euro/h";
 
-            $content .= "<tr><td>".$r['userid']."</td><td>".$r['prj']."</td><td>".round($r['ore'], 2)."</td><td>".$r['euro']."</td></tr>\n";
+            $content .= "<tr><td>".$r['userid']."</td><td>".$r['prj']."</td><td align='right'>".str_number_format($r['ore'], 2)."</td><td align='right'>".str_number_format($r['euro'], 2)."</td></tr>\n";
         }
         $content .= "</table>";
 
@@ -144,14 +152,14 @@ class timesummary extends atkNode
             ksort($progetti); //Ordina per chiave, le persone sono già ordinate
             foreach ($progetti as $key => $r)
             {
-                $content .= "<tr><th>$key</th><td>".$r['ore']."</td><td>".$r['euro']."</td></tr>";
+                $content .= "<tr><th>$key</th><td align='right'>".str_number_format($r['ore'], 2)."</td><td align='right'>".str_number_format($r['euro'], 2)."</td></tr>";
             }
             $content .= "</table>";
         $content .= "</td><td>";
             $content .= "<table border='1'><tr><th>Totale persona</th><th>ore</th><th>euro</th></tr>";
             foreach ($persone as $key => $r)
             {
-                $content .= "<tr><th>$key</th><td>".$r['ore']."</td><td>".$r['euro']."</td></tr>";
+                $content .= "<tr><th>$key</th><td align='right'>".str_number_format($r['ore'], 2)."</td><td align='right'>".str_number_format($r['euro'], 2)."</td></tr>";
             }
             $content .= "</table>";
         $content .= "</td></tr></table>";

@@ -185,13 +185,16 @@ class timesummary extends atkNode
             $content .= "</table>";
         $content .= "</td></tr></table>";
 
+        $content .= '<input type="submit" value="'.atktext("refresh").'">';
+
         $content .= "<table><tr><td>Inserire: nome_utente euro/h</td></tr>\n";
-        $content .= "<tr><td><textarea rows='20' cols='80' name='euro_ora_text'>".$this->m_postvars['euro_ora_text']."</textarea>";
+        $content .= "<tr><td><textarea rows='10' cols='40' name='euro_ora_text'>".$this->m_postvars['euro_ora_text']."</textarea>";
         $content .= "</td></tr></table>\n";
 
         $content .= '<input type="submit" value="'.atktext("refresh").'">';
         $content .= '<input type="hidden" name="atknodetype" value="'.$this->atkNodeType().'">';
         $content .= '<input type="hidden" name="atkaction" value="report">';
+
         $content .= '</form>';
         $page->addContent($ui->renderBox(array("title"=>$title,"content"=>$content)));
     }

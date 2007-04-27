@@ -82,8 +82,8 @@ class timesummary extends atkNode
                     activitydate <= '$date_end'";
         if (!$this->allowed("any_user")) $filter.= " AND hours.userid ='$userid' ";
         $groupby = "
-                GROUP BY userid, prj
-                ORDER BY userid, prj";
+                GROUP BY lower(person.userid), lower(prj)
+                ORDER BY lower(person.userid), lower(prj)";
 
         $sql = $select . $filter . $groupby;
 
@@ -174,6 +174,7 @@ class timesummary extends atkNode
             $content .= "</table>";
         $content .= "</td><td>";
             $content .= "<table border='1'><tr><th>Totale persona</th><th>ore</th><th>euro</th></tr>";
+            $totale_ore_develer = 0;
             foreach ($persone as $key => $r)
             {
                 if (flipflop())
@@ -181,7 +182,9 @@ class timesummary extends atkNode
                 else
                     $content .= "<tr style='background: #DDDDC0'>";
                 $content .= "<th>$key</th><td align='right'>".str_number_format($r['ore'], 2)."</td><td align='right'>".str_number_format($r['euro'], 2)."</td></tr>\n";
+                $totale_ore_develer += $r['ore'];
             }
+            $content .= "<th>Totale</th><td align='right'>".str_number_format($totale_ore_develer, 2)."</td><td align='right'>&nbsp;</td></tr>\n";
             $content .= "</table>";
         $content .= "</td></tr></table>";
 

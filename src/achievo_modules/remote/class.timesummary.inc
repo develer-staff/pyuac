@@ -121,11 +121,15 @@ class timesummary extends atkNode
 
         // Tabella ore lavorate per progetto
         $content .= "<table border='1'>\n";
-        $content .= "<tr><th>User Id</th><th>Progetto</th><th>Ore</th><th>Euro</th></tr>\n";
+        $ore_progetto_head = "<tr><th>User Id</th><th>Progetto</th><th>Ore</th><th>Euro</th></tr>\n";
+        $content .= $ore_progetto_head;
         $progetti = array();
         $persone = array();
         foreach ($results['rows'] as $key => $r)
         {
+            if ($key == 0)
+                $_last_userid = $r['userid'];
+
             if (!array_key_exists($r['prj'], $progetti)) $progetti[$r['prj']] = array("ore" => 0.0, "euro" => 0.0);
             if (!array_key_exists($r['userid'], $persone)) $persone[$r['userid']] = array("ore" => 0.0, "euro" => 0.0);
             $progetti[$r['prj']]['ore'] += $r['ore'];
@@ -150,6 +154,12 @@ class timesummary extends atkNode
                 $persone[$r['userid']]['euro'] += $r['euro'];
             else
                 $persone[$r['userid']]['euro'] = "Manca euro/h";
+
+            if ($_last_userid != $r['userid'])
+            {
+                $content .= $ore_progetto_head;
+                $_last_userid = $r['userid'];
+            }
 
             if (flipflop())
                 $content .= "<tr>";

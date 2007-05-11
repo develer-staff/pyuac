@@ -62,7 +62,7 @@ class timesummary extends atkNode
         foreach (explode("\n", $euro_ora_text) as $line)
         {
             $line = explode(" ", $line);
-            $euro_ora_array[$line[0]] = $line[1];
+            $euro_ora_array[$line[0]] = (real) $line[1];
         }
         atkdebug("euro_ora_array: ".var_export($euro_ora_array, 1));
 
@@ -127,7 +127,7 @@ class timesummary extends atkNode
         foreach ($results['rows'] as $key => $r)
         {
             if (!array_key_exists($r['prj'], $progetti)) $progetti[$r['prj']] = array("ore" => 0.0, "euro" => 0.0);
-            if (!array_key_exists($r['userid'], $persone)) $persone[$r['userid']] = array("ore" => 0.0, "euro" => 0.0);
+            if (!array_key_exists($r['userid'], $persone)) $persone[$r['userid']] = array("ore" => 0.0, "euro" => 0.0, "euro_ora" => 0.0);
             $progetti[$r['prj']]['ore'] += $r['ore'];
             $persone[$r['userid']]['ore'] += $r['ore'];
 
@@ -136,10 +136,12 @@ class timesummary extends atkNode
             if (array_key_exists($r['userid'], $results['euro_ora_array']))
             {
                 $r['euro'] = $r['ore'] * $results['euro_ora_array'][$r['userid']];
+                $persone[$r['userid']]['euro_ora'] = $results['euro_ora_array'][$r['userid']];
             }
             else
             {
                 $r['euro'] = "Manca euro/h";
+                $persone[$r['userid']]['euro_ora'] = "Manca euro/h";
             }
 
             if (is_numeric($progetti[$r['prj']]['euro']) and is_numeric($r['euro']))
@@ -177,7 +179,7 @@ class timesummary extends atkNode
             $content .= "</table>";
         $content .= "</td><td>";
             // Tabella ore per persona
-            $content .= "<table border='1'><tr><th>Totale persona</th><th>ore</th><th>euro</th><th>IVA</th><th>Ivato</th></tr>";
+            $content .= "<table border='1'><tr><th>Totale persona</th><th>ore</th><th>euro/ora</th><th>euro</th><th>IVA</th><th>Ivato</th></tr>";
             $totale_ore_develer = 0;
             foreach ($persone as $key => $pers)
             {
@@ -185,19 +187,24 @@ class timesummary extends atkNode
                     $content .= "<tr>";
                 else
                     $content .= "<tr style='background: #DDDDC0'>";
-                $content .= "<th>$key</th><td align='right'>".str_number_format($pers['ore'], 2)."</td><td align='right'>".str_number_format($pers['euro'], 2)."</td>";
-                $content .= "<td align='right'>".str_number_format($pers['euro']*0.2, 2)."</td><td align='right'>".str_number_format($pers['euro']*1.2, 2)."</td>";
+                $content .= "<th>$key</th>";
+                $content .= "<td align='right'>".str_number_format($pers['ore'], 2)."</td>";
+                $content .= "<td align='right'>".str_number_format($pers['euro_ora'], 2)."</td>";
+                $content .= "<td align='right'>".str_number_format($pers['euro'], 2)."</td>";
+                $content .= "<td align='right'>".str_number_format($pers['euro']*0.2, 2)."</td>";
+                $content .= "<td align='right'>".str_number_format($pers['euro']*1.2, 2)."</td>";
                 $content .= "</tr>\n";
                 $totale_ore_develer += $pers['ore'];
             }
-            $content .= "<th>Totale</th><td align='right'>".str_number_format($totale_ore_develer, 2)."</td><td align='right'>&nbsp;</td><td align='right'>&nbsp;</td><td align='right'>&nbsp;</td></tr>\n";
+            $content .= "<th>Totale</th><td align='right'>".str_number_format($totale_ore_develer, 2)."</td>";
+            $content .= "<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>\n";
             $content .= "</table>";
         $content .= "</td></tr></table>";
 
         $content .= '<input type="submit" value="'.atktext("refresh").'">';
 
         $content .= "<table><tr><td>Inserire: nome_utente euro/h</td></tr>\n";
-        $content .= "<tr><td><textarea rows='10' cols='40' name='euro_ora_text'>".$this->m_postvars['euro_ora_text']."</textarea>";
+        $content .= "<tr><td><textarea rows='5' cols='40' name='euro_ora_text'>".$this->m_postvars['euro_ora_text']."</textarea>";
         $content .= "</td></tr></table>\n";
 
         $content .= '<input type="submit" value="'.atktext("refresh").'">';

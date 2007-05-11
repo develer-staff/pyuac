@@ -162,31 +162,33 @@ class timesummary extends atkNode
 
         // Tabella ore per progetto / ore per persona
         $content .= "<table><tr><td>";
+            // Tabella ore per progetto
             $content .= "<table border='1'><tr><th>Totale progetto</th><th>Ore</th><th>Euro</th></tr>";
             uksort($progetti, "strcasecmp"); //Ordina per chiave, le persone sono già ordinate
-            foreach ($progetti as $key => $r)
+            foreach ($progetti as $key => $prj)
             {
                 if (flipflop())
                     $content .= "<tr>";
                 else
                     $content .= "<tr style='background: #DDDDC0'>";
-                $content .= "<th>$key</th><td align='right'>".str_number_format($r['ore'], 2)."</td><td align='right'>".str_number_format($r['euro'], 2)."</td>";
+                $content .= "<th>$key</th><td align='right'>".str_number_format($prj['ore'], 2)."</td><td align='right'>".str_number_format($prj['euro'], 2)."</td>";
                 $content .= "</tr>\n";
             }
             $content .= "</table>";
         $content .= "</td><td>";
+            // Tabella ore per persona
             $content .= "<table border='1'><tr><th>Totale persona</th><th>ore</th><th>euro</th><th>IVA</th><th>Ivato</th></tr>";
             $totale_ore_develer = 0;
-            foreach ($persone as $key => $r)
+            foreach ($persone as $key => $pers)
             {
                 if (flipflop())
                     $content .= "<tr>";
                 else
                     $content .= "<tr style='background: #DDDDC0'>";
-                $content .= "<th>$key</th><td align='right'>".str_number_format($r['ore'], 2)."</td><td align='right'>".str_number_format($r['euro'], 2)."</td>";
-                $content .= "<td align='right'>".str_number_format($r['euro']*0.2, 2)."</td><td align='right'>".str_number_format($r['euro']*1.2, 2)."</td>";
+                $content .= "<th>$key</th><td align='right'>".str_number_format($pers['ore'], 2)."</td><td align='right'>".str_number_format($pers['euro'], 2)."</td>";
+                $content .= "<td align='right'>".str_number_format($pers['euro']*0.2, 2)."</td><td align='right'>".str_number_format($pers['euro']*1.2, 2)."</td>";
                 $content .= "</tr>\n";
-                $totale_ore_develer += $r['ore'];
+                $totale_ore_develer += $pers['ore'];
             }
             $content .= "<th>Totale</th><td align='right'>".str_number_format($totale_ore_develer, 2)."</td><td align='right'>&nbsp;</td><td align='right'>&nbsp;</td><td align='right'>&nbsp;</td></tr>\n";
             $content .= "</table>";

@@ -13,7 +13,7 @@ import sys, getpass
 ########################## Configuration ###############################
 
 config = {
-          "achievouri": "http://www.develer.com/groupware/",
+          "achievouri": "https://www.develer.com/groupware/",
           "username": getpass.getuser(),
           }
 

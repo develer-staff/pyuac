@@ -46,7 +46,6 @@ class timereport extends atkNode
                     JOIN activity ON hours.activityid = activity.id
                     JOIN project ON phase.projectid = project.id
                 WHERE
-                    project.status = 'active' AND
                     userid = " . $g_user["id"] . " AND
                     activitydate IN ('$datelist',0)
                     ORDER BY activitydate DESC

@@ -75,7 +75,15 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.connect(self.ui.btnQuit, SIGNAL("clicked()"),
                      self._slotClose)
         self.connect(self.ui.btnToday, SIGNAL("clicked()"),
-                     self._setupGui)
+                     lambda: self._changeDate(QDate.currentDate()))
+        self.connect(self.ui.btnNextDay, SIGNAL("clicked()"),
+                     lambda: self._changeDateDelta(1))
+        self.connect(self.ui.btnPrevDay, SIGNAL("clicked()"),
+                     lambda: self._changeDateDelta(-1))
+        self.connect(self.ui.btnNextWeek, SIGNAL("clicked()"),
+                     lambda: self._changeDateDelta(7))
+        self.connect(self.ui.btnPrevWeek, SIGNAL("clicked()"),
+                     lambda: self._changeDateDelta(-7))
         self.connect(self.ui.dateEdit, SIGNAL("dateChanged(const QDate&)"),
                      self._slotTimereport)
         self.connect(self.ui.tableTimereg, SIGNAL("cellDoubleClicked(int,int)"),
@@ -85,8 +93,18 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.connect(self.ui.smart_time_edit, SIGNAL("lostFocus()"),
                      self._slotSmartTimeChanged)
 
+    def _changeDate(self, date):
+        if self.ui.dateEdit.date() != date:
+            self.ui.dateEdit.setDate(date)
+        self._slotTimereport(date)
+
+    def _changeDateDelta(self, numdays):
+        date = self.ui.dateEdit.date()
+        date = date.addDays(numdays)
+        self._changeDate(date)
+
     def _setupGui(self):
-        """ <-- self.ui.btnToday, SIGNAL("clicked()")
+        """
         Reimposta la gui ai volori di default
         (titoli colonne e data attuale)
         """
@@ -95,9 +113,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             cellHead = QTableWidgetItem(head)
             self.ui.tableTimereg.setHorizontalHeaderItem(c, cellHead)
         self.ui.tableTimereg.horizontalHeader().setStretchLastSection(True)
-        if self.ui.dateEdit.date() != QDate.currentDate():
-            self.ui.dateEdit.setDate(QDate.currentDate())
-        self._slotTimereport(QDate.currentDate())
+        self._changeDate(QDate.currentDate())
 
     def _createTimeregWindow(self):
         editwin = TimeregWindow(self, self.remote.auth)

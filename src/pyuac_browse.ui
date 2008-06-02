@@ -13,23 +13,23 @@
    <string>Achievo Time Browse</string>
   </property>
   <property name="windowIcon" >
-   <iconset>../../../../../usr/share/pixmaps/gnome-set-time.png</iconset>
+   <iconset>
+    <normaloff>../../../../../usr/share/pixmaps/gnome-set-time.png</normaloff>../../../../../usr/share/pixmaps/gnome-set-time.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget" >
+   <property name="geometry" >
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>600</width>
+     <height>421</height>
+    </rect>
+   </property>
    <layout class="QVBoxLayout" >
     <property name="spacing" >
      <number>6</number>
     </property>
-    <property name="leftMargin" >
-     <number>9</number>
-    </property>
-    <property name="topMargin" >
-     <number>9</number>
-    </property>
-    <property name="rightMargin" >
-     <number>9</number>
-    </property>
-    <property name="bottomMargin" >
+    <property name="margin" >
      <number>9</number>
     </property>
     <item>
@@ -37,16 +37,7 @@
       <property name="spacing" >
        <number>6</number>
       </property>
-      <property name="leftMargin" >
-       <number>0</number>
-      </property>
-      <property name="topMargin" >
-       <number>0</number>
-      </property>
-      <property name="rightMargin" >
-       <number>0</number>
-      </property>
-      <property name="bottomMargin" >
+      <property name="margin" >
        <number>0</number>
       </property>
       <item>
@@ -87,16 +78,7 @@
       <property name="spacing" >
        <number>6</number>
       </property>
-      <property name="leftMargin" >
-       <number>0</number>
-      </property>
-      <property name="topMargin" >
-       <number>0</number>
-      </property>
-      <property name="rightMargin" >
-       <number>0</number>
-      </property>
-      <property name="bottomMargin" >
+      <property name="margin" >
        <number>0</number>
       </property>
       <item>
@@ -113,12 +95,52 @@
        </widget>
       </item>
       <item>
+       <widget class="QToolButton" name="btnPrevWeek" >
+        <property name="toolTip" >
+         <string>Previous week</string>
+        </property>
+        <property name="text" >
+         <string>&lt;&lt;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="btnPrevDay" >
+        <property name="toolTip" >
+         <string>Previous day</string>
+        </property>
+        <property name="text" >
+         <string>&lt;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QDateEdit" name="dateEdit" >
         <property name="displayFormat" >
          <string>ddd dd/MMM/yyyy</string>
         </property>
         <property name="calendarPopup" >
          <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="btnNextDay" >
+        <property name="toolTip" >
+         <string>Next day</string>
+        </property>
+        <property name="text" >
+         <string>></string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="btnNextWeek" >
+        <property name="toolTip" >
+         <string>Next week</string>
+        </property>
+        <property name="text" >
+         <string>>></string>
         </property>
        </widget>
       </item>
@@ -158,16 +180,7 @@
       <property name="spacing" >
        <number>6</number>
       </property>
-      <property name="leftMargin" >
-       <number>0</number>
-      </property>
-      <property name="topMargin" >
-       <number>0</number>
-      </property>
-      <property name="rightMargin" >
-       <number>0</number>
-      </property>
-      <property name="bottomMargin" >
+      <property name="margin" >
        <number>0</number>
       </property>
       <item>
@@ -196,7 +209,16 @@
     </item>
    </layout>
   </widget>
-  <widget class="QStatusBar" name="statusBar" />
+  <widget class="QStatusBar" name="statusBar" >
+   <property name="geometry" >
+    <rect>
+     <x>0</x>
+     <y>421</y>
+     <width>600</width>
+     <height>23</height>
+    </rect>
+   </property>
+  </widget>
  </widget>
  <tabstops>
   <tabstop>btnTimereg</tabstop>

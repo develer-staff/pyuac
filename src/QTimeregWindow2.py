@@ -4,7 +4,7 @@
 # Copyright 2006 Develer S.r.l. (http://www.develer.com/)
 # All rights reserved.
 #
-# $Id:$
+# $Id$
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
@@ -355,6 +355,9 @@ class TimeregWindowSelection(QMainWindow, QAchievoWindow):
     def timereg(self):
         if not self._baseproject.isComplete():
             self.notify(self.tr("Unable to save!"), 1000)
+            return
+        if self.ui.dateTimeregDateFrom.date() > self.ui.dateTimeregDateTo.date():
+            self.notify(self.tr("From date is after end date!"),  10000)
             return
         self.ui.btnSave.setEnabled(False)
         for date in daterange(self.ui.dateTimeregDateFrom.date(),  self.ui.dateTimeregDateTo.date()):

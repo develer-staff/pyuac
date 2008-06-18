@@ -11,7 +11,9 @@
 import os, sys, copy
 
 from pyuac_utils import *
-from QRemoteTimereg import *
+#from QRemoteTimereg import *
+#il pyuac originale può essere usato anche con il modulo modificato
+from QRemoteTimereg2 import *
 
 LRU_LEN = 10
 

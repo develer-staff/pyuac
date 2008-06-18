@@ -12,7 +12,9 @@ import os, sys
 
 from pyuac_utils import *
 
-from QRemoteTimereg import *
+#from QRemoteTimereg import *
+#il pyuac originale può essere usato anche con il modulo modificato
+from QRemoteTimereg2 import *
 from QTimeregWindow import *
 
 class LoginDialog(QDialog, QAchievoWindow):

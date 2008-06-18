@@ -16,10 +16,13 @@ from daterange import *
 
 LRU_LEN = 10
 
-class TimeregWindowSelection(QMainWindow, QAchievoWindow):
+#modalità che può assumere la finestra di dialogo
+MODES = ("edit",  "range")
 
-    def __init__(self, parent, auth):
-        debug("TimeregWindowSelection.__init__")
+class TimeregWindow(QMainWindow, QAchievoWindow):
+
+    def __init__(self, parent, auth,  mode):
+        debug("TimeregWindow.__init__")
         QMainWindow.__init__(self, parent)
         self.__setup__(auth, 'pyuac_edit.ui')
 
@@ -33,13 +36,19 @@ class TimeregWindowSelection(QMainWindow, QAchievoWindow):
         self._response_projects = []
         self._all_ppa = {}
         self._projects = set()
+        if mode in MODES:
+            self.mode = mode
+        else:
+            self.mode = "range"
         self._connectSlots()
         self._setupGui()
 
     def _setupGui(self):
         debug("TimeregWindowSelection._setupGui")
-        self.ui.dateTimeregDateFrom.setDate(QDate.currentDate())
-        self.ui.dateTimeregDateTo.setDate(QDate.currentDate() )
+        if self.mode == "edit":
+            self._editMode()
+        elif self.mode == "range":
+            self._rangeMode()
         self.ui.comboTimeWorked.clear()
         for htext in timerange(8, 15):
             self.ui.comboTimeWorked.addItem(htext)
@@ -376,6 +385,7 @@ class TimeregWindowSelection(QMainWindow, QAchievoWindow):
         days = tuple(days)
         #fine controllo dei giorni lavorativi
         #fine delle operazioni necessarie solamente nella modalità di immissione multipla
+        
         self.ui.btnSave.setEnabled(False)
         for date in daterange(self.ui.dateTimeregDateFrom.date(),  self.ui.dateTimeregDateTo.date(),  days):
             p = self._baseproject
@@ -413,6 +423,14 @@ class TimeregWindowSelection(QMainWindow, QAchievoWindow):
             self.notify(self.tr("Resetting..."))
             self._setupGui()
 
+    #metodi per la personalizzazione dell'interfaccia a seconda della modalità
+    def _editMode(self):
+        self.ui.daterangeGroupBox.setVisible(False)
+    
+    def _rangeMode(self):
+        self.ui.dateTimeregDateFrom.setDate(QDate.currentDate())
+        self.ui.dateTimeregDateTo.setDate(QDate.currentDate())
+    
 class AchievoProject:
     """
     Classe che decora il progetto xml con alcune metodi di utilità

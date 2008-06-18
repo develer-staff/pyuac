@@ -115,8 +115,9 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.ui.tableTimereg.horizontalHeader().setStretchLastSection(True)
         self._changeDate(QDate.currentDate())
 
-    def _createTimeregWindow(self):
-        editwin = TimeregWindowSelection(self, self.remote.auth)
+    def _createTimeregWindow(self,  mode="range"):
+        debug("QTimeregWindow mode is %s" % mode)
+        editwin = TimeregWindow(self, self.remote.auth,  mode)
         self.connect(editwin, SIGNAL("registrationDone"),
                      self._slotRegistrationDone)
         return editwin
@@ -129,7 +130,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         selected_date = unicode(self.ui.dateEdit.date().toString("yyyy-MM-dd"))
         project_template = AchievoProject()
         project_template.set("activitydate", selected_date)
-        editwin = self._createTimeregWindow()
+        editwin = self._createTimeregWindow("range")
         editwin.setupEdit(project_template.data)
         editwin.show()
 
@@ -144,7 +145,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             project_template.set("in_%s" % k, self.projects[row].get(k))
         for k in "id activitydate".split():
             project_template.set(k, self.projects[row].get(k))
-        editwin = self._createTimeregWindow()
+        editwin = self._createTimeregWindow("edit")
         editwin.setupEdit(project_template.data)
         editwin.show()
 

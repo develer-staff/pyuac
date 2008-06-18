@@ -145,7 +145,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             project_template.set("in_%s" % k, self.projects[row].get(k))
         for k in "id activitydate".split():
             project_template.set(k, self.projects[row].get(k))
-        editwin = self._createTimeregWindow("edit")
+        editwin = self._createTimeregWindow("normal")
         editwin.setupEdit(project_template.data)
         editwin.show()
 

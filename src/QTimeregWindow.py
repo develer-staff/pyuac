@@ -17,7 +17,7 @@ from daterange import *
 LRU_LEN = 10
 
 #modalità che può assumere la finestra di dialogo
-MODES = ("edit",  "range")
+MODES = ("normal",  "range")
 
 class TimeregWindow(QMainWindow, QAchievoWindow):
 
@@ -45,8 +45,8 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
 
     def _setupGui(self):
         debug("TimeregWindowSelection._setupGui")
-        if self.mode == "edit":
-            self._editMode()
+        if self.mode == "normal":
+            self._normalMode()
         elif self.mode == "range":
             self._rangeMode()
         self.ui.comboTimeWorked.clear()
@@ -424,12 +424,13 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             self._setupGui()
 
     #metodi per la personalizzazione dell'interfaccia a seconda della modalità
-    def _editMode(self):
+    def _normalMode(self):
         self.ui.daterangeGroupBox.setVisible(False)
     
     def _rangeMode(self):
         self.ui.dateTimeregDateFrom.setDate(QDate.currentDate())
         self.ui.dateTimeregDateTo.setDate(QDate.currentDate())
+        self.ui.dateGroupBox.setVisible(False)
     
 class AchievoProject:
     """

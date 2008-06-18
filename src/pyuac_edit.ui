@@ -115,7 +115,7 @@
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout" >
+        <layout class="QHBoxLayout" name="cbHorizontalLayout" >
          <item>
           <widget class="QCheckBox" name="monCheckBox" >
            <property name="text" >

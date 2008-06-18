@@ -356,11 +356,28 @@ class TimeregWindowSelection(QMainWindow, QAchievoWindow):
         if not self._baseproject.isComplete():
             self.notify(self.tr("Unable to save!"), 1000)
             return
+            
+        #operazioni necessarie solamente nella modalità di immissione multipla
+        #controllo delle date
         if self.ui.dateTimeregDateFrom.date() > self.ui.dateTimeregDateTo.date():
             self.notify(self.tr("From date is after end date!"),  10000)
             return
+        #fine controllo delle date
+        
+        #controllo dei giorni lavorativi
+        days = []
+        days.append(self.ui.monCheckBox.isChecked())
+        days.append(self.ui.tueCheckBox.isChecked())
+        days.append(self.ui.wedCheckBox.isChecked())
+        days.append(self.ui.thuCheckBox.isChecked())
+        days.append(self.ui.friCheckBox.isChecked())
+        days.append(self.ui.satCheckBox.isChecked())
+        days.append(self.ui.sunCheckBox.isChecked())
+        days = tuple(days)
+        #fine controllo dei giorni lavorativi
+        #fine delle operazioni necessarie solamente nella modalità di immissione multipla
         self.ui.btnSave.setEnabled(False)
-        for date in daterange(self.ui.dateTimeregDateFrom.date(),  self.ui.dateTimeregDateTo.date()):
+        for date in daterange(self.ui.dateTimeregDateFrom.date(),  self.ui.dateTimeregDateTo.date(),  days):
             p = self._baseproject
             activitydate = str(date.toString("yyyy-MM-dd"))
             p.set("activitydate", activitydate)

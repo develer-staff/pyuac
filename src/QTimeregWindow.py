@@ -4,25 +4,24 @@
 # Copyright 2006 Develer S.r.l. (http://www.develer.com/)
 # All rights reserved.
 #
-# $Id:$
+# $Id: QTimeregWindow2.py 21760 2008-06-18 10:26:17Z duplo $
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
 import os, sys, copy
 
 from pyuac_utils import *
-#from QRemoteTimereg import *
-#il pyuac originale può essere usato anche con il modulo modificato
 from QRemoteTimereg2 import *
+from daterange import *
 
 LRU_LEN = 10
 
-class TimeregWindow(QMainWindow, QAchievoWindow):
+class TimeregWindowSelection(QMainWindow, QAchievoWindow):
 
     def __init__(self, parent, auth):
-        debug("TimeregWindow.__init__")
+        debug("TimeregWindowSelection.__init__")
         QMainWindow.__init__(self, parent)
-        self.__setup__(auth, 'pyuac_edit.ui')
+        self.__setup__(auth, 'pyuac_edit2.ui')
 
         self.completer = QCompleter([], self)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
@@ -38,8 +37,9 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self._setupGui()
 
     def _setupGui(self):
-        debug("TimeregWindow._setupGui")
-        self.ui.dateTimeregDate.setDate(QDate.currentDate())
+        debug("TimeregWindowSelection._setupGui")
+        self.ui.dateTimeregDateFrom.setDate(QDate.currentDate())
+        self.ui.dateTimeregDateTo.setDate(QDate.currentDate() )
         self.ui.comboTimeWorked.clear()
         for htext in timerange(8, 15):
             self.ui.comboTimeWorked.addItem(htext)
@@ -356,18 +356,22 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         if not self._baseproject.isComplete():
             self.notify(self.tr("Unable to save!"), 1000)
             return
+        if self.ui.dateTimeregDateFrom.date() > self.ui.dateTimeregDateTo.date():
+            self.notify(self.tr("From date is after end date!"),  10000)
+            return
         self.ui.btnSave.setEnabled(False)
-        p = self._baseproject
-        activitydate = str(self.ui.dateTimeregDate.date().toString("yyyy-MM-dd"))
-        p.set("activitydate", activitydate)
-        params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime activitydate".split()])
-        params["remark"] = p.get("remark")
-        if not self._baseproject.isNew():
-            debug("-------------> Update")
-            params["id"] = self._baseproject.get("id")
-        else:
-            debug("-------------> New")
-        self.remote.timereg(**params)
+        for date in daterange(self.ui.dateTimeregDateFrom.date(),  self.ui.dateTimeregDateTo.date()):
+            p = self._baseproject
+            activitydate = str(date.toString("yyyy-MM-dd"))
+            p.set("activitydate", activitydate)
+            params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime activitydate".split()])
+            params["remark"] = p.get("remark")
+            if not self._baseproject.isNew():
+                debug("-------------> Update")
+                params["id"] = self._baseproject.get("id")
+            else:
+                debug("-------------> New")
+            self.remote.timereg(**params)
         self.notify(self.tr("Saving..."))
 
     def setupEdit(self, project):
@@ -375,7 +379,9 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         debug("setupEdit %s" % self._baseproject)
         if not self._baseproject.isNew():
             self.ui.btnDelete.setText(self.tr("Delete"))
-        self.ui.dateTimeregDate.setDate(QDate.fromString(self._baseproject.get("activitydate"),
+        self.ui.dateTimeregDateFrom.setDate(QDate.fromString(self._baseproject.get("activitydate"),
+                                                         "yyyy-MM-dd"))
+        self.ui.dateTimeregDateTo.setDate(QDate.fromString(self._baseproject.get("activitydate"),
                                                          "yyyy-MM-dd"))
         self._updateSmartQuery(self._baseproject.getSmartQuery())
         self.notify(self.tr("Loading..."))

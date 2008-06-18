@@ -4,7 +4,7 @@
 # Copyright 2006 Develer S.r.l. (http://www.develer.com/)
 # All rights reserved.
 #
-# $Id:$
+# $Id: QRemoteTimereg2.py 21759 2008-06-18 08:42:23Z duplo $
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
@@ -112,7 +112,7 @@ class QRemoteTimereg(QObject):
         self._waiting = False
         self._resp = ""
         self.auth = auth
-        self._actions_params = {}
+        self._actions_params = []
         self.connect(self.process, SIGNAL("finished(int)"), self._ready)
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"), self._ready)
         self.connect(self.process, SIGNAL("error(QProcess::ProcessError)"),
@@ -126,7 +126,7 @@ class QRemoteTimereg(QObject):
         """
         if action in RemoteTimereg.actions.keys() + ["q"]:
             def _action(**kwargs):
-                self._actions_params[action] = self._encode(action, **kwargs)
+                self._actions_params.append([action,  self._encode(action, **kwargs)])
                 self._sync()
             return _action
         else:
@@ -185,9 +185,9 @@ class QRemoteTimereg(QObject):
             timereportStarted
         """
         debug("%s <!-- Sync -->" % __name__)
-        for action, cmdline in self._actions_params.items():
+        for action, cmdline in self._actions_params:
             if self._execute(cmdline):
-                del self._actions_params[action]
+                self._actions_params.remove([action, cmdline])
                 self.emit(SIGNAL(action+"Started"))
 
     def _ready(self, exitcode=None):

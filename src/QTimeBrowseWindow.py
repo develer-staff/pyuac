@@ -4,7 +4,7 @@
 # Copyright 2006 Develer S.r.l. (http://www.develer.com/)
 # All rights reserved.
 #
-# $Id:$
+# $Id: QTimeBrowseWindow_test.py 21759 2008-06-18 08:42:23Z duplo $
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
@@ -12,10 +12,8 @@ import os, sys
 
 from pyuac_utils import *
 
-#from QRemoteTimereg import *
-#il pyuac originale può essere usato anche con il modulo modificato
 from QRemoteTimereg2 import *
-from QTimeregWindow import *
+from QTimeregWindow2 import *
 
 class LoginDialog(QDialog, QAchievoWindow):
     def __init__(self, parent, config):
@@ -118,7 +116,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self._changeDate(QDate.currentDate())
 
     def _createTimeregWindow(self):
-        editwin = TimeregWindow(self, self.remote.auth)
+        editwin = TimeregWindowSelection(self, self.remote.auth)
         self.connect(editwin, SIGNAL("registrationDone"),
                      self._slotRegistrationDone)
         return editwin

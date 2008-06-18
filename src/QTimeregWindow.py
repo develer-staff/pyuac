@@ -11,7 +11,7 @@
 import os, sys, copy
 
 from pyuac_utils import *
-from QRemoteTimereg2 import *
+from QRemoteTimereg import *
 from daterange import *
 
 LRU_LEN = 10
@@ -21,7 +21,7 @@ class TimeregWindowSelection(QMainWindow, QAchievoWindow):
     def __init__(self, parent, auth):
         debug("TimeregWindowSelection.__init__")
         QMainWindow.__init__(self, parent)
-        self.__setup__(auth, 'pyuac_edit2.ui')
+        self.__setup__(auth, 'pyuac_edit.ui')
 
         self.completer = QCompleter([], self)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)

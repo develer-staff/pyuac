@@ -12,8 +12,8 @@ import os, sys
 
 from pyuac_utils import *
 
-from QRemoteTimereg2 import *
-from QTimeregWindow2 import *
+from QRemoteTimereg import *
+from QTimeregWindow import *
 
 class LoginDialog(QDialog, QAchievoWindow):
     def __init__(self, parent, config):

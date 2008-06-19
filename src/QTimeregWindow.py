@@ -37,18 +37,20 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self._all_ppa = {}
         self._projects = set()
         if mode in MODES:
-            self.mode = mode
+            self._mode = mode
         else:
-            self.mode = "range"
+            self._mode = "range"
         self._connectSlots()
         self._setupGui()
 
     def _setupGui(self):
-        debug("TimeregWindowSelection._setupGui")
-        if self.mode == "normal":
-            self._normalMode()
-        elif self.mode == "range":
-            self._rangeMode()
+        debug("TimeregWindow._setupGui")
+        if self._mode == "normal":
+            debug(__name__,  "-> loading normal TimeregWindow")
+            self._uiNormalMode()
+        elif self._mode == "range":
+            debug(__name__,  "-> loading range TimeregWindow")
+            self._uiRangeMode()
         self.ui.comboTimeWorked.clear()
         for htext in timerange(8, 15):
             self.ui.comboTimeWorked.addItem(htext)
@@ -65,6 +67,15 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             self.ui.comboPPAlru.addItem(row["ppa-%s" % self.remote.auth[1]].toString())
         self.notify(self.tr("Type something in the smartquery field or use combos."))
         self._smartQueryEdited("")
+    
+    def _uiNormalMode(self):
+        self.ui.daterangeGroupBox.setVisible(False)
+        self.ui.singleDateEdit.setDate(QDate.currentDate())
+    
+    def _uiRangeMode(self):
+        self.ui.dateFromDateEdit.setDate(QDate.currentDate())
+        self.ui.dateToDateEdit.setDate(QDate.currentDate())
+        self.ui.dateGroupBox.setVisible(False)
 
     def _connectSlots(self):
         self.connect(self.ui.editSmartQuery, SIGNAL("textEdited(QString)"),
@@ -365,14 +376,36 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         if not self._baseproject.isComplete():
             self.notify(self.tr("Unable to save!"), 1000)
             return
-            
-        #operazioni necessarie solamente nella modalità di immissione multipla
+        self.ui.btnSave.setEnabled(False)
+        if self._mode == "range":
+            self._rangeTimereg()
+        elif self._mode == "normal":
+            self._normalTimereg()
+        else:
+            self._rangeTimereg()
+        self.notify(self.tr("Saving..."))
+    
+    def _normalTimereg(self):
+        p = self._baseproject
+        activitydate = str(self.ui.singleDateEdit.date().toString("yyyy-MM-dd"))
+        p.set("activitydate", activitydate)
+        params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime activitydate".split()])
+        params["remark"] = p.get("remark")
+        if not self._baseproject.isNew():
+            debug("-------------> Update")
+            params["id"] = self._baseproject.get("id")
+        else:
+            debug("-------------> New")
+        self.remote.timereg(**params)
+    
+    def _rangeTimereg(self):
+        """
+        Metodo chiamato per registrare le ore in modalità 'range'
+        """
         #controllo delle date
-        if self.ui.dateTimeregDateFrom.date() > self.ui.dateTimeregDateTo.date():
+        if self.ui.dateFromDateEdit.date() > self.ui.dateToDateEdit.date():
             self.notify(self.tr("From date is after end date!"),  10000)
             return
-        #fine controllo delle date
-        
         #controllo dei giorni lavorativi
         days = []
         days.append(self.ui.monCheckBox.isChecked())
@@ -383,11 +416,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         days.append(self.ui.satCheckBox.isChecked())
         days.append(self.ui.sunCheckBox.isChecked())
         days = tuple(days)
-        #fine controllo dei giorni lavorativi
-        #fine delle operazioni necessarie solamente nella modalità di immissione multipla
-        
-        self.ui.btnSave.setEnabled(False)
-        for date in daterange(self.ui.dateTimeregDateFrom.date(),  self.ui.dateTimeregDateTo.date(),  days):
+        for date in daterange(self.ui.dateFromDateEdit.date(),  self.ui.dateToDateEdit.date(),  days):
             p = self._baseproject
             activitydate = str(date.toString("yyyy-MM-dd"))
             p.set("activitydate", activitydate)
@@ -399,16 +428,13 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             else:
                 debug("-------------> New")
             self.remote.timereg(**params)
-        self.notify(self.tr("Saving..."))
-
+        
     def setupEdit(self, project):
         self._baseproject = AchievoProject(project)
         debug("setupEdit %s" % self._baseproject)
         if not self._baseproject.isNew():
             self.ui.btnDelete.setText(self.tr("Delete"))
-        self.ui.dateTimeregDateFrom.setDate(QDate.fromString(self._baseproject.get("activitydate"),
-                                                         "yyyy-MM-dd"))
-        self.ui.dateTimeregDateTo.setDate(QDate.fromString(self._baseproject.get("activitydate"),
+        self.ui.singleDateEdit.setDate(QDate.fromString(self._baseproject.get("activitydate"),
                                                          "yyyy-MM-dd"))
         self._updateSmartQuery(self._baseproject.getSmartQuery())
         self.notify(self.tr("Loading..."))
@@ -422,15 +448,6 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             debug("-------------> Reset")
             self.notify(self.tr("Resetting..."))
             self._setupGui()
-
-    #metodi per la personalizzazione dell'interfaccia a seconda della modalità
-    def _normalMode(self):
-        self.ui.daterangeGroupBox.setVisible(False)
-    
-    def _rangeMode(self):
-        self.ui.dateTimeregDateFrom.setDate(QDate.currentDate())
-        self.ui.dateTimeregDateTo.setDate(QDate.currentDate())
-        self.ui.dateGroupBox.setVisible(False)
     
 class AchievoProject:
     """

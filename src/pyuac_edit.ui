@@ -45,12 +45,12 @@
           <string>Date</string>
          </property>
          <property name="buddy" >
-          <cstring>dateEdit</cstring>
+          <cstring>singleDateEdit</cstring>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QDateEdit" name="dateEdit" >
+        <widget class="QDateEdit" name="singleDateEdit" >
          <property name="displayFormat" >
           <string>ddd dd/MM/yy</string>
          </property>
@@ -98,12 +98,12 @@
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
            <property name="buddy" >
-            <cstring>dateTimeregDateFrom</cstring>
+            <cstring>dateFromDateEdit</cstring>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QDateEdit" name="dateTimeregDateFrom" >
+          <widget class="QDateEdit" name="dateFromDateEdit" >
            <property name="displayFormat" >
             <string>ddd dd/MMM/yyyy</string>
            </property>
@@ -121,12 +121,12 @@
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
            <property name="buddy" >
-            <cstring>dateTimeregDateTo</cstring>
+            <cstring>dateToDateEdit</cstring>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QDateEdit" name="dateTimeregDateTo" >
+          <widget class="QDateEdit" name="dateToDateEdit" >
            <property name="displayFormat" >
             <string>ddd dd/MMM/yyyy</string>
            </property>
@@ -517,7 +517,7 @@
  <tabstops>
   <tabstop>btnSave</tabstop>
   <tabstop>comboPPAlru</tabstop>
-  <tabstop>dateTimeregDateFrom</tabstop>
+  <tabstop>dateFromDateEdit</tabstop>
   <tabstop>comboProject</tabstop>
   <tabstop>comboPhase</tabstop>
   <tabstop>comboActivity</tabstop>

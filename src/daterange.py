@@ -26,3 +26,18 @@ def daterange(start_day,  end_day,  days=DEFAULT_DAYS):
         if days[tmp.dayOfWeek() - 1]:
             #TODO: Eliminare i festivi e le ferie
             yield tmp
+
+def daysnumber(start_day,  end_day,  days=DEFAULT_DAYS):
+    current_day = start_day
+    total = 0
+    working = 0
+    while True:
+        if current_day > end_day:
+            break
+        tmp = current_day
+        current_day = current_day.addDays(1)
+        if days[tmp.dayOfWeek() - 1]:
+            #TODO: Eliminare i festivi e le ferie
+            working += 1
+        total += 1
+    return working,  total

@@ -70,8 +70,10 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                      self._slotTimereportStarted)
         self.connect(self.remote, SIGNAL("timereportOK"),
                      self._slotUpdateTimereport)
-        self.connect(self.ui.btnTimereg, SIGNAL("clicked()"),
-                     self._slotNewTimereg)
+        self.connect(self._menu,  SIGNAL("selected"),
+                        self._slotNewTimereg)
+        self.connect(self.ui.tlbTimereg,  SIGNAL("clicked()"), 
+                        self._slotNewTimereg)
         self.connect(self.ui.btnQuit, SIGNAL("clicked()"),
                      self._slotClose)
         self.connect(self.ui.btnToday, SIGNAL("clicked()"),
@@ -114,6 +116,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self.ui.tableTimereg.setHorizontalHeaderItem(c, cellHead)
         self.ui.tableTimereg.horizontalHeader().setStretchLastSection(True)
         self._changeDate(QDate.currentDate())
+        self._menu = TimeregMenu(self)
+        self.ui.tlbTimereg.setMenu(self._menu)
 
     def _createTimeregWindow(self,  mode="range"):
         debug("QTimeregWindow mode is %s" % mode)
@@ -122,15 +126,11 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                      self._slotRegistrationDone)
         return editwin
 
-    def _slotNewTimereg(self):
-        """ <-- self.ui.btnTimereg, SIGNAL("clicked()")
-        Imposta la data selezionata nel template ed
-        avvia la finestra di inserimento nuova registrazione
-        """
+    def _slotNewTimereg(self,  mode="normal"):
         selected_date = unicode(self.ui.dateEdit.date().toString("yyyy-MM-dd"))
         project_template = AchievoProject()
         project_template.set("activitydate", selected_date)
-        editwin = self._createTimeregWindow("range")
+        editwin = self._createTimeregWindow(mode)
         editwin.setupEdit(project_template.data)
         editwin.show()
 
@@ -167,7 +167,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.remote.timereport(date=reportdate)
 
     def _slotTimereportStarted(self):
-        self.ui.btnTimereg.setEnabled(False)
+        self.ui.tlbTimereg.setEnabled(False)
         self.ui.tableTimereg.setRowCount(0)
 
     def _slotUpdateTimereport(self, eprojects):
@@ -197,7 +197,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                     self.ui.tableTimereg.resizeColumnToContents(c)
         self.notify(self.tr("Day total: ") + "%s" % min2hmtime(total_time))
         self.ui.tableTimereg.resizeRowsToContents()
-        self.ui.btnTimereg.setEnabled(True)
+        self.ui.tlbTimereg.setEnabled(True)
 
     def _slotSmartTimeChanged(self, text=None):
         smartime = self.ui.smart_time_edit.text()
@@ -209,3 +209,23 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self.ui.time_sum_lbl.setText(lapse)
         else:
             self.ui.time_sum_lbl.setText("0:00")
+
+class TimeregMenu(QMenu):
+    def __init__(self,  parent = None):
+        QMenu.__init__(self,  parent)
+        self._normal = self.addAction("Normal editing mode")
+        self._range = self.addAction("Range editing mode")
+        self.connect(self._normal,  SIGNAL("triggered(bool)"), 
+                        self._normalTriggered)
+        self.connect(self._range,  SIGNAL("triggered(bool)"), 
+                        self._rangeTriggered)
+        self.connect(self,  SIGNAL("clicked()"), 
+                        self._normalTriggered)
+    
+    def _normalTriggered(self):
+        debug("normal triggered")
+        self.emit(SIGNAL("selected"), "normal")
+    
+    def _rangeTriggered(self):
+        debug("range triggered")
+        self.emit(SIGNAL("selected"),  "range")

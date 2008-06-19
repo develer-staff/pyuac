@@ -145,15 +145,21 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="btnTimereg" >
+       <widget class="QToolButton" name="tlbTimereg" >
         <property name="sizePolicy" >
-         <sizepolicy vsizetype="Fixed" hsizetype="Minimum" >
+         <sizepolicy vsizetype="Minimum" hsizetype="Minimum" >
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="focusPolicy" >
+         <enum>Qt::StrongFocus</enum>
+        </property>
         <property name="text" >
          <string>Add New Timereg...</string>
+        </property>
+        <property name="toolButtonStyle" >
+         <enum>Qt::ToolButtonTextOnly</enum>
         </property>
        </widget>
       </item>
@@ -221,7 +227,6 @@
   </widget>
  </widget>
  <tabstops>
-  <tabstop>btnTimereg</tabstop>
   <tabstop>tableTimereg</tabstop>
   <tabstop>btnQuit</tabstop>
   <tabstop>btnToday</tabstop>

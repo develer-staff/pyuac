@@ -69,10 +69,15 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self._smartQueryEdited("")
     
     def _uiNormalMode(self):
+        """
+        Inizializza i valori delle componenti necessarie solamente in modalità 'normal'
+        """
         self.ui.daterangeGroupBox.setVisible(False)
-        self.ui.singleDateEdit.setDate(QDate.currentDate())
     
     def _uiRangeMode(self):
+        """
+        Connette le componenti necessarie solamente in modalità 'range' e ne inizializza i valori.
+        """
         self.connect(self.ui.dateFromDateEdit,  SIGNAL("dateChanged(const QDate&)"), 
                         self._updateDaysLabel)
         self.connect(self.ui.dateToDateEdit,  SIGNAL("dateChanged(const QDate&)"), 
@@ -91,8 +96,6 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                         self._updateDaysLabel)
         self.connect(self.ui.sunCheckBox,  SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
-        self.ui.dateFromDateEdit.setDate(QDate.currentDate())
-        self.ui.dateToDateEdit.setDate(QDate.currentDate())
         self.ui.dateGroupBox.setVisible(False)
 
     def _connectSlots(self):
@@ -352,10 +355,16 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         _updateCompleter()
 
     def _updateDaysLabel(self):
+        """
+        Aggiorna il numero di giorni lavorativi e di giorni totali che appare a lato delle dateEdit, in modalità 'range'
+        """
         working,  total = daysnumber(self.ui.dateFromDateEdit.date(),  self.ui.dateToDateEdit.date(),  self._getDays())
         self.ui.daysLabel.setText("Working days: %d, Total days: %d" %(working,  total))
     
     def _getDays(self):
+        """
+        Ritorna una tupla di booleani, dove True sta per lavorativo e False sta per non lavorativo.
+        """
         days = []
         days.append(self.ui.monCheckBox.isChecked())
         days.append(self.ui.tueCheckBox.isChecked())
@@ -406,6 +415,9 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self._updateComboBoxes("TimeWorked", combotext)
 
     def timereg(self):
+        """
+        Metodo chiamato per salvare le ore di lavoro: a sua volta richiama i metodi che elaborano i dati in base alla modalità di inserimento.
+        """
         if not self._baseproject.isComplete():
             self.notify(self.tr("Unable to save!"), 1000)
             return
@@ -420,7 +432,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
     
     def _normalTimereg(self):
         """
-        Metodo chiamato per registrare le ore dalla modalità 'normal'
+        Metodo chiamato da timereg per registrare le ore dalla modalità 'normal'.
         """
         p = self._baseproject
         activitydate = str(self.ui.singleDateEdit.date().toString("yyyy-MM-dd"))
@@ -436,9 +448,9 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
     
     def _rangeTimereg(self):
         """
-        Metodo chiamato per registrare le ore dalla modalità 'range'
+        Metodo chiamato da timereg per registrare le ore dalla modalità 'range'.
         """
-        #controllo delle date
+        #controllo che impedisce che le date inserite non siano consistenti
         if self.ui.dateFromDateEdit.date() > self.ui.dateToDateEdit.date():
             self.notify(self.tr("From date is after end date!"),  10000)
             return
@@ -462,6 +474,9 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             self.ui.btnDelete.setText(self.tr("Delete"))
         self.ui.singleDateEdit.setDate(QDate.fromString(self._baseproject.get("activitydate"),
                                                          "yyyy-MM-dd"))
+        #copia la data in tutte le dateEdit, visibili e non.
+        self.ui.dateFromDateEdit.setDate(self.ui.singleDateEdit.date())
+        self.ui.dateToDateEdit.setDate(self.ui.singleDateEdit.date())
         self._updateSmartQuery(self._baseproject.getSmartQuery())
         self.notify(self.tr("Loading..."))
 

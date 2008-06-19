@@ -30,7 +30,7 @@ class LoginDialog(QDialog, QAchievoWindow):
 
     def login(self):
         debug("login")
-        self.settings.setValue("achievouri", QVariant(self.ui.editAchievoUri.text()))
+        self.settings.setValue("achievouri", QVariant(self.ui.editAchievoUri.text())) 
         self.settings.setValue("username", QVariant(self.ui.editUsername.text()))
         auth = [self.ui.editAchievoUri.text()]
         auth += [self.ui.editUsername.text()]
@@ -127,6 +127,9 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         return editwin
 
     def _slotNewTimereg(self,  mode="normal"):
+        """
+        Slot attivato quando viene utilizzato self.ui.tlbTimereg.
+        """
         selected_date = unicode(self.ui.dateEdit.date().toString("yyyy-MM-dd"))
         project_template = AchievoProject()
         project_template.set("activitydate", selected_date)
@@ -211,6 +214,9 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self.ui.time_sum_lbl.setText("0:00")
 
 class TimeregMenu(QMenu):
+    """
+    Classe derivata di QMenu contenente il menu contestuale di tlbTimereg.
+    """
     def __init__(self,  parent = None):
         QMenu.__init__(self,  parent)
         self._normal = self.addAction("Normal editing mode")

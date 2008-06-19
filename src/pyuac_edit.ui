@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>610</width>
+    <width>578</width>
     <height>511</height>
    </rect>
   </property>
@@ -22,7 +22,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>610</width>
+     <width>578</width>
      <height>488</height>
     </rect>
    </property>
@@ -462,6 +462,19 @@
        <number>0</number>
       </property>
       <item>
+       <spacer name="horizontalSpacer_3" >
+        <property name="orientation" >
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0" >
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
        <widget class="QPushButton" name="btnDelete" >
         <property name="enabled" >
          <bool>false</bool>
@@ -515,7 +528,7 @@
     <rect>
      <x>0</x>
      <y>488</y>
-     <width>610</width>
+     <width>578</width>
      <height>23</height>
     </rect>
    </property>
@@ -529,7 +542,6 @@
   <tabstop>comboPhase</tabstop>
   <tabstop>comboActivity</tabstop>
   <tabstop>comboTimeWorked</tabstop>
-  <tabstop>btnDelete</tabstop>
   <tabstop>btnCancel</tabstop>
   <tabstop>txtRemark</tabstop>
  </tabstops>

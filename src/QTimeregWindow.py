@@ -73,6 +73,24 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self.ui.singleDateEdit.setDate(QDate.currentDate())
     
     def _uiRangeMode(self):
+        self.connect(self.ui.dateFromDateEdit,  SIGNAL("dateChanged(const QDate&)"), 
+                        self._updateDaysLabel)
+        self.connect(self.ui.dateToDateEdit,  SIGNAL("dateChanged(const QDate&)"), 
+                        self._updateDaysLabel)
+        self.connect(self.ui.monCheckBox,  SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
+        self.connect(self.ui.tueCheckBox,  SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
+        self.connect(self.ui.wedCheckBox,  SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
+        self.connect(self.ui.thuCheckBox,  SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
+        self.connect(self.ui.friCheckBox,  SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
+        self.connect(self.ui.satCheckBox,  SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
+        self.connect(self.ui.sunCheckBox,  SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
         self.ui.dateFromDateEdit.setDate(QDate.currentDate())
         self.ui.dateToDateEdit.setDate(QDate.currentDate())
         self.ui.dateGroupBox.setVisible(False)
@@ -333,6 +351,21 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                 #debug("self.completer %s" % _completer)
         _updateCompleter()
 
+    def _updateDaysLabel(self):
+        working,  total = daysnumber(self.ui.dateFromDateEdit.date(),  self.ui.dateToDateEdit.date(),  self._getDays())
+        self.ui.daysLabel.setText("Working days: %d, Total days: %d" %(working,  total))
+    
+    def _getDays(self):
+        days = []
+        days.append(self.ui.monCheckBox.isChecked())
+        days.append(self.ui.tueCheckBox.isChecked())
+        days.append(self.ui.wedCheckBox.isChecked())
+        days.append(self.ui.thuCheckBox.isChecked())
+        days.append(self.ui.friCheckBox.isChecked())
+        days.append(self.ui.satCheckBox.isChecked())
+        days.append(self.ui.sunCheckBox.isChecked())
+        return tuple(days)
+
     def _timeregStarted(self):
         #debug("_timeregStarted")
         pass
@@ -386,6 +419,9 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self.notify(self.tr("Saving..."))
     
     def _normalTimereg(self):
+        """
+        Metodo chiamato per registrare le ore dalla modalità 'normal'
+        """
         p = self._baseproject
         activitydate = str(self.ui.singleDateEdit.date().toString("yyyy-MM-dd"))
         p.set("activitydate", activitydate)
@@ -400,23 +436,13 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
     
     def _rangeTimereg(self):
         """
-        Metodo chiamato per registrare le ore in modalità 'range'
+        Metodo chiamato per registrare le ore dalla modalità 'range'
         """
         #controllo delle date
         if self.ui.dateFromDateEdit.date() > self.ui.dateToDateEdit.date():
             self.notify(self.tr("From date is after end date!"),  10000)
             return
-        #controllo dei giorni lavorativi
-        days = []
-        days.append(self.ui.monCheckBox.isChecked())
-        days.append(self.ui.tueCheckBox.isChecked())
-        days.append(self.ui.wedCheckBox.isChecked())
-        days.append(self.ui.thuCheckBox.isChecked())
-        days.append(self.ui.friCheckBox.isChecked())
-        days.append(self.ui.satCheckBox.isChecked())
-        days.append(self.ui.sunCheckBox.isChecked())
-        days = tuple(days)
-        for date in daterange(self.ui.dateFromDateEdit.date(),  self.ui.dateToDateEdit.date(),  days):
+        for date in daterange(self.ui.dateFromDateEdit.date(),  self.ui.dateToDateEdit.date(),  self._getDays()):
             p = self._baseproject
             activitydate = str(date.toString("yyyy-MM-dd"))
             p.set("activitydate", activitydate)

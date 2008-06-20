@@ -112,7 +112,7 @@ class QRemoteTimereg(QObject):
         self._waiting = False
         self._resp = ""
         self.auth = auth
-        self._actions_params = {}
+        self._actions_params = []
         self.connect(self.process, SIGNAL("finished(int)"), self._ready)
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"), self._ready)
         self.connect(self.process, SIGNAL("error(QProcess::ProcessError)"),
@@ -126,12 +126,7 @@ class QRemoteTimereg(QObject):
         """
         if action in RemoteTimereg.actions.keys() + ["q"]:
             def _action(**kwargs):
-                if action == "timereg":
-                    if not self._actions_params[action]:
-                        self._actions_params[action] = []
-                    self._actions_params[action].append(self._encode(action, **kwargs))
-                else:
-                    self._actions_params[action] = self._encode(action, **kwargs)
+                self._actions_params.append([action,  self._encode(action, **kwargs)])
                 self._sync()
             return _action
         else:
@@ -190,16 +185,11 @@ class QRemoteTimereg(QObject):
             timereportStarted
         """
         debug("%s <!-- Sync -->" % __name__)
-        for action, cmdline in self._actions_params.items():
-            if action == "timereg":
-                for cmd in cmdline:
-                    if self._execute(cmdline):
-                        self.emit(SIGNAL(action+"Started"))
-                del self._actions_params[action]
-            else:
-                if self._execute(cmdline):
-                    del self._actions_params[action]
-                    self.emit(SIGNAL(action+"Started"))
+        for action, cmdline in self._actions_params:
+            if self._execute(cmdline):
+                self._actions_params.remove([action, cmdline])
+                self.emit(SIGNAL(action+"Started"))
+
 
     def _ready(self, exitcode=None):
         """ <-- self.process, SIGNAL("finished(int)")

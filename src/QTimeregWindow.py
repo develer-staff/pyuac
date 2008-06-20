@@ -36,6 +36,10 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self._response_projects = []
         self._all_ppa = {}
         self._projects = set()
+        #prova
+        self._timer = QTimer(self)
+        self._timer.setSingleShot(True)
+        #prova
         if mode in MODES:
             self._mode = mode
         else:
@@ -133,6 +137,8 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                      self._registrationDone)
         self.connect(self.remote, SIGNAL("timeregErr"),
                      self._timeregErr)
+        self.connect(self._timer, SIGNAL("timeout()"),
+                     self._smartQueryEditedRefresh)
 
     def _completerActivated(self, smartquery):
         smartquery = unicode(smartquery).strip()
@@ -162,7 +168,10 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         """
         debug(u"_smartQueryEdited: '%s'" % smartquery)
         smartquery = unicode(smartquery).strip()
-        self.remote.query(smartquery=smartquery)
+        self._timer.start(500)
+    
+    def _smartQueryEditedRefresh(self):
+        self.remote.query(smartquery=self.ui.editSmartQuery.text())
 
     def _projectsChanged(self, projects):
         """ <-- self.remote, SIGNAL("queryOK")
@@ -427,7 +436,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         elif self._mode == "normal":
             self._normalTimereg()
         else:
-            self._rangeTimereg()
+            self._normalTimereg()
         self.notify(self.tr("Saving..."))
     
     def _normalTimereg(self):

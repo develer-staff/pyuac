@@ -34,6 +34,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
 
         self._baseproject = AchievoProject()
         self._response_projects = []
+        self._registrations = 0
         self._all_ppa = {}
         self._projects = set()
         #prova
@@ -390,6 +391,13 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
 
     def _registrationDone(self, eresp):
         #debug("_registrationDone")
+        self._registrations -= 1
+        if not self._registrations:
+            debug("FINE DELLE TIMEREG E CHIUSURA DELLA FINESRA")
+            self.emit(SIGNAL("registrationDone"), self._baseproject)
+            self._endingRegistrations()
+    
+    def _endingRegistrations(self):
         username = self.remote.auth[1]
         lru = self.settings.getArray("lru", ["ppa-%s" % username])
         new_ppa = {"ppa-%s" % username: QVariant(self._baseproject.getPPA()+" ")}
@@ -399,10 +407,10 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         while len(lru) >= LRU_LEN:
             lru.pop()
         self.settings.setArray("lru", lru)
-        self.emit(SIGNAL("registrationDone"), self._baseproject)
         self._baseproject.reset()
         self._slotClose()
 
+    
     def _timeregErr(self):
         #debug("_timeregError")
         pass
@@ -449,6 +457,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             params["id"] = self._baseproject.get("id")
         else:
             debug("-------------> New")
+        self._registrations += 1
         self.remote.timereg(**params)
     
     def _normalTimereg(self):
@@ -488,6 +497,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             debug("-------------> Delete")
             self.remote.delete(id=self._baseproject.get("id"))
             self.notify(self.tr("Deleting..."))
+            self._registrations += 1
         else:
             debug("-------------> Reset")
             self.notify(self.tr("Resetting..."))

@@ -74,7 +74,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
     
     def _uiNormalMode(self):
         """
-        Inizializza i valori delle componenti necessarie solamente in modalità 'normal'
+        Inizializza i valori delle componenti necessarie solamente in modalità 'normal'.
         """
         self.ui.daterangeGroupBox.setVisible(False)
     
@@ -439,12 +439,8 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             self._normalTimereg()
         self.notify(self.tr("Saving..."))
     
-    def _normalTimereg(self):
-        """
-        Metodo chiamato da timereg per registrare le ore dalla modalità 'normal'.
-        """
+    def _timereg(self,  activitydate):
         p = self._baseproject
-        activitydate = str(self.ui.singleDateEdit.date().toString("yyyy-MM-dd"))
         p.set("activitydate", activitydate)
         params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime activitydate".split()])
         params["remark"] = p.get("remark")
@@ -455,6 +451,13 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             debug("-------------> New")
         self.remote.timereg(**params)
     
+    def _normalTimereg(self):
+        """
+        Metodo chiamato da timereg per registrare le ore dalla modalità 'normal'.
+        """
+        activitydate = str(self.ui.singleDateEdit.date().toString("yyyy-MM-dd"))
+        self._timereg(activitydate)
+    
     def _rangeTimereg(self):
         """
         Metodo chiamato da timereg per registrare le ore dalla modalità 'range'.
@@ -464,18 +467,9 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             self.notify(self.tr("From date is after end date!"),  10000)
             return
         for date in daterange(self.ui.dateFromDateEdit.date(),  self.ui.dateToDateEdit.date(),  self._getDays()):
-            p = self._baseproject
             activitydate = str(date.toString("yyyy-MM-dd"))
-            p.set("activitydate", activitydate)
-            params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime activitydate".split()])
-            params["remark"] = p.get("remark")
-            if not self._baseproject.isNew():
-                debug("-------------> Update")
-                params["id"] = self._baseproject.get("id")
-            else:
-                debug("-------------> New")
-            self.remote.timereg(**params)
-        
+            self._timereg(activitydate)
+
     def setupEdit(self, project):
         self._baseproject = AchievoProject(project)
         debug("setupEdit %s" % self._baseproject)

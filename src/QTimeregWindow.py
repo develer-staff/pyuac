@@ -44,7 +44,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         if mode in MODES:
             self._mode = mode
         else:
-            self._mode = "range"
+            self._mode = "normal"
         self._connectSlots()
         self._setupGui()
 
@@ -442,8 +442,6 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         if self._mode == "range":
             self._rangeTimereg()
         elif self._mode == "normal":
-            self._normalTimereg()
-        else:
             self._normalTimereg()
         self.notify(self.tr("Saving..."))
     

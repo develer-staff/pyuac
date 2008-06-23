@@ -70,8 +70,8 @@ class query extends atkNode
          */
 
         /*
-         * TODO: In realtà "search" non ha interessa a conoscere ore e commento
-         * quello interessa solo alla funzione di inserimento.
+         * TODO: In realtà "search" non ha interesse a conoscere ore e commento.
+         * Quello interessa solo alla funzione di inserimento.
          * Quindi quei due campi andrebbero gestiti lato client ed inviati a
          * timereg una volta controllati.
         */
@@ -83,7 +83,7 @@ class query extends atkNode
 
         $tokens = tokenize($string);
 
-        // Fill an array with all the alternatives
+        // Fill $guesses with all the alternatives
         for ($prj_len = 1; $prj_len <= sizeof($tokens); ++$prj_len)
         {
             for ($phase_len = 0; $phase_len <= sizeof($tokens) - $prj_len; ++$phase_len)

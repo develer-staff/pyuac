@@ -349,7 +349,9 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                         else:
                             _completer = []
 
-            # se ho già scritto il commento, lo aggiungo al completer
+            # se ho già scritto l'ora o il commento, lo aggiungo al completer
+            for c, v in enumerate(_completer):
+                _completer[c] = " ".join([_completer[c],  _bp.get("hmtime") or ""]).strip()
             for c, v in enumerate(_completer):
                 _completer[c] = " ".join([_completer[c], _bp.get("remark") or ""]).strip()
 

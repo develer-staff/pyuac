@@ -74,9 +74,9 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                         self._slotNewTimereg)
         self.connect(self.ui.tlbTimereg,  SIGNAL("clicked()"), 
                         self._slotNewTimereg)
-        self.connect(self.ui.btnQuit, SIGNAL("clicked()"),
-                     self._slotClose)
         self.connect(self.ui.btnToday, SIGNAL("clicked()"),
+                     lambda: self._changeDate(QDate.currentDate()))
+        self.connect(self.ui.btnThisWeek, SIGNAL("clicked()"),
                      lambda: self._changeDate(QDate.currentDate()))
         self.connect(self.ui.btnNextDay, SIGNAL("clicked()"),
                      lambda: self._changeDateDelta(1))
@@ -86,7 +86,13 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                      lambda: self._changeDateDelta(7))
         self.connect(self.ui.btnPrevWeek, SIGNAL("clicked()"),
                      lambda: self._changeDateDelta(-7))
+        self.connect(self.ui.btnNextWeek_2, SIGNAL("clicked()"),
+                     lambda: self._changeDateDelta(7))
+        self.connect(self.ui.btnPrevWeek_2, SIGNAL("clicked()"),
+                     lambda: self._changeDateDelta(-7))
         self.connect(self.ui.dateEdit, SIGNAL("dateChanged(const QDate&)"),
+                     self._slotTimereport)
+        self.connect(self.ui.dateEdit_2, SIGNAL("dateChanged(const QDate&)"),
                      self._slotTimereport)
         self.connect(self.ui.tableTimereg, SIGNAL("cellDoubleClicked(int,int)"),
                      self._slotTimeEdit)
@@ -94,6 +100,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
     def _changeDate(self, date):
         if self.ui.dateEdit.date() != date:
             self.ui.dateEdit.setDate(date)
+        if self.ui.dateEdit_2.date() != date:
+            self.ui.dateEdit_2.setDate(date)
         self._slotTimereport(date)
 
     def _changeDateDelta(self, numdays):
@@ -112,6 +120,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self.ui.tableTimereg.setHorizontalHeaderItem(c, cellHead)
         self.ui.tableTimereg.horizontalHeader().setStretchLastSection(True)
         self._changeDate(QDate.currentDate())
+        cellHead = QTreeWidgetItem("Date Project/Phase Activity Time Remark".split())
+        self.ui.treeTimereg.setHeaderItem(cellHead)
         self._menu = TimeregMenu(self)
         self.ui.tlbTimereg.setMenu(self._menu)
 

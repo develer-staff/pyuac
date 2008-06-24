@@ -4,7 +4,7 @@
 # Copyright 2006 Develer S.r.l. (http://www.develer.com/)
 # All rights reserved.
 #
-# $Id:$
+# $Id: QTimeregWindow2.py 21760 2008-06-18 10:26:17Z duplo $
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
@@ -12,12 +12,16 @@ import os, sys, copy
 
 from pyuac_utils import *
 from QRemoteTimereg import *
+from daterange import *
 
 LRU_LEN = 10
 
+#modalità che può assumere la finestra di dialogo
+MODES = ("normal",  "range")
+
 class TimeregWindow(QMainWindow, QAchievoWindow):
 
-    def __init__(self, parent, auth):
+    def __init__(self, parent, auth,  mode):
         debug("TimeregWindow.__init__")
         QMainWindow.__init__(self, parent)
         self.__setup__(auth, 'pyuac_edit.ui')
@@ -30,14 +34,28 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
 
         self._baseproject = AchievoProject()
         self._response_projects = []
+        self._registrations = 0
         self._all_ppa = {}
         self._projects = set()
+        #prova
+        self._timer = QTimer(self)
+        self._timer.setSingleShot(True)
+        #prova
+        if mode in MODES:
+            self._mode = mode
+        else:
+            self._mode = "normal"
         self._connectSlots()
         self._setupGui()
 
     def _setupGui(self):
         debug("TimeregWindow._setupGui")
-        self.ui.dateTimeregDate.setDate(QDate.currentDate())
+        if self._mode == "normal":
+            debug(__name__,  "-> loading normal TimeregWindow")
+            self._uiNormalMode()
+        elif self._mode == "range":
+            debug(__name__,  "-> loading range TimeregWindow")
+            self._uiRangeMode()
         self.ui.comboTimeWorked.clear()
         for htext in timerange(8, 15):
             self.ui.comboTimeWorked.addItem(htext)
@@ -54,6 +72,36 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             self.ui.comboPPAlru.addItem(row["ppa-%s" % self.remote.auth[1]].toString())
         self.notify(self.tr("Type something in the smartquery field or use combos."))
         self._smartQueryEdited("")
+    
+    def _uiNormalMode(self):
+        """
+        Inizializza i valori delle componenti necessarie solamente in modalità 'normal'.
+        """
+        self.ui.daterangeGroupBox.setVisible(False)
+    
+    def _uiRangeMode(self):
+        """
+        Connette le componenti necessarie solamente in modalità 'range' e ne inizializza i valori.
+        """
+        self.connect(self.ui.dateFromDateEdit,  SIGNAL("dateChanged(const QDate&)"), 
+                        self._updateDaysLabel)
+        self.connect(self.ui.dateToDateEdit,  SIGNAL("dateChanged(const QDate&)"), 
+                        self._updateDaysLabel)
+        self.connect(self.ui.monCheckBox,  SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
+        self.connect(self.ui.tueCheckBox,  SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
+        self.connect(self.ui.wedCheckBox,  SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
+        self.connect(self.ui.thuCheckBox,  SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
+        self.connect(self.ui.friCheckBox,  SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
+        self.connect(self.ui.satCheckBox,  SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
+        self.connect(self.ui.sunCheckBox,  SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
+        self.ui.dateGroupBox.setVisible(False)
 
     def _connectSlots(self):
         self.connect(self.ui.editSmartQuery, SIGNAL("textEdited(QString)"),
@@ -90,6 +138,10 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                      self._registrationDone)
         self.connect(self.remote, SIGNAL("timeregErr"),
                      self._timeregErr)
+        self.connect(self._timer, SIGNAL("timeout()"),
+                     self._smartQueryEditedRefresh)
+        self.connect(self.ui.smartTimeEdit, SIGNAL("textChanged(const QString)"),
+                     self._slotSmartTimeChanged)
 
     def _completerActivated(self, smartquery):
         smartquery = unicode(smartquery).strip()
@@ -119,7 +171,22 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         """
         debug(u"_smartQueryEdited: '%s'" % smartquery)
         smartquery = unicode(smartquery).strip()
-        self.remote.query(smartquery=smartquery)
+        self._timer.start(500)
+    
+    def _smartQueryEditedRefresh(self):
+        self.remote.query(smartquery=self.ui.editSmartQuery.text())
+    
+    def _slotSmartTimeChanged(self, text=None):
+        smartime = self.ui.smartTimeEdit.text()
+        try:
+            lapse = parse_wtime(smartime)
+            lapse = lapse[: lapse.find(":",  3)]
+        except:
+            lapse = "0:00"
+        if len(smartime):
+            self.ui.timeSumLabel.setText(lapse)
+        else:
+            self.ui.timeSumLabel.setText("0:00")
 
     def _projectsChanged(self, projects):
         """ <-- self.remote, SIGNAL("queryOK")
@@ -296,7 +363,9 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                         else:
                             _completer = []
 
-            # se ho già scritto il commento, lo aggiungo al completer
+            # se ho già scritto l'ora o il commento, lo aggiungo al completer
+            for c, v in enumerate(_completer):
+                _completer[c] = " ".join([_completer[c],  _bp.get("hmtime") or ""]).strip()
             for c, v in enumerate(_completer):
                 _completer[c] = " ".join([_completer[c], _bp.get("remark") or ""]).strip()
 
@@ -311,12 +380,40 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                 #debug("self.completer %s" % _completer)
         _updateCompleter()
 
+    def _updateDaysLabel(self):
+        """
+        Aggiorna il numero di giorni lavorativi e di giorni totali che appare a lato delle dateEdit, in modalità 'range'
+        """
+        working,  total = daysnumber(self.ui.dateFromDateEdit.date(),  self.ui.dateToDateEdit.date(),  self._getDays())
+        self.ui.daysLabel.setText("Working days: %d, Total days: %d" %(working,  total))
+    
+    def _getDays(self):
+        """
+        Ritorna una tupla di booleani, dove True sta per lavorativo e False sta per non lavorativo.
+        """
+        days = []
+        days.append(self.ui.monCheckBox.isChecked())
+        days.append(self.ui.tueCheckBox.isChecked())
+        days.append(self.ui.wedCheckBox.isChecked())
+        days.append(self.ui.thuCheckBox.isChecked())
+        days.append(self.ui.friCheckBox.isChecked())
+        days.append(self.ui.satCheckBox.isChecked())
+        days.append(self.ui.sunCheckBox.isChecked())
+        return tuple(days)
+
     def _timeregStarted(self):
         #debug("_timeregStarted")
         pass
 
     def _registrationDone(self, eresp):
         #debug("_registrationDone")
+        self._registrations -= 1
+        if not self._registrations:
+            debug("FINE DELLE TIMEREG E CHIUSURA DELLA FINESRA")
+            self.emit(SIGNAL("registrationDone"), self._baseproject)
+            self._endingRegistrations()
+    
+    def _endingRegistrations(self):
         username = self.remote.auth[1]
         lru = self.settings.getArray("lru", ["ppa-%s" % username])
         new_ppa = {"ppa-%s" % username: QVariant(self._baseproject.getPPA()+" ")}
@@ -326,10 +423,10 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         while len(lru) >= LRU_LEN:
             lru.pop()
         self.settings.setArray("lru", lru)
-        self.emit(SIGNAL("registrationDone"), self._baseproject)
         self._baseproject.reset()
         self._slotClose()
 
+    
     def _timeregErr(self):
         #debug("_timeregError")
         pass
@@ -351,12 +448,21 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self._updateComboBoxes("TimeWorked", combotext)
 
     def timereg(self):
+        """
+        Metodo chiamato per salvare le ore di lavoro: a sua volta richiama i metodi che elaborano i dati in base alla modalità di inserimento.
+        """
         if not self._baseproject.isComplete():
             self.notify(self.tr("Unable to save!"), 1000)
             return
         self.ui.btnSave.setEnabled(False)
+        if self._mode == "range":
+            self._rangeTimereg()
+        elif self._mode == "normal":
+            self._normalTimereg()
+        self.notify(self.tr("Saving..."))
+    
+    def _timereg(self,  activitydate):
         p = self._baseproject
-        activitydate = str(self.ui.dateTimeregDate.date().toString("yyyy-MM-dd"))
         p.set("activitydate", activitydate)
         params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime activitydate".split()])
         params["remark"] = p.get("remark")
@@ -365,16 +471,38 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             params["id"] = self._baseproject.get("id")
         else:
             debug("-------------> New")
+        self._registrations += 1
         self.remote.timereg(**params)
-        self.notify(self.tr("Saving..."))
+    
+    def _normalTimereg(self):
+        """
+        Metodo chiamato da timereg per registrare le ore dalla modalità 'normal'.
+        """
+        activitydate = str(self.ui.singleDateEdit.date().toString("yyyy-MM-dd"))
+        self._timereg(activitydate)
+    
+    def _rangeTimereg(self):
+        """
+        Metodo chiamato da timereg per registrare le ore dalla modalità 'range'.
+        """
+        #controllo che impedisce che le date inserite non siano consistenti
+        if self.ui.dateFromDateEdit.date() > self.ui.dateToDateEdit.date():
+            self.notify(self.tr("From date is after end date!"),  10000)
+            return
+        for date in daterange(self.ui.dateFromDateEdit.date(),  self.ui.dateToDateEdit.date(),  self._getDays()):
+            activitydate = str(date.toString("yyyy-MM-dd"))
+            self._timereg(activitydate)
 
     def setupEdit(self, project):
         self._baseproject = AchievoProject(project)
         debug("setupEdit %s" % self._baseproject)
         if not self._baseproject.isNew():
             self.ui.btnDelete.setText(self.tr("Delete"))
-        self.ui.dateTimeregDate.setDate(QDate.fromString(self._baseproject.get("activitydate"),
+        self.ui.singleDateEdit.setDate(QDate.fromString(self._baseproject.get("activitydate"),
                                                          "yyyy-MM-dd"))
+        #copia la data in tutte le dateEdit, visibili e non.
+        self.ui.dateFromDateEdit.setDate(self.ui.singleDateEdit.date())
+        self.ui.dateToDateEdit.setDate(self.ui.singleDateEdit.date())
         self._updateSmartQuery(self._baseproject.getSmartQuery())
         self.notify(self.tr("Loading..."))
 
@@ -383,11 +511,12 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             debug("-------------> Delete")
             self.remote.delete(id=self._baseproject.get("id"))
             self.notify(self.tr("Deleting..."))
+            self._registrations += 1
         else:
             debug("-------------> Reset")
             self.notify(self.tr("Resetting..."))
             self._setupGui()
-
+    
 class AchievoProject:
     """
     Classe che decora il progetto xml con alcune metodi di utilità

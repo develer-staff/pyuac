@@ -180,6 +180,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         smartime = self.ui.smartTimeEdit.text()
         try:
             lapse = parse_wtime(smartime)
+            lapse = lapse[: lapse.find(":",  3)]
         except:
             lapse = "0:00"
         if len(smartime):

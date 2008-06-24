@@ -140,6 +140,8 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                      self._timeregErr)
         self.connect(self._timer, SIGNAL("timeout()"),
                      self._smartQueryEditedRefresh)
+        self.connect(self.ui.smartTimeEdit, SIGNAL("textChanged(const QString)"),
+                     self._slotSmartTimeChanged)
 
     def _completerActivated(self, smartquery):
         smartquery = unicode(smartquery).strip()
@@ -173,6 +175,17 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
     
     def _smartQueryEditedRefresh(self):
         self.remote.query(smartquery=self.ui.editSmartQuery.text())
+    
+    def _slotSmartTimeChanged(self, text=None):
+        smartime = self.ui.smartTimeEdit.text()
+        try:
+            lapse = parse_wtime(smartime)
+        except:
+            lapse = "0:00"
+        if len(smartime):
+            self.ui.timeSumLabel.setText(lapse)
+        else:
+            self.ui.timeSumLabel.setText("0:00")
 
     def _projectsChanged(self, projects):
         """ <-- self.remote, SIGNAL("queryOK")

@@ -90,10 +90,6 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                      self._slotTimereport)
         self.connect(self.ui.tableTimereg, SIGNAL("cellDoubleClicked(int,int)"),
                      self._slotTimeEdit)
-        self.connect(self.ui.smart_time_edit, SIGNAL("textChanged(const QString)"),
-                     self._slotSmartTimeChanged)
-        self.connect(self.ui.smart_time_edit, SIGNAL("lostFocus()"),
-                     self._slotSmartTimeChanged)
 
     def _changeDate(self, date):
         if self.ui.dateEdit.date() != date:
@@ -201,17 +197,6 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.notify(self.tr("Day total: ") + "%s" % min2hmtime(total_time))
         self.ui.tableTimereg.resizeRowsToContents()
         self.ui.tlbTimereg.setEnabled(True)
-
-    def _slotSmartTimeChanged(self, text=None):
-        smartime = self.ui.smart_time_edit.text()
-        try:
-            lapse = parse_wtime(smartime)
-        except:
-            lapse = "0:00"
-        if len(smartime):
-            self.ui.time_sum_lbl.setText(lapse)
-        else:
-            self.ui.time_sum_lbl.setText("0:00")
 
 class TimeregMenu(QMenu):
     """

@@ -76,32 +76,25 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                         self._slotNewTimereg)
         self.connect(self.ui.btnToday, SIGNAL("clicked()"),
                      lambda: self._changeDate(QDate.currentDate()))
-        self.connect(self.ui.btnThisWeek, SIGNAL("clicked()"),
+        self.connect(self.ui.btnToday_2, SIGNAL("clicked()"),
                      lambda: self._changeDate(QDate.currentDate()))
-        self.connect(self.ui.btnNextDay, SIGNAL("clicked()"),
+        self.connect(self.ui.btnNext, SIGNAL("clicked()"),
                      lambda: self._changeDateDelta(1))
-        self.connect(self.ui.btnPrevDay, SIGNAL("clicked()"),
+        self.connect(self.ui.btnPrev, SIGNAL("clicked()"),
                      lambda: self._changeDateDelta(-1))
-        self.connect(self.ui.btnNextWeek, SIGNAL("clicked()"),
-                     lambda: self._changeDateDelta(7))
-        self.connect(self.ui.btnPrevWeek, SIGNAL("clicked()"),
-                     lambda: self._changeDateDelta(-7))
-        self.connect(self.ui.btnNextWeek_2, SIGNAL("clicked()"),
-                     lambda: self._changeDateDelta(7))
-        self.connect(self.ui.btnPrevWeek_2, SIGNAL("clicked()"),
-                     lambda: self._changeDateDelta(-7))
         self.connect(self.ui.dateEdit, SIGNAL("dateChanged(const QDate&)"),
-                     self._slotTimereport)
-        self.connect(self.ui.dateEdit_2, SIGNAL("dateChanged(const QDate&)"),
                      self._slotTimereport)
         self.connect(self.ui.tableTimereg, SIGNAL("cellDoubleClicked(int,int)"),
                      self._slotTimeEdit)
+        self.connect(self.ui.btnDaily, SIGNAL("clicked()"),
+                     self._slotChangeToDaily)
+        self.connect(self.ui.btnWeekly, SIGNAL("clicked()"),
+                     self._slotChangeToWeekly)
+
 
     def _changeDate(self, date):
         if self.ui.dateEdit.date() != date:
             self.ui.dateEdit.setDate(date)
-        if self.ui.dateEdit_2.date() != date:
-            self.ui.dateEdit_2.setDate(date)
         self._slotTimereport(date)
 
     def _changeDateDelta(self, numdays):
@@ -119,14 +112,28 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             cellHead = QTableWidgetItem(head)
             self.ui.tableTimereg.setHorizontalHeaderItem(c, cellHead)
         self.ui.tableTimereg.horizontalHeader().setStretchLastSection(True)
+        self.ui.tableTimereg_2.setColumnCount(7)
         for c, head in enumerate("Mon Tue Wed Thu Fri Sat Sun".split()):
             cellHead = QTableWidgetItem(head)
-            self.ui.tableTimereg.setHorizontalHeaderItem(c, cellHead)
-        self.ui.tableTimereg.horizontalHeader().setStretchLastSection(True)
-
+            self.ui.tableTimereg_2.setHorizontalHeaderItem(c, cellHead)
         self._changeDate(QDate.currentDate())
+        self.ui.tableTimereg_2.horizontalHeader().resizeMode(QHeaderView.Stretch)
+        self.ui.tableTimereg_2.horizontalHeader().resizeSections(QHeaderView.Stretch)
         self._menu = TimeregMenu(self)
         self.ui.tlbTimereg.setMenu(self._menu)
+        self._slotChangeToDaily()
+
+    def _slotChangeToWeekly(self):
+        self.ui.btnDaily.setChecked(False)
+        self.ui.btnWeekly.setChecked(True)
+        self.ui.dailyGroup.setVisible(False)
+        self.ui.weeklyGroup.setVisible(True)
+    
+    def _slotChangeToDaily(self):
+        self.ui.btnDaily.setChecked(True)
+        self.ui.btnWeekly.setChecked(False)
+        self.ui.dailyGroup.setVisible(True)
+        self.ui.weeklyGroup.setVisible(False)
 
     def _createTimeregWindow(self,  mode="range"):
         #debug("QTimeregWindow mode is %s" % mode)

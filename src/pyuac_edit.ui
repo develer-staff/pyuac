@@ -275,7 +275,6 @@
         </layout>
        </item>
       </layout>
-      <zorder>dateGroupBox</zorder>
      </widget>
     </item>
     <item>
@@ -468,19 +467,6 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="labelExactTime" >
-           <property name="sizePolicy" >
-            <sizepolicy vsizetype="Preferred" hsizetype="Fixed" >
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text" >
-            <string>00:00</string>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QComboBox" name="comboTimeWorked" />
          </item>
         </layout>
@@ -503,7 +489,6 @@
       </layout>
       <zorder>txtRemark</zorder>
       <zorder>editSmartQuery</zorder>
-      <zorder>layoutWidget</zorder>
      </widget>
     </item>
     <item>

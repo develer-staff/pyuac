@@ -59,7 +59,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self.ui.comboTimeWorked.clear()
         for htext in timerange(8, 15):
             self.ui.comboTimeWorked.addItem(htext)
-        self.ui.labelExactTime.setText("00:00")
+        #self.ui.labelExactTime.setText("00:00")
         self.ui.setWindowTitle(self.tr("Time Registration") + " - %s" % self.remote.auth[1])
         self.ui.btnDelete.setText(self.tr("Reset"))
         self.ui.txtRemark.setPlainText("")
@@ -230,7 +230,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self.ui.comboTimeWorked.setCurrentIndex(idx)
         self.ui.labelTimeWorked.setEnabled(p.get("hmtime") != "00:00")
 
-        self.ui.labelExactTime.setText(p.get("in_hmtime") or "00:00")
+        #self.ui.labelExactTime.setText(p.get("in_hmtime") or "00:00")
 
         self.ui.txtRemark.setPlainText((p.get("remark") or "").strip())
         self.ui.labelRemark.setEnabled(p.get("remark") != None)

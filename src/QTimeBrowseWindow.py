@@ -119,9 +119,12 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             cellHead = QTableWidgetItem(head)
             self.ui.tableTimereg.setHorizontalHeaderItem(c, cellHead)
         self.ui.tableTimereg.horizontalHeader().setStretchLastSection(True)
+        for c, head in enumerate("Mon Tue Wed Thu Fri Sat Sun".split()):
+            cellHead = QTableWidgetItem(head)
+            self.ui.tableTimereg.setHorizontalHeaderItem(c, cellHead)
+        self.ui.tableTimereg.horizontalHeader().setStretchLastSection(True)
+
         self._changeDate(QDate.currentDate())
-        cellHead = QTreeWidgetItem("Date Project/Phase Activity Time Remark".split())
-        self.ui.treeTimereg.setHeaderItem(cellHead)
         self._menu = TimeregMenu(self)
         self.ui.tlbTimereg.setMenu(self._menu)
 

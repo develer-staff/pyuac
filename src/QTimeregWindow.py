@@ -22,7 +22,7 @@ MODES = ("normal",  "range")
 class TimeregWindow(QMainWindow, QAchievoWindow):
 
     def __init__(self, parent, auth,  mode):
-        ##debug("TimeregWindow.__init__")
+        #debug("TimeregWindow.__init__")
         QMainWindow.__init__(self, parent)
         self.__setup__(auth, 'pyuac_edit.ui')
 
@@ -49,16 +49,16 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self._setupGui()
 
     def _setupGui(self):
-        ##debug("TimeregWindow._setupGui")
+        #debug("TimeregWindow._setupGui")
         if self._mode == "normal":
-            ##debug(__name__,  "-> loading normal TimeregWindow")
+            #debug(__name__,  "-> loading normal TimeregWindow")
             self._uiNormalMode()
         elif self._mode == "range":
-            ##debug(__name__,  "-> loading range TimeregWindow")
+            #debug(__name__,  "-> loading range TimeregWindow")
             self._uiRangeMode()
         self.ui.comboTimeWorked.clear()
         for htext in timerange(8, 15):
-            self.ui.comboTimeWorked.addItem(htext)
+            self.ui.comboTimeWorked.addItem(htext,  QVariant(hmtime2min(htext)))
         #self.ui.labelExactTime.setText("00:00")
         self.ui.setWindowTitle(self.tr("Time Registration") + " - %s" % self.remote.auth[1])
         self.ui.btnDelete.setText(self.tr("Reset"))
@@ -140,7 +140,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                      self._timeregErr)
         self.connect(self._timer, SIGNAL("timeout()"),
                      self._smartQueryEditedRefresh)
-        self.connect(self.ui.smartTimeEdit, SIGNAL("textChanged(const QString)"),
+        self.connect(self.ui.smartTimeEdit, SIGNAL("textEdited(QString)"),
                      self._slotSmartTimeChanged)
 
     def _completerActivated(self, smartquery):
@@ -152,7 +152,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         """
         Updates the smartquery starting a new query
         """
-        ##debug(u"_updateSmartQuery '%s'" % smartquery)
+        #debug(u"_updateSmartQuery '%s'" % smartquery)
         self._setSmartQuery(smartquery)
         self._smartQueryEdited(smartquery)
 
@@ -160,23 +160,23 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         """
         Updates the smartquery with no side effects
         """
-        ##debug(u"_setSmartQuery '%s'" % smartquery)
+        #debug(u"_setSmartQuery '%s'" % smartquery)
         self.ui.editSmartQuery.setText(smartquery)
-        self.ui.editSmartQuery.setFocus()
+        #self.ui.editSmartQuery.setFocus()
 
     def _smartQueryEdited(self, smartquery):
         """ <-- self.ui.editSmartQuery, SIGNAL("textEdited(QString)")
         (Emesso solo per modifiche "umane" e non da programma.)
         Avvia la query al servizio remoto di achievo tramite la cli
         """
-        ##debug(u"_smartQueryEdited: '%s'" % smartquery)
+        #debug(u"_smartQueryEdited: '%s'" % smartquery)
         smartquery = unicode(smartquery).strip()
         self._timer.start(500)
     
     def _smartQueryEditedRefresh(self):
         self.remote.query(smartquery=self.ui.editSmartQuery.text())
     
-    def _slotSmartTimeChanged(self, text=None):
+    def _slotSmartTimeChanged(self):
         smartime = self.ui.smartTimeEdit.text()
         try:
             lapse = parse_wtime(smartime)
@@ -184,24 +184,25 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         except:
             lapse = "0:00"
         if len(smartime):
-            self.ui.timeSumLabel.setText(lapse)
-        else:
-            self.ui.timeSumLabel.setText("0:00")
+            self.ui.comboTimeWorked.setCurrentIndex(self.ui.comboTimeWorked.findData(QVariant(hmtime2min(lapse))))
+            self._comboTimeWorkedActivated(self.ui.comboTimeWorked.itemText(self.ui.comboTimeWorked.currentIndex()))
+        #else:
+            #self.ui.comboTimeWorked.setCurrentIndex(1)
 
     def _projectsChanged(self, projects):
         """ <-- self.remote, SIGNAL("queryOK")
         Aggiorna lo stato interno in funzione dei progetti
         restituiti dalla ricerca in Achievo:
         """
-        ##debug("_projectsChanged %s" % len(projects))
+        #debug("_projectsChanged %s" % len(projects))
 
         self._response_projects = projects
 
         if len(self._response_projects) != 0:
-            ##debug("_baseproject.merge()")
+            #debug("_baseproject.merge()")
             self._baseproject.merge(self._response_projects)
 
-        ##debug("_projectsChanged: _baseproject %s" % self._baseproject)
+        #debug("_projectsChanged: _baseproject %s" % self._baseproject)
         self._updateGui()
         self.notify(self.tr(""))
 
@@ -374,10 +375,10 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                 self.completer.setModel(QStringListModel(_completer, self.completer))
                 self._completer_list = _completer
 
-            if combo == None and self.ui.isVisible():
+            if combo == None and self.ui.isVisible() and self.ui.editSmartQuery.hasFocus():
                 #altrimenti compare anche a finestra invisibile...
                 self.completer.complete()
-                ##debug("self.completer %s" % _completer)
+                #debug("self.completer %s" % _completer)
         _updateCompleter()
 
     def _updateDaysLabel(self):
@@ -402,11 +403,11 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         return tuple(days)
 
     def _timeregStarted(self):
-        ##debug("_timeregStarted")
+        #debug("_timeregStarted")
         pass
 
     def _registrationDone(self, eresp):
-        ##debug("_registrationDone")
+        #debug("_registrationDone")
         self._registrations -= 1
         if not self._registrations:
             #debug("FINE DELLE TIMEREG E CHIUSURA DELLA FINESRA")
@@ -428,7 +429,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
 
     
     def _timeregErr(self):
-        ##debug("_timeregError")
+        #debug("_timeregError")
         pass
 
     def _searchStarted(self):

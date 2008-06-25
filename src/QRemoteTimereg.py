@@ -15,11 +15,11 @@ from libRemoteTimereg import *
 import pyuac_cli
 
 from PyQt4 import uic
-print __name__, "from PyQt4 import uic"
+#print __name__, "from PyQt4 import uic"
 from PyQt4.QtCore import *
-print __name__, "from PyQt4.QtCore import *"
+#print __name__, "from PyQt4.QtCore import *"
 from PyQt4.QtGui import *
-print __name__, "from PyQt4.QtGui import *"
+#print __name__, "from PyQt4.QtGui import *"
 
 
 class ASettings(QSettings):
@@ -80,7 +80,7 @@ class QAchievoWindow:
             pass
 
     def _slotClose(self):
-        print "Closing..."
+        #print "Closing..."
         if "remote" in dir(self):
             self.remote.close()
         self.close()
@@ -184,7 +184,7 @@ class QRemoteTimereg(QObject):
             timeregStarted
             timereportStarted
         """
-        debug("%s <!-- Sync -->" % __name__)
+        #debug("%s <!-- Sync -->" % __name__)
         for action, cmdline in self._actions_params:
             if self._execute(cmdline):
                 self._actions_params.remove([action, cmdline])
@@ -201,7 +201,7 @@ class QRemoteTimereg(QObject):
             timereport[OK|Err](ElemetTree)
             emptyResponse
         """
-        debug("%s <!-- Ready(%s) -->" % (__name__, exitcode))
+        #debug("%s <!-- Ready(%s) -->" % (__name__, exitcode))
         if exitcode != None:
             self._error(5, exitcode)
 
@@ -213,7 +213,7 @@ class QRemoteTimereg(QObject):
             try:
                 eresp = ET.fromstring(self._resp)
             except ExpatError:
-                debug("_ready @@@%s@@@" % self._resp)
+                #debug("_ready @@@%s@@@" % self._resp)
                 raise
             node = eresp.get("node")
             msg = eresp.get("msg")
@@ -239,5 +239,5 @@ class QRemoteTimereg(QObject):
         msg  = ["Err(%s, %s):" % (process_error, exitcode)]
         msg += ["-"*20]
         msg += [errstr]
-        debug("\n".join(msg))
+        #debug("\n".join(msg))
         self.emit(SIGNAL("processError"), process_error, exitcode, errstr)

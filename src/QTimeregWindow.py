@@ -22,7 +22,7 @@ MODES = ("normal",  "range")
 class TimeregWindow(QMainWindow, QAchievoWindow):
 
     def __init__(self, parent, auth,  mode):
-        debug("TimeregWindow.__init__")
+        ##debug("TimeregWindow.__init__")
         QMainWindow.__init__(self, parent)
         self.__setup__(auth, 'pyuac_edit.ui')
 
@@ -49,12 +49,12 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self._setupGui()
 
     def _setupGui(self):
-        debug("TimeregWindow._setupGui")
+        ##debug("TimeregWindow._setupGui")
         if self._mode == "normal":
-            debug(__name__,  "-> loading normal TimeregWindow")
+            ##debug(__name__,  "-> loading normal TimeregWindow")
             self._uiNormalMode()
         elif self._mode == "range":
-            debug(__name__,  "-> loading range TimeregWindow")
+            ##debug(__name__,  "-> loading range TimeregWindow")
             self._uiRangeMode()
         self.ui.comboTimeWorked.clear()
         for htext in timerange(8, 15):
@@ -152,7 +152,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         """
         Updates the smartquery starting a new query
         """
-        debug(u"_updateSmartQuery '%s'" % smartquery)
+        ##debug(u"_updateSmartQuery '%s'" % smartquery)
         self._setSmartQuery(smartquery)
         self._smartQueryEdited(smartquery)
 
@@ -160,7 +160,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         """
         Updates the smartquery with no side effects
         """
-        debug(u"_setSmartQuery '%s'" % smartquery)
+        ##debug(u"_setSmartQuery '%s'" % smartquery)
         self.ui.editSmartQuery.setText(smartquery)
         self.ui.editSmartQuery.setFocus()
 
@@ -169,7 +169,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         (Emesso solo per modifiche "umane" e non da programma.)
         Avvia la query al servizio remoto di achievo tramite la cli
         """
-        debug(u"_smartQueryEdited: '%s'" % smartquery)
+        ##debug(u"_smartQueryEdited: '%s'" % smartquery)
         smartquery = unicode(smartquery).strip()
         self._timer.start(500)
     
@@ -193,15 +193,15 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         Aggiorna lo stato interno in funzione dei progetti
         restituiti dalla ricerca in Achievo:
         """
-        debug("_projectsChanged %s" % len(projects))
+        ##debug("_projectsChanged %s" % len(projects))
 
         self._response_projects = projects
 
         if len(self._response_projects) != 0:
-            debug("_baseproject.merge()")
+            ##debug("_baseproject.merge()")
             self._baseproject.merge(self._response_projects)
 
-        debug("_projectsChanged: _baseproject %s" % self._baseproject)
+        ##debug("_projectsChanged: _baseproject %s" % self._baseproject)
         self._updateGui()
         self.notify(self.tr(""))
 
@@ -209,7 +209,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         """
         Aggiorna lo stato visuale della gui in funzione dello stato interno
         """
-        debug("_updateGui")
+        #debug("_updateGui")
         self._updateComboBoxes()
         p = self._baseproject
         self._disableAll()
@@ -262,7 +262,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         """
         combotext = unicode(combotext)
 
-        debug("_updateComboBoxes %s %s" % (combo, combotext))
+        #debug("_updateComboBoxes %s %s" % (combo, combotext))
 
         _bp = self._baseproject
 
@@ -377,7 +377,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             if combo == None and self.ui.isVisible():
                 #altrimenti compare anche a finestra invisibile...
                 self.completer.complete()
-                #debug("self.completer %s" % _completer)
+                ##debug("self.completer %s" % _completer)
         _updateCompleter()
 
     def _updateDaysLabel(self):
@@ -402,14 +402,14 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         return tuple(days)
 
     def _timeregStarted(self):
-        #debug("_timeregStarted")
+        ##debug("_timeregStarted")
         pass
 
     def _registrationDone(self, eresp):
-        #debug("_registrationDone")
+        ##debug("_registrationDone")
         self._registrations -= 1
         if not self._registrations:
-            debug("FINE DELLE TIMEREG E CHIUSURA DELLA FINESRA")
+            #debug("FINE DELLE TIMEREG E CHIUSURA DELLA FINESRA")
             self.emit(SIGNAL("registrationDone"), self._baseproject)
             self._endingRegistrations()
     
@@ -428,11 +428,11 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
 
     
     def _timeregErr(self):
-        #debug("_timeregError")
+        ##debug("_timeregError")
         pass
 
     def _searchStarted(self):
-        debug("%s _searchStarted" % __name__)
+        #debug("%s _searchStarted" % __name__)
         self._disableAll()
 
     def _comboProjectActivated(self, combotext):
@@ -467,10 +467,10 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime activitydate".split()])
         params["remark"] = p.get("remark")
         if not self._baseproject.isNew():
-            debug("-------------> Update")
+            #debug("-------------> Update")
             params["id"] = self._baseproject.get("id")
-        else:
-            debug("-------------> New")
+        #else:
+            #debug("-------------> New")
         self._registrations += 1
         self.remote.timereg(**params)
     
@@ -495,7 +495,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
 
     def setupEdit(self, project):
         self._baseproject = AchievoProject(project)
-        debug("setupEdit %s" % self._baseproject)
+        #debug("setupEdit %s" % self._baseproject)
         if not self._baseproject.isNew():
             self.ui.btnDelete.setText(self.tr("Delete"))
         self.ui.singleDateEdit.setDate(QDate.fromString(self._baseproject.get("activitydate"),
@@ -508,12 +508,12 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
 
     def delete(self):
         if not self._baseproject.isNew():
-            debug("-------------> Delete")
+            #debug("-------------> Delete")
             self.remote.delete(id=self._baseproject.get("id"))
             self.notify(self.tr("Deleting..."))
             self._registrations += 1
         else:
-            debug("-------------> Reset")
+            #debug("-------------> Reset")
             self.notify(self.tr("Resetting..."))
             self._setupGui()
     

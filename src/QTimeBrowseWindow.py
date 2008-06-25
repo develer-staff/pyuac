@@ -29,7 +29,7 @@ class LoginDialog(QDialog, QAchievoWindow):
         self.ui.show()
 
     def login(self):
-        debug("login")
+        #debug("login")
         self.settings.setValue("achievouri", QVariant(self.ui.editAchievoUri.text())) 
         self.settings.setValue("username", QVariant(self.ui.editUsername.text()))
         auth = [self.ui.editAchievoUri.text()]
@@ -40,7 +40,7 @@ class LoginDialog(QDialog, QAchievoWindow):
         self.ui.hide()
 
     def cancel(self):
-        debug("cancel")
+        #debug("cancel")
         self.emit(SIGNAL("cancel"))
         self.ui.close()
 
@@ -126,7 +126,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.ui.tlbTimereg.setMenu(self._menu)
 
     def _createTimeregWindow(self,  mode="range"):
-        debug("QTimeregWindow mode is %s" % mode)
+        #debug("QTimeregWindow mode is %s" % mode)
         editwin = TimeregWindow(self, self.remote.auth,  mode)
         self.connect(editwin, SIGNAL("registrationDone"),
                      self._slotRegistrationDone)
@@ -149,7 +149,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         ed avvia la form di modifica
         """
         project_template = AchievoProject()
-        print self.projects[row].items()
+        #print self.projects[row].items()
         for k in project_template.keys:
             project_template.set("in_%s" % k, self.projects[row].get(k))
         for k in "id activitydate".split():
@@ -224,9 +224,9 @@ class TimeregMenu(QMenu):
                         self._normalTriggered)
     
     def _normalTriggered(self):
-        debug("normal triggered")
+        #debug("normal triggered")
         self.emit(SIGNAL("selected"), "normal")
     
     def _rangeTriggered(self):
-        debug("range triggered")
+        #debug("range triggered")
         self.emit(SIGNAL("selected"),  "range")

@@ -60,7 +60,6 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
 
     def __auth__(self, auth):
         self.__setup__(auth, 'pyuac_browse.ui')
-        self._mode = ""
         self._setupGui()
         self._connectSlots()
         self.ui.show()
@@ -193,12 +192,12 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.notify(self.tr("Searching..."))
         if self._mode == "weekly":
             days = getweek(self.ui.dateEdit.date())
+            #pulisce la tabella con la vista settimanale solamente nel caso si sia in modalità settimanale
             self.ui.tableWeekTimereg.clearContents()
         else:
             days = [self.ui.dateEdit.date()]
         for date in days:
-            reportdate = date.toString("yyyy-MM-dd")
-            self.remote.timereport(date=reportdate)
+            self.remote.timereport(date=date.toString("yyyy-MM-dd"))
 
     def _slotTimereportStarted(self):
         self.ui.tlbTimereg.setEnabled(False)
@@ -229,14 +228,13 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.ui.tlbTimereg.setEnabled(True)
 
     def _updateWeeklyTimereport(self,  eprojects):
-        self.projects = []
         if self.ui.tableWeekTimereg.rowCount() < len(eprojects):
             self.ui.tableWeekTimereg.setRowCount(len(eprojects))
         for r,  p in enumerate(eprojects):
             p = AchievoProject(p)
             column = QTableWidgetItem(" - ".join([p.get("prj"),  min2hmtime(int(p.get("time")))]))
             self.ui.tableWeekTimereg.setItem(r, QDate.fromString(p.get("activitydate").replace("-", ""),  "yyyyMMdd").dayOfWeek() - 1,  column)
-        #notify fittizia
+        #TODO: sistemare la notify in modo che dia informazioni consistenti
         self.notify("From %s to %s" %("date",  "date2"))
         self.ui.tlbTimereg.setEnabled(True)
 

@@ -60,6 +60,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
 
     def __auth__(self, auth):
         self.__setup__(auth, 'pyuac_browse.ui')
+        self._mode = ""
         self._setupGui()
         self._connectSlots()
         self.ui.show()
@@ -96,7 +97,11 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self.ui.dateEdit.setDate(date)
         self._slotTimereport(date)
 
-    def _changeDateDelta(self, numdays):
+    def _changeDateDelta(self,  direction):
+        if self._mode == "daily":
+            numdays = direction
+        elif self._mode == "weekly":
+            numdays = 7 * direction
         date = self.ui.dateEdit.date()
         date = date.addDays(numdays)
         self._changeDate(date)
@@ -122,16 +127,22 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self._slotChangeToDaily()
 
     def _slotChangeToWeekly(self):
-        self.ui.btnDaily.setChecked(False)
-        self.ui.btnWeekly.setChecked(True)
-        self.ui.dailyGroup.setVisible(False)
-        self.ui.weeklyGroup.setVisible(True)
+        if self._mode != "weekly":
+            self._mode = "weekly"
+            self.ui.btnDaily.setChecked(False)
+            self.ui.btnWeekly.setChecked(True)
+            self.ui.dailyGroup.setVisible(False)
+            self.ui.weeklyGroup.setVisible(True)
+            self._slotTimereport(self.ui.dateEdit.date())
     
     def _slotChangeToDaily(self):
-        self.ui.btnDaily.setChecked(True)
-        self.ui.btnWeekly.setChecked(False)
-        self.ui.dailyGroup.setVisible(True)
-        self.ui.weeklyGroup.setVisible(False)
+        if self._mode != "daily":
+            self._mode = "daily"
+            self.ui.btnDaily.setChecked(True)
+            self.ui.btnWeekly.setChecked(False)
+            self.ui.dailyGroup.setVisible(True)
+            self.ui.weeklyGroup.setVisible(False)
+            self._slotTimereport(self.ui.dateEdit.date())
 
     def _createTimeregWindow(self,  mode="range"):
         #debug("QTimeregWindow mode is %s" % mode)
@@ -179,20 +190,20 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         """ <-- self.ui.dateEdit, SIGNAL("dateChanged(const QDate&)")
         Starts the query to update the table contents
         """
-        reportdate = qdate.toString("yyyy-MM-dd")
         self.notify(self.tr("Searching..."))
-        self.remote.timereport(date=reportdate)
+        if self._mode == "weekly":
+            days = getweek(self.ui.dateEdit.date())
+        else:
+            days = [self.ui.dateEdit.date()]
+        for date in days:
+            reportdate = qdate.toString("yyyy-MM-dd")
+            self.remote.timereport(date=reportdate)
 
     def _slotTimereportStarted(self):
         self.ui.tlbTimereg.setEnabled(False)
         self.ui.tableTimereg.setRowCount(0)
 
-    def _slotUpdateTimereport(self, eprojects):
-        """ <-- self.remote, SIGNAL("timereportOK")
-        Aggiorna la tabella delle ore registrate
-        con la lista dei progetti restituiti da *remote*
-        Ha il side-effect di convertire time (minuti) in hmtime (ore:minuti)
-        """
+    def _updateDailyTimereport(self,  eprojects):
         self.projects = []
         self.ui.tableTimereg.setRowCount(len(eprojects))
         total_time = 0
@@ -215,6 +226,24 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.notify(self.tr("Day total: ") + "%s" % min2hmtime(total_time))
         self.ui.tableTimereg.resizeRowsToContents()
         self.ui.tlbTimereg.setEnabled(True)
+
+    def _updateWeeklyTimereport(self,  eprojects):
+        self.projects = []
+        if self.ui.tableWeekTimereg.rowCount() < len(eprojects):
+            self.ui.tableWeekTimereg.setRowCount(len(eprojects))
+        for r,  p in enumerate(eprojects):
+            self.projects.append(AchievoProject(p))
+            p = self.projects[-1]
+            column = QTableWidgetItem(" - ".join([p.get("prj"),  min2hmtime(int(p.get("time")))]))
+            self.ui.tableWeekTimereg.setItem(r, QDate.fromString(p.get("activitydate").replace("-", ""),  "yyyyMMdd").dayOfWeek() - 1,  column)
+        self.notify("From %s to %s" %("date",  "date2"))
+        self.ui.tlbTimereg.setEnabled(True)
+
+    def _slotUpdateTimereport(self, eprojects):
+        if self._mode == "daily":
+            self._updateDailyTimereport(eprojects)
+        elif self._mode == "weekly":
+            self._updateWeeklyTimereport(eprojects)
 
 class TimeregMenu(QMenu):
     """

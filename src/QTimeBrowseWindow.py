@@ -76,7 +76,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                         self._slotNewTimereg)
         self.connect(self.ui.btnToday, SIGNAL("clicked()"),
                      lambda: self._changeDate(QDate.currentDate()))
-        self.connect(self.ui.btnToday_2, SIGNAL("clicked()"),
+        self.connect(self.ui.btnThisWeek, SIGNAL("clicked()"),
                      lambda: self._changeDate(QDate.currentDate()))
         self.connect(self.ui.btnNext, SIGNAL("clicked()"),
                      lambda: self._changeDateDelta(1))
@@ -90,7 +90,6 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                      self._slotChangeToDaily)
         self.connect(self.ui.btnWeekly, SIGNAL("clicked()"),
                      self._slotChangeToWeekly)
-
 
     def _changeDate(self, date):
         if self.ui.dateEdit.date() != date:
@@ -112,13 +111,12 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             cellHead = QTableWidgetItem(head)
             self.ui.tableTimereg.setHorizontalHeaderItem(c, cellHead)
         self.ui.tableTimereg.horizontalHeader().setStretchLastSection(True)
-        self.ui.tableTimereg_2.setColumnCount(7)
+        self.ui.tableWeekTimereg.setColumnCount(7)
         for c, head in enumerate("Mon Tue Wed Thu Fri Sat Sun".split()):
             cellHead = QTableWidgetItem(head)
-            self.ui.tableTimereg_2.setHorizontalHeaderItem(c, cellHead)
+            self.ui.tableWeekTimereg.setHorizontalHeaderItem(c, cellHead)
+            self.ui.tableWeekTimereg.horizontalHeader().setResizeMode(c,  QHeaderView.Stretch)
         self._changeDate(QDate.currentDate())
-        self.ui.tableTimereg_2.horizontalHeader().resizeMode(QHeaderView.Stretch)
-        self.ui.tableTimereg_2.horizontalHeader().resizeSections(QHeaderView.Stretch)
         self._menu = TimeregMenu(self)
         self.ui.tlbTimereg.setMenu(self._menu)
         self._slotChangeToDaily()

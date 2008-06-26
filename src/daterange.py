@@ -10,7 +10,7 @@
 
 from PyQt4.QtCore import QDate
 
-DEFAULT_DAYS = (True,  True,  True,  True,  True,  False,  False)
+DEFAULT_DAYS = (True,  True,  True,  True,  True,  True,  True)
 
 def daterange(start_day,  end_day,  days=DEFAULT_DAYS):
     """
@@ -28,6 +28,10 @@ def daterange(start_day,  end_day,  days=DEFAULT_DAYS):
             yield tmp
 
 def daysnumber(start_day,  end_day,  days=DEFAULT_DAYS):
+    """
+    Returns the number of working days and total days in range
+    from *start_day* to *end_day*
+    """
     current_day = start_day
     total = 0
     working = 0
@@ -41,3 +45,11 @@ def daysnumber(start_day,  end_day,  days=DEFAULT_DAYS):
             working += 1
         total += 1
     return working,  total
+
+def getweek(day):
+    """
+    Returns a QDate generator on the week of the given day
+    """
+    first = day.addDays(-1 * day.dayOfWeek() + 1)
+    last = first.addDays(6)
+    return daterange(first,  last)

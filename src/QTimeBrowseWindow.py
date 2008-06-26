@@ -60,8 +60,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
 
     def __auth__(self, auth):
         self.__setup__(auth, 'pyuac_browse.ui')
-        self._setupGui()
         self._mode= ""
+        self._setupGui()
         self._connectSlots()
         self.ui.show()
 

@@ -134,8 +134,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self.ui.dailyGroup.setVisible(False)
             self.ui.weeklyGroup.setVisible(True)
             self._slotTimereport(self.ui.dateEdit.date())
-            self.projects = []
-    
+   
     def _slotChangeToDaily(self):
         if self._mode != "daily":
             self._mode = "daily"
@@ -194,6 +193,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.notify(self.tr("Searching..."))
         if self._mode == "weekly":
             days = getweek(self.ui.dateEdit.date())
+            self.ui.tableWeekTimereg.clearContents()
         else:
             days = [self.ui.dateEdit.date()]
         for date in days:

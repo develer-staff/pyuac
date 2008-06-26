@@ -134,6 +134,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self.ui.dailyGroup.setVisible(False)
             self.ui.weeklyGroup.setVisible(True)
             self._slotTimereport(self.ui.dateEdit.date())
+            self.projects = []
     
     def _slotChangeToDaily(self):
         if self._mode != "daily":
@@ -196,7 +197,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         else:
             days = [self.ui.dateEdit.date()]
         for date in days:
-            reportdate = qdate.toString("yyyy-MM-dd")
+            reportdate = date.toString("yyyy-MM-dd")
             self.remote.timereport(date=reportdate)
 
     def _slotTimereportStarted(self):
@@ -232,10 +233,10 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         if self.ui.tableWeekTimereg.rowCount() < len(eprojects):
             self.ui.tableWeekTimereg.setRowCount(len(eprojects))
         for r,  p in enumerate(eprojects):
-            self.projects.append(AchievoProject(p))
-            p = self.projects[-1]
+            p = AchievoProject(p)
             column = QTableWidgetItem(" - ".join([p.get("prj"),  min2hmtime(int(p.get("time")))]))
             self.ui.tableWeekTimereg.setItem(r, QDate.fromString(p.get("activitydate").replace("-", ""),  "yyyyMMdd").dayOfWeek() - 1,  column)
+        #notify fittizia
         self.notify("From %s to %s" %("date",  "date2"))
         self.ui.tlbTimereg.setEnabled(True)
 

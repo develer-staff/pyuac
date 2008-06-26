@@ -117,6 +117,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self.ui.tableTimereg.setHorizontalHeaderItem(c, cellHead)
         self.ui.tableTimereg.horizontalHeader().setStretchLastSection(True)
         self.ui.tableWeekTimereg.setColumnCount(7)
+        #TODO: aggiungere alle label la data (o perlomeno giorno/mese)
         for c, head in enumerate("Mon Tue Wed Thu Fri Sat Sun".split()):
             cellHead = QTableWidgetItem(head)
             self.ui.tableWeekTimereg.setHorizontalHeaderItem(c, cellHead)
@@ -235,7 +236,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             p = AchievoProject(p)
             column = QTableWidgetItem(" - ".join([p.get("prj"),  min2hmtime(int(p.get("time")))]))
             self.ui.tableWeekTimereg.setItem(r, QDate.fromString(p.get("activitydate").replace("-", ""),  "yyyyMMdd").dayOfWeek() - 1,  column)
-        #TODO: sistemare la notify in modo che dia informazioni consistenti
+        #TODO: sistemare la notify in modo che dia informazioni utili
         self.notify("From %s to %s" %("date",  "date2"))
         self.ui.tlbTimereg.setEnabled(True)
 

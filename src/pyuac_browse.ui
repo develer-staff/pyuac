@@ -295,7 +295,7 @@
           <enum>QAbstractItemView::SingleSelection</enum>
          </property>
          <property name="selectionBehavior" >
-          <enum>QAbstractItemView::SelectRows</enum>
+          <enum>QAbstractItemView::SelectItems</enum>
          </property>
         </widget>
        </item>
@@ -315,7 +315,7 @@
             </font>
            </property>
            <property name="text" >
-            <string>Double click on a row to edit or delete</string>
+            <string>Double click on a cell to edit or delete</string>
            </property>
            <property name="alignment" >
             <set>Qt::AlignCenter</set>

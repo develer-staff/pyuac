@@ -256,7 +256,7 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QPushButton" name="btnToday_2" >
+          <widget class="QPushButton" name="btnThisWeek" >
            <property name="sizePolicy" >
             <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
              <horstretch>0</horstretch>
@@ -264,7 +264,7 @@
             </sizepolicy>
            </property>
            <property name="text" >
-            <string>Today</string>
+            <string>This week</string>
            </property>
           </widget>
          </item>
@@ -284,7 +284,7 @@
         </layout>
        </item>
        <item>
-        <widget class="QTableWidget" name="tableTimereg_2" >
+        <widget class="QTableWidget" name="tableWeekTimereg" >
          <property name="editTriggers" >
           <set>QAbstractItemView::NoEditTriggers</set>
          </property>
@@ -341,14 +341,10 @@
      </widget>
     </item>
    </layout>
-   <zorder>toolBox</zorder>
-   <zorder>tabCalendar</zorder>
    <zorder></zorder>
-   <zorder>tableTimereg</zorder>
    <zorder></zorder>
    <zorder>dailyGroup</zorder>
    <zorder>weeklyGroup</zorder>
-   <zorder>horizontalLayoutWidget</zorder>
   </widget>
   <widget class="QStatusBar" name="statusBar" >
    <property name="geometry" >

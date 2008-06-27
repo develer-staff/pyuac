@@ -495,7 +495,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             self._timereg(activitydate)
 
     def setupEdit(self, project):
-        self._baseproject = AchievoProject(project)
+        self._baseproject = AchievoProject(project.data)
         #debug("setupEdit %s" % self._baseproject)
         if not self._baseproject.isNew():
             self.ui.btnDelete.setText(self.tr("Delete"))

@@ -15,7 +15,6 @@ del toolbutton della MainWindow.
 import os, sys
 
 from pyuac_utils import *
-
 from QRemoteTimereg import *
 from QTimeregWindow import *
 
@@ -85,7 +84,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self._mode= ""
         self._setupGui()
         self._connectSlots()
-        self.ui.show()
+        self.ui.showMaximized()
 
     def _connectSlots(self):
         """
@@ -302,7 +301,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             p.set("hmtime", hmtime)
             total_time += int(p.get("time"))
             row.append(QTableWidgetItem(hmtime))
-            row.append(QTableWidgetItem("\n"+p.get("remark")+"\n"))
+            row.append(QTableWidgetItem("\n" + p.get("remark") + "\n"))
             for c, cell in enumerate(row):
                 self.ui.tableTimereg.setItem(r, c, cell)
                 if c != 4:
@@ -324,7 +323,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             p = AchievoProject(p)
             hmtime = min2hmtime(int(p.get("time")))
             p.set("hmtime", hmtime)
-            item = QTableWidgetItem(" - ".join([p.get("prj"),  hmtime]))
+            item = QTableWidgetItem("\n" + "\n".join([p.get("prj"),  hmtime]) + "\n")
             c = QDate.fromString(p.get("activitydate").replace("-", ""),  "yyyyMMdd").dayOfWeek() - 1
             if c not in self.projects.keys():
                 self.projects[c] = {}
@@ -332,6 +331,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self.ui.tableWeekTimereg.setItem(r, c, item)
         #TODO: sistemare la notify in modo che dia informazioni utili
         self.notify("From %s to %s" %("date",  "date2"))
+        self.ui.tableTimereg.resizeRowsToContents()
         self.ui.tlbTimereg.setEnabled(True)
 
     def _slotUpdateTimereport(self, eprojects):

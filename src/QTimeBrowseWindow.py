@@ -87,6 +87,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                      self._slotTimereport)
         self.connect(self.ui.tableTimereg, SIGNAL("cellDoubleClicked(int,int)"),
                      self._slotTimeEdit)
+        self.connect(self.ui.tableWeekTimereg, SIGNAL("cellDoubleClicked(int,int)"),
+                     self._slotTimeEdit)
         self.connect(self.ui.btnDaily, SIGNAL("clicked()"),
                      self._slotChangeToDaily)
         self.connect(self.ui.btnWeekly, SIGNAL("clicked()"),
@@ -170,10 +172,18 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         """
         project_template = AchievoProject()
         #print self.projects[row].items()
-        for k in project_template.keys:
-            project_template.set("in_%s" % k, self.projects[row].get(k))
-        for k in "id activitydate".split():
-            project_template.set(k, self.projects[row].get(k))
+        if self._mode == "daily":
+            for k in project_template.keys:
+                project_template.set("in_%s" % k, self.projects[row].get(k))
+            for k in "id activitydate".split():
+                self.projects[row].get(k)
+                project_template.set(k, self.projects[row].get(k))
+        elif self._mode == "weekly":
+            print row,  column
+            for k in project_template.keys:
+                project_template.set("in_%s" % k, self.projects[column][row].get(k))
+            for k in "id activitydate".split():
+                project_template.set(k, self.projects[column][row].get(k))
         editwin = self._createTimeregWindow("normal")
         editwin.setupEdit(project_template.data)
         editwin.show()
@@ -196,8 +206,10 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             days = getweek(self.ui.dateEdit.date())
             #pulisce la tabella con la vista settimanale solamente nel caso si sia in modalità settimanale
             self.ui.tableWeekTimereg.clearContents()
+            self.projects = {}
         else:
             days = [self.ui.dateEdit.date()]
+            self.projects = {}
         for date in days:
             self.remote.timereport(date=date.toString("yyyy-MM-dd"))
 
@@ -206,12 +218,11 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.ui.tableTimereg.setRowCount(0)
 
     def _updateDailyTimereport(self,  eprojects):
-        self.projects = []
         self.ui.tableTimereg.setRowCount(len(eprojects))
         total_time = 0
         for r, p in enumerate(eprojects):
-            self.projects.append(AchievoProject(p))
-            p = self.projects[-1]
+            self.projects[r] = AchievoProject(p)
+            p = self.projects[r]
             row = []
             row.append(QTableWidgetItem(p.get("activitydate")))
             row.append(QTableWidgetItem("%s / %s" % (p.get("prj"), p.get("pha"))))
@@ -234,8 +245,14 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self.ui.tableWeekTimereg.setRowCount(len(eprojects))
         for r,  p in enumerate(eprojects):
             p = AchievoProject(p)
-            column = QTableWidgetItem(" - ".join([p.get("prj"),  min2hmtime(int(p.get("time")))]))
-            self.ui.tableWeekTimereg.setItem(r, QDate.fromString(p.get("activitydate").replace("-", ""),  "yyyyMMdd").dayOfWeek() - 1,  column)
+            hmtime = min2hmtime(int(p.get("time")))
+            p.set("hmtime", hmtime)
+            item = QTableWidgetItem(" - ".join([p.get("prj"),  hmtime]))
+            c = QDate.fromString(p.get("activitydate").replace("-", ""),  "yyyyMMdd").dayOfWeek() - 1
+            if c not in self.projects.keys():
+                self.projects[c] = {}
+            self.projects[c][r] = p
+            self.ui.tableWeekTimereg.setItem(r, c, item)
         #TODO: sistemare la notify in modo che dia informazioni utili
         self.notify("From %s to %s" %("date",  "date2"))
         self.ui.tlbTimereg.setEnabled(True)

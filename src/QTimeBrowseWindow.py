@@ -178,12 +178,13 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             for k in "id activitydate".split():
                 self.projects[row].get(k)
                 project_template.set(k, self.projects[row].get(k))
-        elif self._mode == "weekly":
-            print row,  column
+        elif self._mode == "weekly" and self.projects.has_key(column) and self.projects[column].has_key(row):
             for k in project_template.keys:
                 project_template.set("in_%s" % k, self.projects[column][row].get(k))
             for k in "id activitydate".split():
                 project_template.set(k, self.projects[column][row].get(k))
+        else:
+            return
         editwin = self._createTimeregWindow("normal")
         editwin.setupEdit(project_template.data)
         editwin.show()

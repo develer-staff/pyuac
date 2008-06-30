@@ -51,14 +51,14 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
     def _setupGui(self):
         #debug("TimeregWindow._setupGui")
         if self._mode == "single":
-            #debug(__name__,  "-> loading single TimeregWindow")
+            #debug(__name__, "-> loading single TimeregWindow")
             self._uisingleMode()
         elif self._mode == "range":
-            #debug(__name__,  "-> loading range TimeregWindow")
+            #debug(__name__, "-> loading range TimeregWindow")
             self._uiRangeMode()
         self.ui.comboTimeWorked.clear()
         for htext in timerange(8, 15):
-            self.ui.comboTimeWorked.addItem(htext,  QVariant(hmtime2min(htext)))
+            self.ui.comboTimeWorked.addItem(htext, QVariant(hmtime2min(htext)))
         #self.ui.labelExactTime.setText("00:00")
         self.ui.setWindowTitle(self.tr("Time Registration") + " - %s" % self.remote.auth[1])
         self.ui.btnDelete.setText(self.tr("Reset"))
@@ -83,23 +83,23 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         """
         Connette le componenti necessarie solamente in modalità 'range' e ne inizializza i valori.
         """
-        self.connect(self.ui.dateFromDateEdit,  SIGNAL("dateChanged(const QDate&)"), 
+        self.connect(self.ui.dateFromDateEdit, SIGNAL("dateChanged(const QDate&)"), 
                         self._updateDaysLabel)
-        self.connect(self.ui.dateToDateEdit,  SIGNAL("dateChanged(const QDate&)"), 
+        self.connect(self.ui.dateToDateEdit, SIGNAL("dateChanged(const QDate&)"), 
                         self._updateDaysLabel)
-        self.connect(self.ui.monCheckBox,  SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.monCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
-        self.connect(self.ui.tueCheckBox,  SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.tueCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
-        self.connect(self.ui.wedCheckBox,  SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.wedCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
-        self.connect(self.ui.thuCheckBox,  SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.thuCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
-        self.connect(self.ui.friCheckBox,  SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.friCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
-        self.connect(self.ui.satCheckBox,  SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.satCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
-        self.connect(self.ui.sunCheckBox,  SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.sunCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
         self.ui.dateGroupBox.setVisible(False)
 
@@ -180,7 +180,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         smartime = self.ui.smartTimeEdit.text()
         try:
             lapse = parse_wtime(smartime)
-            lapse = lapse[: lapse.find(":",  3)]
+            lapse = lapse[: lapse.find(":", 3)]
         except:
             lapse = "0:00"
         if len(smartime):
@@ -366,7 +366,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
 
             # se ho già scritto l'ora o il commento, lo aggiungo al completer
             for c, v in enumerate(_completer):
-                _completer[c] = " ".join([_completer[c],  _bp.get("hmtime") or ""]).strip()
+                _completer[c] = " ".join([_completer[c], _bp.get("hmtime") or ""]).strip()
             for c, v in enumerate(_completer):
                 _completer[c] = " ".join([_completer[c], _bp.get("remark") or ""]).strip()
 
@@ -385,8 +385,8 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         """
         Aggiorna il numero di giorni lavorativi e di giorni totali che appare a lato delle dateEdit, in modalità 'range'
         """
-        working,  total = daysnumber(self.ui.dateFromDateEdit.date(),  self.ui.dateToDateEdit.date(),  self._getDays())
-        self.ui.daysLabel.setText("Working days: %d, Total days: %d" %(working,  total))
+        working, total = daysnumber(self.ui.dateFromDateEdit.date(), self.ui.dateToDateEdit.date(), self._getDays())
+        self.ui.daysLabel.setText("Working days: %d, Total days: %d" %(working, total))
     
     def _getDays(self):
         """
@@ -450,7 +450,8 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
 
     def timereg(self):
         """
-        Metodo chiamato per salvare le ore di lavoro: a sua volta richiama i metodi che elaborano i dati in base alla modalità di inserimento.
+        Metodo chiamato per salvare le ore di lavoro: a sua volta richiama i metodi che elaborano i
+        dati in base alla modalità di inserimento.
         """
         if not self._baseproject.isComplete():
             self.notify(self.tr("Unable to save!"), 1000)
@@ -462,7 +463,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             self._singleTimereg()
         self.notify(self.tr("Saving..."))
     
-    def _timereg(self,  activitydate):
+    def _timereg(self, activitydate):
         p = self._baseproject
         p.set("activitydate", activitydate)
         params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime activitydate".split()])
@@ -488,9 +489,9 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         """
         #controllo che impedisce che le date inserite non siano consistenti
         if self.ui.dateFromDateEdit.date() > self.ui.dateToDateEdit.date():
-            self.notify(self.tr("From date is after end date!"),  10000)
+            self.notify(self.tr("From date is after end date!"), 10000)
             return
-        for date in daterange(self.ui.dateFromDateEdit.date(),  self.ui.dateToDateEdit.date(),  self._getDays()):
+        for date in daterange(self.ui.dateFromDateEdit.date(), self.ui.dateToDateEdit.date(), self._getDays()):
             activitydate = str(date.toString("yyyy-MM-dd"))
             self._timereg(activitydate)
 

@@ -162,7 +162,7 @@
          <item>
           <widget class="QCheckBox" name="monCheckBox" >
            <property name="text" >
-            <string>&amp;Monday</string>
+            <string/>
            </property>
            <property name="checked" >
             <bool>true</bool>
@@ -172,7 +172,7 @@
          <item>
           <widget class="QCheckBox" name="tueCheckBox" >
            <property name="text" >
-            <string>T&amp;uesday</string>
+            <string/>
            </property>
            <property name="checked" >
             <bool>true</bool>
@@ -182,7 +182,7 @@
          <item>
           <widget class="QCheckBox" name="wedCheckBox" >
            <property name="text" >
-            <string>&amp;Wednesday</string>
+            <string/>
            </property>
            <property name="checked" >
             <bool>true</bool>
@@ -192,7 +192,7 @@
          <item>
           <widget class="QCheckBox" name="thuCheckBox" >
            <property name="text" >
-            <string>T&amp;hursday</string>
+            <string/>
            </property>
            <property name="checked" >
             <bool>true</bool>
@@ -202,7 +202,7 @@
          <item>
           <widget class="QCheckBox" name="friCheckBox" >
            <property name="text" >
-            <string>&amp;Friday</string>
+            <string/>
            </property>
            <property name="checked" >
             <bool>true</bool>
@@ -212,7 +212,7 @@
          <item>
           <widget class="QCheckBox" name="satCheckBox" >
            <property name="text" >
-            <string>&amp;Saturday</string>
+            <string/>
            </property>
            <property name="checked" >
             <bool>true</bool>
@@ -222,7 +222,7 @@
          <item>
           <widget class="QCheckBox" name="sunCheckBox" >
            <property name="text" >
-            <string>Su&amp;nday</string>
+            <string/>
            </property>
            <property name="checked" >
             <bool>true</bool>

@@ -87,20 +87,30 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                         self._updateDaysLabel)
         self.connect(self.ui.dateToDateEdit, SIGNAL("dateChanged(const QDate&)"), 
                         self._updateDaysLabel)
+        checkBoxes = []
+        checkBoxes.append(self.ui.monCheckBox)
         self.connect(self.ui.monCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
+        checkBoxes.append(self.ui.tueCheckBox)
         self.connect(self.ui.tueCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
+        checkBoxes.append(self.ui.wedCheckBox)
         self.connect(self.ui.wedCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
+        checkBoxes.append(self.ui.thuCheckBox)
         self.connect(self.ui.thuCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
+        checkBoxes.append(self.ui.friCheckBox)
         self.connect(self.ui.friCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
+        checkBoxes.append(self.ui.satCheckBox)
         self.connect(self.ui.satCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
+        checkBoxes.append(self.ui.sunCheckBox)
         self.connect(self.ui.sunCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
+        for i, checkBox in enumerate(checkBoxes):
+            checkBox.setText(unicode(QDate.longDayName(i + 1)).capitalize())
         self.ui.dateGroupBox.setVisible(False)
 
     def _connectSlots(self):

@@ -172,11 +172,11 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         """
         if self._mode != "weekly":
             self._mode = "weekly"
-            self.ui.btnDaily.setChecked(False)
-            self.ui.btnWeekly.setChecked(True)
             self.ui.dailyGroup.setVisible(False)
             self.ui.weeklyGroup.setVisible(True)
             self._slotTimereport(self.ui.dateEdit.date())
+        self.ui.btnDaily.setChecked(False)
+        self.ui.btnWeekly.setChecked(True)
    
     def _slotChangeToDaily(self):
         """
@@ -184,11 +184,12 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         """
         if self._mode != "daily":
             self._mode = "daily"
-            self.ui.btnDaily.setChecked(True)
-            self.ui.btnWeekly.setChecked(False)
             self.ui.dailyGroup.setVisible(True)
             self.ui.weeklyGroup.setVisible(False)
             self._slotTimereport(self.ui.dateEdit.date())
+        self.ui.btnDaily.setChecked(True)
+        self.ui.btnWeekly.setChecked(False)
+
 
     def _createTimeregWindow(self, mode):
         """

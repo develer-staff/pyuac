@@ -333,13 +333,15 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             p = AchievoProject(p)
             hmtime = min2hmtime(int(p.get("time")))
             p.set("hmtime", hmtime)
-            item = QTableWidgetItem("\n" + "\n".join([p.get("prj"), hmtime]) + "\n")
+            item = QTableWidgetItem("\n".join([p.get("prj"), p.get("pha") + " / " + p.get("act"), hmtime]))
             c = QDate.fromString(p.get("activitydate").replace("-", ""), "yyyyMMdd").dayOfWeek() - 1
             self.projects[c][r] = p
             self.ui.tableWeekTimereg.setItem(r, c, item)
+            self.ui.tableWeekTimereg.item(r, c).setTextAlignment(Qt.AlignHCenter)
+            self.ui.tableWeekTimereg.resizeRowToContents(r)
         #TODO: sistemare la notify in modo che dia informazioni utili
         self.notify("From %s to %s" %("date", "date2"))
-        self.ui.tableTimereg.resizeRowsToContents()
+        #self.ui.tableTimereg.resizeRowsToContents()
         self.ui.tlbTimereg.setEnabled(True)
 
     def _slotUpdateTimereport(self, eprojects):

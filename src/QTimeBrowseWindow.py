@@ -8,8 +8,8 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 """
-Modulo contenente il codice della MainWindow di pyuac (TimeBrowseWindow), della finestra di login (LoginDialog) e del menù
-del toolbutton della MainWindow.
+Modulo contenente il codice della MainWindow di pyuac (TimeBrowseWindow), della finestra di login
+(LoginDialog) e del menù del toolbutton della MainWindow.
 """
 
 import os, sys
@@ -38,8 +38,9 @@ class LoginDialog(QDialog, QAchievoWindow):
 
     def login(self):
         """
-        Memorizza i valori di achievouri e username in un ASettings e emette il segnale 'login' passando una
-        lista contenente achievouri, username e password (auth) dopodiché nasconde la finestra.
+        Memorizza i valori di achievouri e username in un ASettings e emette il segnale 'login' 
+        passando una lista contenente achievouri, username e password (auth) dopodiché nasconde la 
+        finestra.
         """
         self.settings.setValue("achievouri", QVariant(self.ui.editAchievoUri.text())) 
         self.settings.setValue("username", QVariant(self.ui.editUsername.text()))
@@ -126,12 +127,13 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self.ui.dateEdit.setDate(date)
         self._slotTimereport(date)
 
-    def _changeDateDelta(self,  direction):
+    def _changeDateDelta(self, direction):
         """
-        Modifica la data a partire dalla data della vista corente e aggiungendo (o rimuovendo) uno (sette) giorni.
-        Questo metodo ha un effetto diverso a seconda della modalità di visualizzazione. In modalità 'daily' permette di
-        raggiungere il giorno precedente o successivo a quello corrente; in modalità 'weekly' permette di scorrere alla
-        settimana precedente o successiva.
+        Modifica la data a partire dalla data della vista corente e aggiungendo (o rimuovendo) uno 
+        (sette) giorni. Questo metodo ha un effetto diverso a seconda della modalità di 
+        visualizzazione. In modalità 'daily' permette di raggiungere il giorno precedente o successivo 
+        a quello corrente; in modalità 'weekly' permette di scorrere alla settimana precedente o 
+        successiva.
         :param direction: intero, può contenere 1 o -1 a seconda che si necessiti di andare avanti o dietro.
         """
         if self._mode == "daily":
@@ -153,10 +155,10 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.ui.tableTimereg.horizontalHeader().setStretchLastSection(True)
         self.ui.tableWeekTimereg.setColumnCount(7)
         #TODO: aggiungere alle label la data (o perlomeno giorno/mese)
-        for c, head in enumerate("Mon Tue Wed Thu Fri Sat Sun".split()):
-            cellHead = QTableWidgetItem(head)
+        for c in range(7):
+            cellHead = QTableWidgetItem()
             self.ui.tableWeekTimereg.setHorizontalHeaderItem(c, cellHead)
-            self.ui.tableWeekTimereg.horizontalHeader().setResizeMode(c,  QHeaderView.Stretch)
+            self.ui.tableWeekTimereg.horizontalHeader().setResizeMode(c, QHeaderView.Stretch)
         self._changeDate(QDate.currentDate())
         self._menu = TimeregMenu(self)
         self.ui.tlbTimereg.setMenu(self._menu)
@@ -186,17 +188,17 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self.ui.weeklyGroup.setVisible(False)
             self._slotTimereport(self.ui.dateEdit.date())
 
-    def _createTimeregWindow(self,  mode):
+    def _createTimeregWindow(self, mode):
         """
         Costruisce una TimeregWindow e la restituisce al chiamante.
         :param mode: modalità di inserimento ore ('normal' o 'range').
         """
-        editwin = TimeregWindow(self, self.remote.auth,  mode)
+        editwin = TimeregWindow(self, self.remote.auth, mode)
         self.connect(editwin, SIGNAL("registrationDone"),
                      self._slotRegistrationDone)
         return editwin
 
-    def _slotNewTimereg(self,  mode="normal"):
+    def _slotNewTimereg(self, mode="normal"):
         """
         Slot attivato quando viene utilizzato self.ui.tlbTimereg.
         :param mode: modalità di inserimento ore ('normal' o 'range')
@@ -210,8 +212,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
 
     def _slotTimeEdit(self, row, column):
         """
-        Slot attivato da self.ui.tableTimereg, SIGNAL("cellDoubleClicked(int,int)"). Prepara un template con
-        i dati della riga selezionata ed avvia la form di modifica (modalità 'normal').
+        Slot attivato da self.ui.tableTimereg, SIGNAL("cellDoubleClicked(int,int)"). Prepara un 
+        template con i dati della riga selezionata ed avvia la form di modifica (modalità 'normal').
         :param row: intero, cordinata verticale della cella su cui si è clickato.
         :param column: intero, cordinata orizzontale della della su cui si è clickato.
         """
@@ -219,7 +221,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         if self._mode == "daily":
             project = self.projects[row]
         #modalità corrente: 'weekly'
-        elif self._mode == "weekly" and self.projects.has_key(column) and self.projects[column].has_key(row):
+        elif self._mode == "weekly" and column in self.projects.keys() \\
+                                                and row in self.projects[column].keys():
             project = self.projects[column][row]
         #se si è in modalità 'weekly' e si doppioclicka su una cella vuota il programma non fa niente.
         else:
@@ -232,7 +235,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
 
     def _createProjectTemplate(self, project):
         """
-        Crea e restituisce un AchievoProject contenente le chiavi e i valori del progetto passato come parametro.
+        Crea e restituisce un AchievoProject contenente le chiavi e i valori del progetto passato 
+        come parametro.
         :param project: AchievoProject contenente una sola registrazione di ore.
         """
         project_template = AchievoProject()
@@ -245,7 +249,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
 
     def _slotRegistrationDone(self, eresp):
         """
-        Slot attivato da editwin, SIGNAL("registrationDone"). Fa il refresh della vista dopo il nuovo inserimento.
+        Slot attivato da editwin, SIGNAL("registrationDone"). Fa il refresh della vista dopo il nuovo
+        inserimento.
         :param eresp: ElementTree, contiene la risposta del server all'inserimento ore appena terminato.
         """
         print type(eresp)
@@ -256,8 +261,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
 
     def _slotTimereport(self, qdate):
         """
-        Slot attivato da self.ui.dateEdit, SIGNAL("dateChanged(const QDate&)"). Una volta modificata la data corrente
-        invia la query al server per aggiornare le viste alla nuova data.
+        Slot attivato da self.ui.dateEdit, SIGNAL("dateChanged(const QDate&)"). Una volta modificata
+        la data corrente invia la query al server per aggiornare le viste alla nuova data.
         :param qdate: QDate contenente la nuova data da inserire nella query.
         """
         self.notify(self.tr("Searching..."))
@@ -265,6 +270,9 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         if self._mode == "weekly":
             days = getweek(self.ui.dateEdit.date())
             self.ui.tableWeekTimereg.clearContents()
+            for c, day in enumerate(getweek(qdate)):
+                self.ui.tableWeekTimereg.horizontalHeaderItem(c).setText(QDate.longDayName(
+                                                day.dayOfWeek())[:3] + " " + day.toString("dd-MM-yyyy"))
             self.projects = {}
         #pulisce la tabella con la vista giornaliera colamente nel caso si sia in modalità 'daily'
         else:
@@ -276,17 +284,17 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
 
     def _slotTimereportStarted(self):
         """
-        Slot attivato da self.remote, SIGNAL("timereportStarted"). Disabilita il pulsante self.ui.tlbTimereg durante
-        l'attesa della risposta dal server.
+        Slot attivato da self.remote, SIGNAL("timereportStarted"). Disabilita il pulsante 
+        self.ui.tlbTimereg durante l'attesa della risposta dal server.
         """
         self.ui.tlbTimereg.setEnabled(False)
 
-    def _updateDailyTimereport(self,  eprojects):
+    def _updateDailyTimereport(self, eprojects):
         """
-        Metodo chiamato da self._slotUpdateTimereport. Aggiunge le ore registrate nella variabile di istanza self.projects
-        nell'ordine in cui arrivano.
-        :param eprojects: ElementTree, contiene la risposta dal server con la lista di tutte le ore registrate nell'arco della
-        giornata.
+        Metodo chiamato da self._slotUpdateTimereport. Aggiunge le ore registrate nella variabile di
+        istanza self.projects nell'ordine in cui arrivano.
+        :param eprojects: ElementTree, contiene la risposta dal server con la lista di tutte le ore
+        registrate nell'arco della giornata.
         """
         self.ui.tableTimereg.setRowCount(len(eprojects))
         total_time = 0
@@ -310,34 +318,36 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.ui.tableTimereg.resizeRowsToContents()
         self.ui.tlbTimereg.setEnabled(True)
 
-    def _updateWeeklyTimereport(self,  eprojects):
+    def _updateWeeklyTimereport(self, eprojects):
         """
-        Metodo chiamato da self._slotUpdateTimereport. Aggiunge le ore registrate, giorno per giorno,nella variabile di istanza
-        self.projects nell'ordine in cui arrivano dal server.
-        :param eprojects: lista di ElementTree, contiene la risposta dal server con la lista di tutte le ore registrate nell'arco di
-        una data giornata.
+        Metodo chiamato da self._slotUpdateTimereport. Aggiunge le ore registrate, giorno per giorno,
+        nella variabile di istanza self.projects nell'ordine in cui arrivano dal server.
+        :param eprojects: lista di ElementTree, contiene la risposta dal server con la lista di tutte
+        le ore registrate nell'arco di una data giornata.
         """
         if self.ui.tableWeekTimereg.rowCount() < len(eprojects):
             self.ui.tableWeekTimereg.setRowCount(len(eprojects))
-        for r,  p in enumerate(eprojects):
+        for r, p in enumerate(eprojects):
             p = AchievoProject(p)
             hmtime = min2hmtime(int(p.get("time")))
             p.set("hmtime", hmtime)
-            item = QTableWidgetItem("\n" + "\n".join([p.get("prj"),  hmtime]) + "\n")
-            c = QDate.fromString(p.get("activitydate").replace("-", ""),  "yyyyMMdd").dayOfWeek() - 1
+            item = QTableWidgetItem("\n" + "\n".join([p.get("prj"), hmtime]) + "\n")
+            c = QDate.fromString(p.get("activitydate").replace("-", ""), "yyyyMMdd").dayOfWeek() - 1
             if c not in self.projects.keys():
                 self.projects[c] = {}
             self.projects[c][r] = p
             self.ui.tableWeekTimereg.setItem(r, c, item)
         #TODO: sistemare la notify in modo che dia informazioni utili
-        self.notify("From %s to %s" %("date",  "date2"))
+        self.notify("From %s to %s" %("date", "date2"))
         self.ui.tableTimereg.resizeRowsToContents()
         self.ui.tlbTimereg.setEnabled(True)
 
     def _slotUpdateTimereport(self, eprojects):
         """
-        Slot attivato da self.remote, SIGNAL("timereportOK"). Chiama il metodo corretto per aggiornare l'interfaccia corrente.
-        :param eprojects: lista di ElementTree, contiene la risposta dal server con una lista di ore registrate.
+        Slot attivato da self.remote, SIGNAL("timereportOK"). Chiama il metodo corretto per aggiornare
+        l'interfaccia corrente.
+        :param eprojects: lista di ElementTree, contiene la risposta dal server con una lista di ore
+        registrate.
         """
         if self._mode == "daily":
             self._updateDailyTimereport(eprojects)
@@ -350,12 +360,12 @@ class TimeregMenu(QMenu):
     """
     
     def __init__(self,  parent = None):
-        QMenu.__init__(self,  parent)
+        QMenu.__init__(self, parent)
         self._normal = self.addAction("Normal editing mode")
         self._range = self.addAction("Range editing mode")
-        self.connect(self._normal,  SIGNAL("triggered(bool)"), 
+        self.connect(self._normal, SIGNAL("triggered(bool)"), 
                         self._normalTriggered)
-        self.connect(self._range,  SIGNAL("triggered(bool)"), 
+        self.connect(self._range, SIGNAL("triggered(bool)"), 
                         self._rangeTriggered)
         self.connect(self,  SIGNAL("clicked()"), 
                         self._normalTriggered)
@@ -364,4 +374,4 @@ class TimeregMenu(QMenu):
         self.emit(SIGNAL("selected"), "normal")
     
     def _rangeTriggered(self):
-        self.emit(SIGNAL("selected"),  "range")
+        self.emit(SIGNAL("selected"), "range")

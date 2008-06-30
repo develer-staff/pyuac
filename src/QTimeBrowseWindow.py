@@ -227,9 +227,10 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         elif self._mode == "weekly" and column in self.projects.keys() \
                                                 and row in self.projects[column].keys():
             project = self.projects[column][row]
-        #se si è in modalità 'weekly' e si doppioclicka su una cella vuota il programma non fa niente.
+        #se si è in modalità 'weekly' e si doppioclicka su una cella vuota il programma lancia un
+        #Assertion Error.
         else:
-            assert False,  "modo non gestito: %s" % self._mode
+            assert False, "modo non gestito: %s" % self._mode
         #viene creata la TimeregWindow in modalità 'single'
         editwin = self._createTimeregWindow("single")
         #vengono impostati tutti i campi della TimeregWindow con i valori della registrazione corrente
@@ -355,7 +356,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         elif self._mode == "weekly":
             self._updateWeeklyTimereport(eprojects)
         else:
-            assert False,  "modo non gestito: %s" % self._mode
+            assert False, "modo non gestito: %s" % self._mode
 
 class TimeregMenu(QMenu):
     """

@@ -193,17 +193,17 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
     def _createTimeregWindow(self, mode):
         """
         Costruisce una TimeregWindow e la restituisce al chiamante.
-        :param mode: modalità di inserimento ore ('normal' o 'range').
+        :param mode: modalità di inserimento ore ('single' o 'range').
         """
         editwin = TimeregWindow(self, self.remote.auth, mode)
         self.connect(editwin, SIGNAL("registrationDone"),
                      self._slotRegistrationDone)
         return editwin
 
-    def _slotNewTimereg(self, mode="normal"):
+    def _slotNewTimereg(self, mode="single"):
         """
         Slot attivato quando viene utilizzato self.ui.tlbTimereg.
-        :param mode: modalità di inserimento ore ('normal' o 'range')
+        :param mode: modalità di inserimento ore ('single' o 'range')
         """
         selected_date = unicode(self.ui.dateEdit.date().toString("yyyy-MM-dd"))
         project_template = AchievoProject()
@@ -215,7 +215,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
     def _slotTimeEdit(self, row, column):
         """
         Slot attivato da self.ui.tableTimereg, SIGNAL("cellDoubleClicked(int,int)"). Prepara un 
-        template con i dati della riga selezionata ed avvia la form di modifica (modalità 'normal').
+        template con i dati della riga selezionata ed avvia la form di modifica (modalità 'single').
         :param row: intero, cordinata verticale della cella su cui si è clickato.
         :param column: intero, cordinata orizzontale della della su cui si è clickato.
         """
@@ -229,8 +229,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         #se si è in modalità 'weekly' e si doppioclicka su una cella vuota il programma non fa niente.
         else:
             assert False,  "modo non gestito: %s" % self._mode
-        #viene creata la TimeregWindow in modalità 'normal'
-        editwin = self._createTimeregWindow("normal")
+        #viene creata la TimeregWindow in modalità 'single'
+        editwin = self._createTimeregWindow("single")
         #vengono impostati tutti i campi della TimeregWindow con i valori della registrazione corrente
         editwin.setupEdit(self._createProjectTemplate(project))
         editwin.show()
@@ -363,17 +363,17 @@ class TimeregMenu(QMenu):
     
     def __init__(self,  parent = None):
         QMenu.__init__(self, parent)
-        self._normal = self.addAction("Normal editing mode")
+        self._single = self.addAction("Single editing mode")
         self._range = self.addAction("Range editing mode")
-        self.connect(self._normal, SIGNAL("triggered(bool)"), 
-                        self._normalTriggered)
+        self.connect(self._single, SIGNAL("triggered(bool)"), 
+                        self._singleTriggered)
         self.connect(self._range, SIGNAL("triggered(bool)"), 
                         self._rangeTriggered)
         self.connect(self,  SIGNAL("clicked()"), 
-                        self._normalTriggered)
+                        self._singleTriggered)
     
-    def _normalTriggered(self):
-        self.emit(SIGNAL("selected"), "normal")
+    def _singleTriggered(self):
+        self.emit(SIGNAL("selected"), "single")
     
     def _rangeTriggered(self):
         self.emit(SIGNAL("selected"), "range")

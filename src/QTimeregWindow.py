@@ -17,7 +17,7 @@ from daterange import *
 LRU_LEN = 10
 
 #modalità che può assumere la finestra di dialogo
-MODES = ("normal",  "range")
+MODES = ("single",  "range")
 
 class TimeregWindow(QMainWindow, QAchievoWindow):
 
@@ -44,15 +44,15 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         if mode in MODES:
             self._mode = mode
         else:
-            self._mode = "normal"
+            self._mode = "single"
         self._connectSlots()
         self._setupGui()
 
     def _setupGui(self):
         #debug("TimeregWindow._setupGui")
-        if self._mode == "normal":
-            #debug(__name__,  "-> loading normal TimeregWindow")
-            self._uiNormalMode()
+        if self._mode == "single":
+            #debug(__name__,  "-> loading single TimeregWindow")
+            self._uisingleMode()
         elif self._mode == "range":
             #debug(__name__,  "-> loading range TimeregWindow")
             self._uiRangeMode()
@@ -73,9 +73,9 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self.notify(self.tr("Type something in the smartquery field or use combos."))
         self._smartQueryEdited("")
     
-    def _uiNormalMode(self):
+    def _uisingleMode(self):
         """
-        Inizializza i valori delle componenti necessarie solamente in modalità 'normal'.
+        Inizializza i valori delle componenti necessarie solamente in modalità 'single'.
         """
         self.ui.daterangeGroupBox.setVisible(False)
     
@@ -458,8 +458,8 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self.ui.btnSave.setEnabled(False)
         if self._mode == "range":
             self._rangeTimereg()
-        elif self._mode == "normal":
-            self._normalTimereg()
+        elif self._mode == "single":
+            self._singleTimereg()
         self.notify(self.tr("Saving..."))
     
     def _timereg(self,  activitydate):
@@ -475,9 +475,9 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self._registrations += 1
         self.remote.timereg(**params)
     
-    def _normalTimereg(self):
+    def _singleTimereg(self):
         """
-        Metodo chiamato da timereg per registrare le ore dalla modalità 'normal'.
+        Metodo chiamato da timereg per registrare le ore dalla modalità 'single'.
         """
         activitydate = str(self.ui.singleDateEdit.date().toString("yyyy-MM-dd"))
         self._timereg(activitydate)

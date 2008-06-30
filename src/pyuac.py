@@ -26,7 +26,7 @@ from QTimeBrowseWindow import *
 
 class TimeregApplication(QApplication):
     def __init__(self, args):
-        print "TimeregApplication(QApplication).__init__"
+        #print "TimeregApplication(QApplication).__init__"
         QApplication.__init__(self, args)
         win = TimeBrowseWindow(None, config=config)
         sys.exit(self.exec_())

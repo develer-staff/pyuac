@@ -44,7 +44,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         if mode in MODES:
             self._mode = mode
         else:
-            self._mode = "single"
+            assert False, "modo non gestito: %s" % self._mode
         self._connectSlots()
         self._setupGui()
 
@@ -122,7 +122,19 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         """
         Connette le componenti necessarie solamente in modalità 'monthly' e ne inizializza i valori.
         """
+        checkBoxes = []
+        checkBoxes.append(self.ui.monMonthCheckBox)
+        checkBoxes.append(self.ui.tueMonthCheckBox)
+        checkBoxes.append(self.ui.wedMonthCheckBox)
+        checkBoxes.append(self.ui.thuMonthCheckBox)
+        checkBoxes.append(self.ui.friMonthCheckBox)
+        checkBoxes.append(self.ui.satMonthCheckBox)
+        checkBoxes.append(self.ui.sunMonthCheckBox)
+        for i, checkBox in enumerate(checkBoxes):
+            checkBox.setText(unicode(QDate.longDayName(i + 1)).capitalize())
         self.ui.monthlyGroupBox.setVisible(True)
+        for i in range(12):
+            self.ui.monthComboBox.addItem(QDate.longMonthName(i + 1), QVariant(i + 1))
     
     def _setInvisibleUi(self):
         self.ui.dateGroupBox.setVisible(False)
@@ -530,6 +542,8 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         #copia la data in tutte le dateEdit, visibili e non.
         self.ui.dateFromDateEdit.setDate(self.ui.singleDateEdit.date())
         self.ui.dateToDateEdit.setDate(self.ui.singleDateEdit.date())
+        self.ui.monthComboBox.setCurrentIndex(self.ui.monthComboBox.findData(
+            QVariant(self.ui.singleDateEdit.date().month())))
         self._updateSmartQuery(self._baseproject.getSmartQuery())
         self.notify(self.tr("Loading..."))
 

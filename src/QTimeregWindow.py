@@ -17,7 +17,7 @@ from daterange import *
 LRU_LEN = 10
 
 #modalità che può assumere la finestra di dialogo
-MODES = ("single",  "range")
+MODES = ("single",  "range", "monthly")
 
 class TimeregWindow(QMainWindow, QAchievoWindow):
 
@@ -50,12 +50,17 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
 
     def _setupGui(self):
         #debug("TimeregWindow._setupGui")
+        self._setInvisibleUi()
         if self._mode == "single":
             #debug(__name__, "-> loading single TimeregWindow")
-            self._uisingleMode()
+            self._uiSingleMode()
         elif self._mode == "range":
             #debug(__name__, "-> loading range TimeregWindow")
             self._uiRangeMode()
+        elif self._mode == "monthly":
+            self._uiMonthlyMode()
+        else:
+            assert False, "modo non gestito: %s" % self._mode
         self.ui.comboTimeWorked.clear()
         for htext in timerange(8, 15):
             self.ui.comboTimeWorked.addItem(htext, QVariant(hmtime2min(htext)))
@@ -73,11 +78,11 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self.notify(self.tr("Type something in the smartquery field or use combos."))
         self._smartQueryEdited("")
     
-    def _uisingleMode(self):
+    def _uiSingleMode(self):
         """
         Inizializza i valori delle componenti necessarie solamente in modalità 'single'.
         """
-        self.ui.daterangeGroupBox.setVisible(False)
+        self.ui.dateGroupBox.setVisible(True)
     
     def _uiRangeMode(self):
         """
@@ -111,8 +116,19 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                         self._updateDaysLabel)
         for i, checkBox in enumerate(checkBoxes):
             checkBox.setText(unicode(QDate.longDayName(i + 1)).capitalize())
-        self.ui.dateGroupBox.setVisible(False)
+        self.ui.daterangeGroupBox.setVisible(True)
 
+    def _uiMonthlyMode(self):
+        """
+        Connette le componenti necessarie solamente in modalità 'monthly' e ne inizializza i valori.
+        """
+        self.ui.monthlyGroupBox.setVisible(True)
+    
+    def _setInvisibleUi(self):
+        self.ui.dateGroupBox.setVisible(False)
+        self.ui.daterangeGroupBox.setVisible(False)
+        self.ui.monthlyGroupBox.setVisible(False)
+    
     def _connectSlots(self):
         self.connect(self.ui.editSmartQuery, SIGNAL("textEdited(QString)"),
                      self._smartQueryEdited)
@@ -510,8 +526,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         #debug("setupEdit %s" % self._baseproject)
         if not self._baseproject.isNew():
             self.ui.btnDelete.setText(self.tr("Delete"))
-        self.ui.singleDateEdit.setDate(QDate.fromString(self._baseproject.get("activitydate"),
-                                                         "yyyy-MM-dd"))
+        self.ui.singleDateEdit.setDate(QDate.fromString(self._baseproject.get("activitydate"), "yyyy-MM-dd"))
         #copia la data in tutte le dateEdit, visibili e non.
         self.ui.dateFromDateEdit.setDate(self.ui.singleDateEdit.date())
         self.ui.dateToDateEdit.setDate(self.ui.singleDateEdit.date())

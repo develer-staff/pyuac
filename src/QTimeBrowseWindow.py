@@ -207,6 +207,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         """
         selected_date = unicode(self.ui.dateEdit.date().toString("yyyy-MM-dd"))
         project_template = AchievoProject()
+        print selected_date
         project_template.set("activitydate", selected_date)
         editwin = self._createTimeregWindow(mode)
         editwin.setupEdit(project_template)
@@ -221,7 +222,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         """
         #modalità corrente: 'daily'
         if self._mode == "daily":
-            project = self.projects[row]
+            project = self.projects[0][row]
         #modalità corrente: 'weekly'
         elif self._mode == "weekly" and column in self.projects.keys() \
                                                 and row in self.projects[column].keys():
@@ -245,7 +246,6 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         for k in project_template.keys:
             project_template.set("in_%s" % k, project.get(k))
         for k in ("id",  "activitydate"):
-            project.get(k)
             project_template.set(k, project.get(k))
         return project_template
 
@@ -255,7 +255,6 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         inserimento.
         :param eresp: ElementTree, contiene la risposta del server all'inserimento ore appena terminato.
         """
-        print type(eresp)
         newdate = QDate.fromString(str(eresp.get("activitydate")), "yyyy-MM-dd")
         if newdate != self.ui.dateEdit.date():
             self.ui.dateEdit.setDate(newdate)
@@ -367,10 +366,13 @@ class TimeregMenu(QMenu):
         QMenu.__init__(self, parent)
         self._single = self.addAction("Single editing mode")
         self._range = self.addAction("Range editing mode")
+        self._monthly = self.addAction("Monthly editing mode")
         self.connect(self._single, SIGNAL("triggered(bool)"), 
                         self._singleTriggered)
         self.connect(self._range, SIGNAL("triggered(bool)"), 
                         self._rangeTriggered)
+        self.connect(self._monthly, SIGNAL("triggered(bool)"),
+                     self._monthlyTriggered)
         self.connect(self,  SIGNAL("clicked()"), 
                         self._singleTriggered)
     
@@ -379,3 +381,6 @@ class TimeregMenu(QMenu):
     
     def _rangeTriggered(self):
         self.emit(SIGNAL("selected"), "range")
+    
+    def _monthlyTriggered(self):
+        self.emit(SIGNAL("selected"), "monthly")

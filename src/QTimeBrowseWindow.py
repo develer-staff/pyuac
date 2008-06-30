@@ -208,7 +208,6 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         """
         selected_date = unicode(self.ui.dateEdit.date().toString("yyyy-MM-dd"))
         project_template = AchievoProject()
-        print selected_date
         project_template.set("activitydate", selected_date)
         editwin = self._createTimeregWindow(mode)
         editwin.setupEdit(project_template)

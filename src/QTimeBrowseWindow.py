@@ -14,6 +14,8 @@ Modulo contenente il codice della MainWindow di pyuac (TimeBrowseWindow), della 
 
 import os, sys
 
+from collections import defaultdict
+
 from pyuac_utils import *
 from QRemoteTimereg import *
 from QTimeregWindow import *
@@ -149,7 +151,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         Reimposta la gui ai volori di default (titoli colonne e data attuale).
         """
         self.ui.tableTimereg.setColumnCount(5)
-        for c, head in enumerate("Date Project/Phase Activity Time Remark".split()):
+        for c, head in enumerate(("Date", "Project/Phase", "Activity", "Time", "Remark")):
             cellHead = QTableWidgetItem(head)
             self.ui.tableTimereg.setHorizontalHeaderItem(c, cellHead)
         self.ui.tableTimereg.horizontalHeader().setStretchLastSection(True)
@@ -221,12 +223,12 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         if self._mode == "daily":
             project = self.projects[row]
         #modalità corrente: 'weekly'
-        elif self._mode == "weekly" and column in self.projects.keys() \\
+        elif self._mode == "weekly" and column in self.projects.keys() \
                                                 and row in self.projects[column].keys():
             project = self.projects[column][row]
         #se si è in modalità 'weekly' e si doppioclicka su una cella vuota il programma non fa niente.
         else:
-            return
+            assert False,  "modo non gestito: %s" % self._mode
         #viene creata la TimeregWindow in modalità 'normal'
         editwin = self._createTimeregWindow("normal")
         #vengono impostati tutti i campi della TimeregWindow con i valori della registrazione corrente
@@ -242,7 +244,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         project_template = AchievoProject()
         for k in project_template.keys:
             project_template.set("in_%s" % k, project.get(k))
-        for k in "id activitydate".split():
+        for k in ("id",  "activitydate"):
             project.get(k)
             project_template.set(k, project.get(k))
         return project_template
@@ -270,15 +272,15 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         if self._mode == "weekly":
             days = getweek(self.ui.dateEdit.date())
             self.ui.tableWeekTimereg.clearContents()
+            self.ui.tableWeekTimereg.setRowCount(0)
             for c, day in enumerate(getweek(qdate)):
                 self.ui.tableWeekTimereg.horizontalHeaderItem(c).setText(QDate.longDayName(
                                                 day.dayOfWeek())[:3] + " " + day.toString("dd-MM-yyyy"))
-            self.projects = {}
         #pulisce la tabella con la vista giornaliera colamente nel caso si sia in modalità 'daily'
         else:
             days = [self.ui.dateEdit.date()]
             self.ui.tableTimereg.clearContents()
-            self.projects = {}
+        self.projects = defaultdict(dict)
         for date in days:
             self.remote.timereport(date=date.toString("yyyy-MM-dd"))
 
@@ -299,8 +301,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.ui.tableTimereg.setRowCount(len(eprojects))
         total_time = 0
         for r, p in enumerate(eprojects):
-            self.projects[r] = AchievoProject(p)
-            p = self.projects[r]
+            self.projects[0][r] = AchievoProject(p)
+            p = self.projects[0][r]
             row = []
             row.append(QTableWidgetItem(p.get("activitydate")))
             row.append(QTableWidgetItem("%s / %s" % (p.get("prj"), p.get("pha"))))
@@ -333,8 +335,6 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             p.set("hmtime", hmtime)
             item = QTableWidgetItem("\n" + "\n".join([p.get("prj"), hmtime]) + "\n")
             c = QDate.fromString(p.get("activitydate").replace("-", ""), "yyyyMMdd").dayOfWeek() - 1
-            if c not in self.projects.keys():
-                self.projects[c] = {}
             self.projects[c][r] = p
             self.ui.tableWeekTimereg.setItem(r, c, item)
         #TODO: sistemare la notify in modo che dia informazioni utili
@@ -353,6 +353,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self._updateDailyTimereport(eprojects)
         elif self._mode == "weekly":
             self._updateWeeklyTimereport(eprojects)
+        else:
+            assert False,  "modo non gestito: %s" % self._mode
 
 class TimeregMenu(QMenu):
     """

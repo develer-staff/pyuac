@@ -162,6 +162,13 @@ def parse_wtime(val):
             res += parse_hinterval("00:00-%s" % ival)
     return str(res)
 
+def divide(total_time, days, time_step=15):
+    total_time_min = int(total_time) * 60
+    while total_time_min >= 0 and days > 0:
+        hour = timeRound(min2hmtime(total_time_min/days))
+        days -= 1
+        total_time_min -= hmtime2min(hour)
+        yield hour
 
 if __name__ == "__main__":
     try:

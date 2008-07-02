@@ -97,9 +97,11 @@ def parseSmartQuery(smartquery):
     {'in_prj': 'pro', 'in_hmtime': '2:30', 'in_remark': 'bla bla', 'in_act': '', 'in_pha': ''}
     >>> parseSmartQuery("")
     {'in_prj': '', 'in_hmtime': '', 'in_remark': '', 'in_act': '', 'in_pha': ''}
+    >>> parseSmartQuery("pro pha act 120 commento")
+    {'in_prj': 'pro', 'in_hmtime': '120', 'in_remark': 'commento', 'in_act': 'act', 'in_pha': 'pha'}    
     """
     res = {}
-    gethmtime = re.compile("\W\d+:?\d*")
+    gethmtime = re.compile("\d+:?\d*")
     getppa = re.compile("(?P<in_prj>[^\s]+|)\s*(?P<in_pha>[^\s]+|)\s*(?P<in_act>[^\s]+|)\s*(?P<in_remark>.*|)")
     parts = gethmtime.split(smartquery, 1)
     res = getppa.search(parts[0]).groupdict()

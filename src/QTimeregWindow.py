@@ -131,10 +131,14 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         for i, checkBox in enumerate(checkBoxes):
             checkBox.setText(unicode(QDate.longDayName(i + 1)).capitalize())
         self.ui.monthlyGroupBox.setVisible(True)
+        #self.connect(self.ui.hoursSpinBox, SIGNAL("valueChanged(int)"),
+                     #self._spinboxHoursActivated)
         #Rende invisibili le componenti per la scelta del numero di ore
         self.ui.labelTimeWorked.setVisible(False)
         self.ui.smartTimeEdit.setVisible(False)
         self.ui.comboTimeWorked.setVisible(False)
+        self.disconnect(self.ui.comboTimeWorked, SIGNAL("activated(const QString&)"),
+                     self._comboTimeWorkedActivated)
         for i in range(12):
             self.ui.monthComboBox.addItem(QDate.longMonthName(i + 1), QVariant(i + 1))
     
@@ -214,7 +218,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self._timer.start(500)
     
     def _smartQueryEditedRefresh(self):
-        self.remote.query(smartquery=self.ui.editSmartQuery.text())
+        self.remote.query(smartquery=unicode(self.ui.editSmartQuery.text()).strip())
     
     def _slotSmartTimeChanged(self):
         smartime = self.ui.smartTimeEdit.text()
@@ -237,7 +241,6 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         #debug("_projectsChanged %s" % len(projects))
 
         self._response_projects = projects
-
         if len(self._response_projects) != 0:
             #debug("_baseproject.merge()")
             self._baseproject.merge(self._response_projects)
@@ -254,7 +257,6 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self._updateComboBoxes()
         p = self._baseproject
         self._disableAll()
-
         idx = self.ui.comboProject.findText(p.get("prj") or "")
         self.ui.comboProject.setCurrentIndex(idx)
         self.ui.labelProject.setEnabled(p.get("prj") != None)
@@ -266,13 +268,14 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         idx = self.ui.comboActivity.findText(p.get("act") or "")
         self.ui.comboActivity.setCurrentIndex(idx)
         self.ui.labelActivity.setEnabled(p.get("act") != None)
-
-        idx = self.ui.comboTimeWorked.findText(p.get("hmtime") or "00:00")
-        self.ui.comboTimeWorked.setCurrentIndex(idx)
-        self.ui.labelTimeWorked.setEnabled(p.get("hmtime") != "00:00")
-
-        #self.ui.labelExactTime.setText(p.get("in_hmtime") or "00:00")
-
+        
+        if self._mode == "monthly":
+            self.ui.hoursSpinBox.setValue(int(p.get("hmtime").split(":")[0] or 0))
+        else:    
+            idx = self.ui.comboTimeWorked.findText(p.get("hmtime") or "00:00")
+            self.ui.comboTimeWorked.setCurrentIndex(idx)
+            self.ui.labelTimeWorked.setEnabled(p.get("hmtime") != "00:00")
+            
         self.ui.txtRemark.setPlainText((p.get("remark") or "").strip())
         self.ui.labelRemark.setEnabled(p.get("remark") != None)
 
@@ -320,7 +323,10 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             elif combo == "Activity":
                 _bp.set("in_act", combotext)
                 _bp.set("act", combotext)
-            elif combo == "TimeWorked":
+            elif self._mode != "monthly" and combo == "TimeWorked":
+                _bp.set("in_hmtime", combotext)
+                _bp.set("hmtime", combotext)
+            elif self._mode == "monthly" and combo == "Hours":
                 _bp.set("in_hmtime", combotext)
                 _bp.set("hmtime", combotext)
             # se ho attivato un combo
@@ -328,7 +334,6 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                 self._updateSmartQuery(_bp.getSmartQuery())
                 return
         _updateBaseproject(combo, combotext)
-
         # Aggiorna la lista di progetti, fasi e attività
         # usata per riempire i combobox
         def _updatePpa():
@@ -398,15 +403,19 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                         _base = project+" "+phase+" "
                         _completer = [_base + act for act in _ppa[project][phase].keys()]
                     else:
-                        if hmtime not in timerange(8, 15, 1):
+                        if  self._mode != "monthly" and hmtime not in timerange(8, 15, 1):
                             _base = project+" "+phase+" "+activity+" "
                             _completer = [_base + hmtime for hmtime in timerange(8, 15, 1)]
                         else:
                             _completer = []
 
             # se ho già scritto l'ora o il commento, lo aggiungo al completer
-            for c, v in enumerate(_completer):
-                _completer[c] = " ".join([_completer[c], _bp.get("hmtime") or ""]).strip()
+            if self._mode == "monthly":
+                for c, v in enumerate(_completer):
+                    _completer[c] = " ".join([_completer[c], str(self.ui.hoursSpinBox.value() or "")]).strip()
+            else:
+                for c, v in enumerate(_completer):
+                    _completer[c] = " ".join([_completer[c], _bp.get("hmtime") or ""]).strip()
             for c, v in enumerate(_completer):
                 _completer[c] = " ".join([_completer[c], _bp.get("remark") or ""]).strip()
 
@@ -433,13 +442,22 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         Ritorna una tupla di booleani, dove True sta per lavorativo e False sta per non lavorativo.
         """
         days = []
-        days.append(self.ui.monCheckBox.isChecked())
-        days.append(self.ui.tueCheckBox.isChecked())
-        days.append(self.ui.wedCheckBox.isChecked())
-        days.append(self.ui.thuCheckBox.isChecked())
-        days.append(self.ui.friCheckBox.isChecked())
-        days.append(self.ui.satCheckBox.isChecked())
-        days.append(self.ui.sunCheckBox.isChecked())
+        if self._mode == "range":
+            days.append(self.ui.monCheckBox.isChecked())
+            days.append(self.ui.tueCheckBox.isChecked())
+            days.append(self.ui.wedCheckBox.isChecked())
+            days.append(self.ui.thuCheckBox.isChecked())
+            days.append(self.ui.friCheckBox.isChecked())
+            days.append(self.ui.satCheckBox.isChecked())
+            days.append(self.ui.sunCheckBox.isChecked())
+        elif self._mode == "monthly":
+            days.append(self.ui.monMonthCheckBox.isChecked())
+            days.append(self.ui.tueMonthCheckBox.isChecked())
+            days.append(self.ui.wedMonthCheckBox.isChecked())
+            days.append(self.ui.thuMonthCheckBox.isChecked())
+            days.append(self.ui.friMonthCheckBox.isChecked())
+            days.append(self.ui.satMonthCheckBox.isChecked())
+            days.append(self.ui.sunMonthCheckBox.isChecked())
         return tuple(days)
 
     def _timeregStarted(self):
@@ -466,7 +484,6 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self.settings.setArray("lru", lru)
         self._baseproject.reset()
         self._slotClose()
-
     
     def _timeregErr(self):
         #debug("_timeregError")
@@ -488,6 +505,9 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
     def _comboTimeWorkedActivated(self, combotext):
         self._updateComboBoxes("TimeWorked", combotext)
 
+    def _spinboxHoursActivated(self, value):
+        self._updateComboBoxes("Hours", str(value))
+
     def timereg(self):
         """
         Metodo chiamato per salvare le ore di lavoro: a sua volta richiama i metodi che elaborano i
@@ -501,12 +521,20 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             self._rangeTimereg()
         elif self._mode == "single":
             self._singleTimereg()
+        elif self._mode == "monthly":
+            self._monthlyTimereg()
+        else:
+            assert False, "modo non gestito: %s" % self._mode
         self.notify(self.tr("Saving..."))
     
-    def _timereg(self, activitydate):
+    def _timereg(self, activitydate, hmtime=None):
         p = self._baseproject
         p.set("activitydate", activitydate)
-        params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime activitydate".split()])
+        params = dict([(k, p.get(k)) for k in "projectid phaseid activityid activitydate".split()])
+        if hmtime:
+            params["hmtime"] = hmtime
+        else:
+            params["hmtime"] = p.get("hmtime")
         params["remark"] = p.get("remark")
         if not self._baseproject.isNew():
             #debug("-------------> Update")
@@ -534,6 +562,22 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         for date in daterange(self.ui.dateFromDateEdit.date(), self.ui.dateToDateEdit.date(), self._getDays()):
             activitydate = str(date.toString("yyyy-MM-dd"))
             self._timereg(activitydate)
+    
+    def _monthlyTimereg(self):
+        """
+        Metodo chiamato da timereg per registrare le ore dalla modalità 'montly'.
+        """
+        year = QDate.currentDate().year()
+        month = self.ui.monthComboBox.itemData(self.ui.monthComboBox.currentIndex()).toInt()[0]
+        startDay = QDate(year, month, 1)
+        endDay = QDate(year,month + 1, 1).addDays(-1)
+        days = daysnumber(startDay, endDay, self._getDays())[0]
+        hours = [hour for hour in divide(self.ui.hoursSpinBox.value(), days)]
+        for date in daterange(startDay, endDay, self._getDays()):
+            activitydate = str(date.toString("yyyy-MM-dd"))
+            hmtime = hours.pop()
+            self._timereg(activitydate, hmtime)
+
 
     def setupEdit(self, project):
         self._baseproject = AchievoProject(project.data)
@@ -588,7 +632,7 @@ class AchievoProject:
 
     def isComplete(self):
         for key in self.keys:
-            if self.get(key) in [None, ""]:
+            if self.get(key) in [None, ""] and self.get("hmtime") or self.get("total_time"):
                 return False
         return True
 

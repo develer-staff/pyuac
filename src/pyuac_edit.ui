@@ -72,7 +72,7 @@
     <item>
      <widget class="QGroupBox" name="daterangeGroupBox" >
       <property name="title" >
-       <string>Select date and days</string>
+       <string>Select date range</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout" >
        <item>
@@ -260,7 +260,14 @@
           </widget>
          </item>
          <item>
-          <widget class="QSpinBox" name="hoursSpinBox" />
+          <widget class="QSpinBox" name="hoursSpinBox" >
+           <property name="minimum" >
+            <number>0</number>
+           </property>
+           <property name="maximum" >
+            <number>999</number>
+           </property>
+          </widget>
          </item>
          <item>
           <spacer name="horizontalSpacer_4" >

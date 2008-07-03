@@ -173,9 +173,6 @@ def divide(total_time, days, time_step=15):
         yield hour
 
 if __name__ == "__main__":
-    try:
-        import nose
-        nose.runmodule()
-    except ImportError:
-        print "Testing skipped, nose not found"
-        pass
+    print "Running doctests, -v to see more..."
+    import doctest
+    doctest.testmod()

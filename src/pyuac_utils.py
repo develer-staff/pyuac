@@ -165,9 +165,29 @@ def parse_wtime(val):
     return str(res)
 
 def divide(total_time, days, time_step=15):
+    """
+    Return a list of string of the daily amount of hours.
+
+    >>> for day in divide(25, 4):
+    ...    print day
+    ...
+    06:15
+    06:15
+    06:15
+    06:15
+    >>> hours = 11
+    >>> list(divide(hours, 4))
+    ['02:45', '02:45', '02:45', '02:45']
+    >>> sum(map(hmtime2min, divide(hours, 4))) == hours * 60
+    True
+    >>> list(divide(hours, 4, time_step=30))
+    ['03:00', '02:30', '03:00', '02:30']
+    >>> sum(map(hmtime2min, divide(hours, 4, time_step=30))) == hours * 60
+    True
+    """
     total_time_min = int(total_time) * 60
     while total_time_min >= 0 and days > 0:
-        hour = timeRound(min2hmtime(total_time_min/days))
+        hour = timeRound(min2hmtime(total_time_min/days), time_step)
         days -= 1
         total_time_min -= hmtime2min(hour)
         yield hour

@@ -98,7 +98,7 @@ def parseSmartQuery(smartquery):
     >>> parseSmartQuery("")
     {'in_prj': '', 'in_hmtime': '', 'in_remark': '', 'in_act': '', 'in_pha': ''}
     >>> parseSmartQuery("pro pha act 120 commento")
-    {'in_prj': 'pro', 'in_hmtime': '120', 'in_remark': 'commento', 'in_act': 'act', 'in_pha': 'pha'}    
+    {'in_prj': 'pro', 'in_hmtime': '120:00', 'in_remark': 'commento', 'in_act': 'act', 'in_pha': 'pha'}    
     """
     res = {}
     gethmtime = re.compile("\d+:?\d*")

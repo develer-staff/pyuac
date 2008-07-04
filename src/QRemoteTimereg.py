@@ -110,9 +110,17 @@ class QRemoteTimereg(QObject):
         QObject.__init__(self, parent)
         self.process = QProcess(self)
         self._waiting = False
-        self._resp = ""
         self.auth = auth
-        self._actions_params = []
+        #dizionario con tipo di richiesta come chiave, e lista di azioni come valore
+        self._pending_requests = {}
+        #None se non ci sono azioni in esecuzione, altrimenti contiene il tipo
+        #della richiesta e l'indice dell'azione a cui il processo è arrivato
+        self._current_action = None
+        #contiene una lista delle risposte inviate dal server
+        self._response = []
+        #contiene un booleano che indica se QRemoteTimereg è in attesa di risposta
+        #dal processo
+        self._waiting = False
         self.connect(self.process, SIGNAL("finished(int)"), self._ready)
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"), self._ready)
         self.connect(self.process, SIGNAL("error(QProcess::ProcessError)"),
@@ -124,11 +132,23 @@ class QRemoteTimereg(QObject):
         Imposta per l'esecuzione le azioni definite in RemoteTimereg
         ed avvia sync()
         """
-        if action in RemoteTimereg.actions.keys() + ["q"]:
-            def _action(**kwargs):
-                self._actions_params.append([action,  self._encode(action, **kwargs)])
-                self._sync()
-            return _action
+        if request in RemoteTimereg.actions.keys() + ["q"]:
+            def _request(request_pack):
+                #controlla se è presente una richiesta dello stesso tipo tra le
+                #richieste pendenti
+                if request in self._pending_requests.keys():
+                    #controlla se quella in esecuzione è dello stesso tipo
+                    if self._current_action != None and self._current_action[0] == request:
+                        #resetta la risposta e blocca la richiesta
+                        self._response = []
+                        self._current_action = None
+                #in qualsiasi caso alla fine aggiunge la nuova richiesta al dizionario
+                self._pending_requests[request] = request_pack
+                #se il processo non ha richieste in esecuzione o non aspetta risposte
+                #viene iniziata una nuova scansione delle richieste pendenti
+                if not self._current_action and not self._waiting:
+                    self._sync()
+            return _request
         else:
             raise AttributeError
 
@@ -188,9 +208,9 @@ class QRemoteTimereg(QObject):
         for action, cmdline in self._actions_params:
             if self._execute(cmdline):
                 self._actions_params.remove([action, cmdline])
-                self.emit(SIGNAL(action+"Started"))
-
-
+                self.emit(SIGNAL(action+"Started"))            
+          
+    
     def _ready(self, exitcode=None):
         """ <-- self.process, SIGNAL("finished(int)")
             <-- self.process, SIGNAL("readyReadStandardOutput()")

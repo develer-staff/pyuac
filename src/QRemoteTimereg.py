@@ -175,25 +175,40 @@ class QRemoteTimereg(QObject):
         Avvia il processo e invia la qstring.
         Viene invocato da sync()
         """
-        if self.process.state() == self.process.NotRunning:
-            if not hasattr(sys, "frozen") or not sys.frozen:
-                executable = sys.executable
-                params = []
-                if not __debug__:
-                    params += ["-O"]
-                pyuac_cli = os.path.join(os.path.dirname(__file__), "pyuac_cli.py")
-                params += [pyuac_cli]
-                self.process.start(executable, params+["--silent"])
+        #controlla se sono presenti azioni da eseguire
+        if self._current_action:
+            if len(self._pending_requests[self._current_action[0]]) > self._current_action[1]:
+                #avvia il processo e scrive il comando
+                if self.process.state() == self.process.NotRunning:
+                    if not hasattr(sys, "frozen") or not sys.frozen:
+                        executable = sys.executable
+                        params = []
+                        if not __debug__:
+                            params += ["-O"]
+                        pyuac_cli = os.path.join(os.path.dirname(__file__), "pyuac_cli.py")
+                        params += [pyuac_cli]
+                        self.process.start(executable, params+["--silent"])
+                    else:
+                        executable = os.path.join(os.path.dirname(sys.executable), "pyuac_cli")
+                        params = ["--silent"]
+                        self.process.start(executable, params)
+                    self.process.write(qstring+"\n")
+                    #setta waiting a true per indicare che stiamo aspettando un
+                    #messaggio dal processo
+                    self._waiting = True
             else:
-                executable = os.path.join(os.path.dirname(sys.executable), "pyuac_cli")
-                params = ["--silent"]
-                self.process.start(executable, params)
-        if not self._waiting:
-            self.process.write(qstring+"\n")
-            self._waiting = True
-            return self._waiting
+                #nel caso siano terminate le azioni viene emesso il segnale di
+                #terminazione e viene restituita la risposta, dopodiché ripulisce
+                #tutto e scansiona per altre richieste chiamando la sync()
+                self.emit(SIGNAL(self._current_action[0] + "OK"), self._response)
+                self._current_action = None
+                self._response = []
+                self._sync()
         else:
-            return False
+            #nel caso current_action sia settato a None vuol dire che l'azione corrente
+            #è stata abortita, perché è giunta una richiesta più nuova dello stesso tipo,
+            #quindi viene richiamato il metodo sync() per cercare ulteriori altre richieste
+            self._sync()
 
     def _sync(self):
         """

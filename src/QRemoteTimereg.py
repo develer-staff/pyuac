@@ -127,13 +127,14 @@ class QRemoteTimereg(QObject):
                      self._error)
         self.login([{"achievouri": auth[0], "user": auth[1], "password": auth[2]}])
 
-    def __getattr__(self, request=None):
+    def __getattr__(self, request):
         """
         Imposta per l'esecuzione le azioni definite in RemoteTimereg
         ed avvia sync()
         """
         if request in RemoteTimereg.actions.keys() + ["q"]:
-            def _request(request_pack):
+            def _request(request_pack=[]):
+                debug("appending request " + str(request))
                 #controlla se è presente una richiesta dello stesso tipo tra le
                 #richieste pendenti
                 if request in self._pending_requests.keys():
@@ -176,7 +177,6 @@ class QRemoteTimereg(QObject):
         Viene invocato da sync() e da ready().
         """
         #controlla se sono presenti azioni da eseguire
-        debug("_execute")
         if self._current_action:
             if len(self._pending_requests[self._current_action[0]]) > self._current_action[1]:
                 #avvia il processo e scrive il comando
@@ -193,15 +193,17 @@ class QRemoteTimereg(QObject):
                         executable = os.path.join(os.path.dirname(sys.executable), "pyuac_cli")
                         params = ["--silent"]
                         self.process.start(executable, params)
-                    #costruisce la stringa da inviare al processo a partire dalle
-                    #informazioni presenti in pending_requests e in current_action
-                    qstring = self._encode(self._current_action[0],
-                                           **self._pending_requests[self._current_action[0]]
-                                           [self._current_action[1]])
-                    self.process.write(qstring+"\n")
-                    #setta waiting a true per indicare che stiamo aspettando un
-                    #messaggio dal processo
-                    self._waiting = True
+                #costruisce la stringa da inviare al processo a partire dalle
+                #informazioni presenti in pending_requests e in current_action
+                qstring = self._encode(self._current_action[0],
+                                       **self._pending_requests[self._current_action[0]]
+                                       [self._current_action[1]])
+                self._current_action = (self._current_action[0], self._current_action[1] + 1)
+                self.process.write(qstring+"\n")
+                debug("_execute " + qstring)
+                #setta waiting a true per indicare che stiamo aspettando un
+                #messaggio dal processo
+                self._waiting = True
             else:
                 #nel caso siano terminate le azioni viene emesso il segnale di
                 #terminazione e viene restituita la risposta, dopodiché ripulisce
@@ -226,11 +228,12 @@ class QRemoteTimereg(QObject):
             timeregStarted
             timereportStarted
         """
-        action = self._pending_requests.keys().pop(0)
-        debug("_sync " + action)
-        self._current_action = (action, 0)
-        self.emit(SIGNAL(action+"Started"))
-        self._execute()    
+        if self._pending_requests.keys() != []:
+            action = self._pending_requests.keys().pop(0)
+            debug("_sync " + action)
+            self._current_action = (action, 0)
+            self.emit(SIGNAL(action+"Started"))
+            self._execute()    
     
     def _ready(self, exitcode=None):
         """
@@ -243,19 +246,23 @@ class QRemoteTimereg(QObject):
         debug("_ready " + str(exitcode))
         if exitcode != None:
             self._error(5, exitcode)
-        self
         response = str(self.process.readAllStandardOutput())
-        if response.find("</response>") != -1:
-            try:
-                eresp = ET.fromstring(response)
-            except ExpatError:
-                raise
-            node = eresp.get("node")
-            msg = eresp.get("msg")
-            self._response.append(eresp)
+        self._waiting = False
+        if self._current_action != None:
+            debug("response " + response)
+            if response.find("</response>") != -1:
+                try:
+                    eresp = ET.fromstring(response)
+                except ExpatError:
+                    raise
+                node = eresp.get("node")
+                msg = eresp.get("msg")
+                self._response.append(eresp)
+            #else:
+                #self._response.append("")
+            self._execute()
         else:
-            self._response.append("")
-        self._execute()
+            self._sync()
 
     def _error(self, process_error, exitcode=None):
         """ <-- self.process, SIGNAL("error(QProcess::ProcessError)")

@@ -125,9 +125,9 @@ class QRemoteTimereg(QObject):
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"), self._ready)
         self.connect(self.process, SIGNAL("error(QProcess::ProcessError)"),
                      self._error)
-        self.login(achievouri=auth[0], user=auth[1], password=auth[2])
+        self.login([{"achievouri": auth[0], "user": auth[1], "password": auth[2]}])
 
-    def __getattr__(self, action):
+    def __getattr__(self, request=None):
         """
         Imposta per l'esecuzione le azioni definite in RemoteTimereg
         ed avvia sync()
@@ -170,12 +170,13 @@ class QRemoteTimereg(QObject):
         #debug("_encode "+qstring)
         return action + "?" + qstring
 
-    def _execute(self, qstring):
+    def _execute(self):
         """
-        Avvia il processo e invia la qstring.
-        Viene invocato da sync()
+        Avvia il processo e invia la stringa di richiesta.
+        Viene invocato da sync() e da ready().
         """
         #controlla se sono presenti azioni da eseguire
+        debug("_execute")
         if self._current_action:
             if len(self._pending_requests[self._current_action[0]]) > self._current_action[1]:
                 #avvia il processo e scrive il comando
@@ -192,6 +193,11 @@ class QRemoteTimereg(QObject):
                         executable = os.path.join(os.path.dirname(sys.executable), "pyuac_cli")
                         params = ["--silent"]
                         self.process.start(executable, params)
+                    #costruisce la stringa da inviare al processo a partire dalle
+                    #informazioni presenti in pending_requests e in current_action
+                    qstring = self._encode(self._current_action[0],
+                                           **self._pending_requests[self._current_action[0]]
+                                           [self._current_action[1]])
                     self.process.write(qstring+"\n")
                     #setta waiting a true per indicare che stiamo aspettando un
                     #messaggio dal processo
@@ -201,6 +207,7 @@ class QRemoteTimereg(QObject):
                 #terminazione e viene restituita la risposta, dopodiché ripulisce
                 #tutto e scansiona per altre richieste chiamando la sync()
                 self.emit(SIGNAL(self._current_action[0] + "OK"), self._response)
+                del self._pending_requests[self._current_action[0]]
                 self._current_action = None
                 self._response = []
                 self._sync()
@@ -219,46 +226,36 @@ class QRemoteTimereg(QObject):
             timeregStarted
             timereportStarted
         """
-        #debug("%s <!-- Sync -->" % __name__)
-        for action, cmdline in self._actions_params:
-            if self._execute(cmdline):
-                self._actions_params.remove([action, cmdline])
-                self.emit(SIGNAL(action+"Started"))            
-          
+        action = self._pending_requests.keys().pop(0)
+        debug("_sync " + action)
+        self._current_action = (action, 0)
+        self.emit(SIGNAL(action+"Started"))
+        self._execute()    
     
     def _ready(self, exitcode=None):
-        """ <-- self.process, SIGNAL("finished(int)")
-            <-- self.process, SIGNAL("readyReadStandardOutput()")
-        Provvede a emettere i segnali adatti alla risposta ottenuta:
-            whoami[OK|Err](ElemetTree)
-            query[OK|Err](ElemetTree)
-            timereg[OK|Err](ElemetTree)
-            timereport[OK|Err](ElemetTree)
-            emptyResponse
         """
-        #debug("%s <!-- Ready(%s) -->" % (__name__, exitcode))
+        Slot collegato al QProcess, viene attivato quando il QProcess finisce la
+        sua esecuzione, per leggere la risposta e archiviarla sotto forma di
+        albero o sotto forma di stringa vuota nel caso di risposta vuota. Finita
+        l'archiviazione del messaggio di risposta questo metodo va a richiamare
+        _execute() per proseguire con la lista di richieste.
+        """
+        debug("_ready " + str(exitcode))
         if exitcode != None:
             self._error(5, exitcode)
-
-        self._resp += str(self.process.readAllStandardOutput())
-        if self._resp.find("</response>") == -1:
-            return
-
-        if self._resp not in ["", "\n"]:
+        self
+        response = str(self.process.readAllStandardOutput())
+        if response.find("</response>") != -1:
             try:
-                eresp = ET.fromstring(self._resp)
+                eresp = ET.fromstring(response)
             except ExpatError:
-                #debug("_ready @@@%s@@@" % self._resp)
                 raise
             node = eresp.get("node")
             msg = eresp.get("msg")
-            self.emit(SIGNAL(node+msg), eresp)
+            self._response.append(eresp)
         else:
-            self.emit(SIGNAL("emptyResponse"))
-        self._resp = ""
-        self._waiting = False
-        #appena il processo ha terminato il lavoro controllo la coda con
-        self._sync()
+            self._response.append("")
+        self._execute()
 
     def _error(self, process_error, exitcode=None):
         """ <-- self.process, SIGNAL("error(QProcess::ProcessError)")

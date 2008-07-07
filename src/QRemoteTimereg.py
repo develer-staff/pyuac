@@ -134,7 +134,6 @@ class QRemoteTimereg(QObject):
         """
         if request in RemoteTimereg.actions.keys() + ["q"]:
             def _request(request_pack=[]):
-                debug("appending request " + str(request))
                 #controlla se è presente una richiesta dello stesso tipo tra le
                 #richieste pendenti
                 if request in self._pending_requests.keys():
@@ -168,7 +167,6 @@ class QRemoteTimereg(QObject):
         for k, v in kwargs.items():
             kwargs[k] = unicode(v).strip().encode("utf-8") #se v è un QString
         qstring = urllib.urlencode(kwargs, doseq=True)
-        #debug("_encode "+qstring)
         return action + "?" + qstring
 
     def _execute(self):
@@ -200,7 +198,6 @@ class QRemoteTimereg(QObject):
                                        [self._current_action[1]])
                 self._current_action = (self._current_action[0], self._current_action[1] + 1)
                 self.process.write(qstring+"\n")
-                debug("_execute " + qstring)
                 #setta waiting a true per indicare che stiamo aspettando un
                 #messaggio dal processo
                 self._waiting = True
@@ -230,7 +227,6 @@ class QRemoteTimereg(QObject):
         """
         if self._pending_requests.keys() != []:
             action = self._pending_requests.keys().pop(0)
-            debug("_sync " + action)
             self._current_action = (action, 0)
             self.emit(SIGNAL(action+"Started"))
             self._execute()    
@@ -243,13 +239,11 @@ class QRemoteTimereg(QObject):
         l'archiviazione del messaggio di risposta questo metodo va a richiamare
         _execute() per proseguire con la lista di richieste.
         """
-        debug("_ready " + str(exitcode))
         if exitcode != None:
             self._error(5, exitcode)
         response = str(self.process.readAllStandardOutput())
         self._waiting = False
         if self._current_action != None:
-            debug("response " + response)
             if response.find("</response>") != -1:
                 try:
                     eresp = ET.fromstring(response)

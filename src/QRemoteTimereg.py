@@ -144,6 +144,7 @@ class QRemoteTimereg(QObject):
                         #resetta la risposta e blocca la richiesta
                         self._response = []
                         self._current_action = None
+                        print "QRemoteTimereg " + request + " abortita"
                 #in qualsiasi caso alla fine aggiunge la nuova richiesta al dizionario
                 print "QRemoteTimereg " + request + " accodata..."
                 self._pending_requests[request] = request_pack
@@ -261,6 +262,7 @@ class QRemoteTimereg(QObject):
             try:
                 eresp = ET.fromstring(self._resp)
             except ExpatError:
+                self._resp = ""
                 raise
             node = eresp.get("node")
             msg = eresp.get("msg")
@@ -273,6 +275,7 @@ class QRemoteTimereg(QObject):
         else:
             #se la richiesta è stata abortita elimina la risposta parziale e
             #setta _waiting a False poiché QRemoteTimereg non aspetta più la risposta.
+            print "QRemoteTimereg pulizia self._resp"
             self._resp = ""
             self._waiting = False
             self._sync()

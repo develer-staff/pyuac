@@ -525,6 +525,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             activitydate = str(date.toString("yyyy-MM-dd"))
             p = self._baseproject
             params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime".split()])
+            params["activitydate"] = activitydate
             params["remark"] = p.get("remark")
             if not self._baseproject.isNew():
                 params["id"] = self._baseproject.get("id")

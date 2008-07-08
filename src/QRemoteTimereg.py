@@ -118,6 +118,8 @@ class QRemoteTimereg(QObject):
         self._current_action = None
         #contiene una lista delle risposte inviate dal server
         self._response = []
+        #contiene una stringa che è parte di una risposta ottenuta da un processo.
+        self._resp = ""
         #contiene un booleano che indica se QRemoteTimereg è in attesa di risposta
         #dal processo
         self._waiting = False
@@ -143,6 +145,7 @@ class QRemoteTimereg(QObject):
                         self._response = []
                         self._current_action = None
                 #in qualsiasi caso alla fine aggiunge la nuova richiesta al dizionario
+                print "QRemoteTimereg " + request + " accodata..."
                 self._pending_requests[request] = request_pack
                 #se il processo non ha richieste in esecuzione o non aspetta risposte
                 #viene iniziata una nuova scansione delle richieste pendenti
@@ -197,6 +200,8 @@ class QRemoteTimereg(QObject):
                                        **self._pending_requests[self._current_action[0]]
                                        [self._current_action[1]])
                 self._current_action = (self._current_action[0], self._current_action[1] + 1)
+                print "QRemoteTimereg " + self._current_action[0] + " mandata in esecuzione al processo"
+                print "QRemoteTimereg._waiting = " + str(self._waiting)
                 self.process.write(qstring+"\n")
                 #setta waiting a true per indicare che stiamo aspettando un
                 #messaggio dal processo
@@ -205,6 +210,8 @@ class QRemoteTimereg(QObject):
                 #nel caso siano terminate le azioni viene emesso il segnale di
                 #terminazione e viene restituita la risposta, dopodiché ripulisce
                 #tutto e scansiona per altre richieste chiamando la sync()
+                print "QRemoteTimereg " + self._current_action[0] + " terminata..."
+                print self._response
                 self.emit(SIGNAL(self._current_action[0] + "OK"), self._response)
                 del self._pending_requests[self._current_action[0]]
                 self._current_action = None
@@ -241,21 +248,33 @@ class QRemoteTimereg(QObject):
         """
         if exitcode != None:
             self._error(5, exitcode)
-        response = str(self.process.readAllStandardOutput())
-        self._waiting = False
+        #accoda la risposta parziale appena letta nella variabile _resp
+        self._resp += str(self.process.readAllStandardOutput())
         if self._current_action != None:
-            if response.find("</response>") != -1:
-                try:
-                    eresp = ET.fromstring(response)
-                except ExpatError:
-                    raise
-                node = eresp.get("node")
-                msg = eresp.get("msg")
-                self._response.append(eresp)
-            #else:
-                #self._response.append("")
+            #se non trova il tag di chiusura della response non fa niente mentre
+            #se lo trova crea un albero dall'xml e lo appende alla lista _response
+            if self._resp.find("</response>") == -1:
+                print "QRemoteTimereg._ready() risposta incompleta"
+                return
+            #QRemoteTimereg non è più in attesa di una risposta dal processo
+            self._waiting = False
+            try:
+                eresp = ET.fromstring(self._resp)
+            except ExpatError:
+                raise
+            node = eresp.get("node")
+            msg = eresp.get("msg")
+            self._response.append(eresp)
+            #cancella la variabile contenente la risposta
+            self._resp = ""
             self._execute()
+        #nel caso la richiesta sia stata interrotta setta a False _waiting, azzera
+        #la risposta parziale e richiama la sync()
         else:
+            #se la richiesta è stata abortita elimina la risposta parziale e
+            #setta _waiting a False poiché QRemoteTimereg non aspetta più la risposta.
+            self._resp = ""
+            self._waiting = False
             self._sync()
 
     def _error(self, process_error, exitcode=None):

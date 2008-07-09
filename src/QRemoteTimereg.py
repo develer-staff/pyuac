@@ -135,7 +135,7 @@ class QRemoteTimereg(QObject):
         ed avvia sync()
         """
         if request in RemoteTimereg.actions.keys() + ["q"]:
-            def _request(request_pack=[]):
+            def _request(request_pack=None):
                 #controlla se è presente una richiesta dello stesso tipo tra le
                 #richieste pendenti
                 if request in self._pending_requests.keys():
@@ -147,7 +147,7 @@ class QRemoteTimereg(QObject):
                         print "QRemoteTimereg " + request + " abortita"
                 #in qualsiasi caso alla fine aggiunge la nuova richiesta al dizionario
                 print "QRemoteTimereg " + request + " accodata..."
-                self._pending_requests[request] = request_pack
+                self._pending_requests[request] = request_pack or []
                 #se il processo non ha richieste in esecuzione o non aspetta risposte
                 #viene iniziata una nuova scansione delle richieste pendenti
                 if not self._current_action and not self._waiting:
@@ -202,7 +202,6 @@ class QRemoteTimereg(QObject):
                                        [self._current_action[1]])
                 self._current_action = (self._current_action[0], self._current_action[1] + 1)
                 print "QRemoteTimereg " + self._current_action[0] + " mandata in esecuzione al processo"
-                print "QRemoteTimereg._waiting = " + str(self._waiting)
                 self.process.write(qstring+"\n")
                 #setta waiting a true per indicare che stiamo aspettando un
                 #messaggio dal processo
@@ -251,34 +250,24 @@ class QRemoteTimereg(QObject):
             self._error(5, exitcode)
         #accoda la risposta parziale appena letta nella variabile _resp
         self._resp += str(self.process.readAllStandardOutput())
+        #se la richiesta è completa ne calcola l'albero e lo accoda nella lista
+        #delle risposte
+        try:
+            eresp = ET.fromstring(self._resp)
+            self._waiting = False
+            print "QRemoteTimereg risposta completata"
+        #se la richiesta non è completa ritorna senza fare niente
+        except ExpatError:
+            print "QRemoteTimereg risposta incompleta"
+            return
+        node = eresp.get("node")
+        msg = eresp.get("msg")
         if self._current_action != None:
-            #se non trova il tag di chiusura della response non fa niente mentre
-            #se lo trova crea un albero dall'xml e lo appende alla lista _response
-            if self._resp.find("</response>") == -1:
-                print "QRemoteTimereg._ready() risposta incompleta"
-                return
-            #QRemoteTimereg non è più in attesa di una risposta dal processo
-            self._waiting = False
-            try:
-                eresp = ET.fromstring(self._resp)
-            except ExpatError:
-                self._resp = ""
-                raise
-            node = eresp.get("node")
-            msg = eresp.get("msg")
             self._response.append(eresp)
-            #cancella la variabile contenente la risposta
-            self._resp = ""
-            self._execute()
-        #nel caso la richiesta sia stata interrotta setta a False _waiting, azzera
-        #la risposta parziale e richiama la sync()
-        else:
-            #se la richiesta è stata abortita elimina la risposta parziale e
-            #setta _waiting a False poiché QRemoteTimereg non aspetta più la risposta.
-            print "QRemoteTimereg pulizia self._resp"
-            self._resp = ""
-            self._waiting = False
-            self._sync()
+            print "QRemoteTimereg risposta accodata"
+        #cancella la variabile contenente la risposta
+        self._resp = ""
+        self._execute()
 
     def _error(self, process_error, exitcode=None):
         """ <-- self.process, SIGNAL("error(QProcess::ProcessError)")
@@ -296,3 +285,4 @@ class QRemoteTimereg(QObject):
         msg += [errstr]
         #debug("\n".join(msg))
         self.emit(SIGNAL("processError"), process_error, exitcode, errstr)
+

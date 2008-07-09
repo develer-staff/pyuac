@@ -270,7 +270,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.notify(self.tr("Searching..."))
         #pulisce la tabella con la vista settimanale solamente nel caso si sia in modalità 'weekly'
         if self._mode == "weekly":
-            days = getweek(self.ui.dateEdit.date())
+            days = getweek(qdate)
             self.ui.tableWeekTimereg.clearContents()
             self.ui.tableWeekTimereg.setRowCount(0)
             for c, day in enumerate(getweek(qdate)):
@@ -281,8 +281,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             days = [self.ui.dateEdit.date()]
             self.ui.tableTimereg.clearContents()
         self.projects = defaultdict(dict)
-        for date in days:
-            self.remote.timereport(date=date.toString("yyyy-MM-dd"))
+        self.remote.timereport([{"date": date.toString("yyyy-MM-dd")} for date in days])
 
     def _slotTimereportStarted(self):
         """
@@ -351,12 +350,13 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         :param eprojects: lista di ElementTree, contiene la risposta dal server con una lista di ore
         registrate.
         """
-        if self._mode == "daily":
-            self._updateDailyTimereport(eprojects)
-        elif self._mode == "weekly":
-            self._updateWeeklyTimereport(eprojects)
-        else:
-            assert False, "modo non gestito: %s" % self._mode
+        for project in eprojects:
+            if self._mode == "daily":
+                self._updateDailyTimereport(project)
+            elif self._mode == "weekly":
+                self._updateWeeklyTimereport(project)
+            else:
+                assert False, "modo non gestito: %s" % self._mode
 
 class TimeregMenu(QMenu):
     """

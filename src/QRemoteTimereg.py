@@ -108,27 +108,51 @@ class QRemoteTimereg(QObject):
     """
     def __init__(self, parent, auth):
         QObject.__init__(self, parent)
-        self.process = QProcess(self)
+        self.process = QPythonProcess(self)
         self._waiting = False
-        self._resp = ""
         self.auth = auth
-        self._actions_params = []
+        #dizionario con tipo di richiesta come chiave, e lista di azioni come valore
+        self._pending_requests = {}
+        #None se non ci sono azioni in esecuzione, altrimenti contiene il tipo
+        #della richiesta e l'indice dell'azione a cui il processo è arrivato
+        self._current_action = None
+        #contiene una lista delle risposte inviate dal server
+        self._response = []
+        #contiene una stringa che è parte di una risposta ottenuta da un processo.
+        self._resp = ""
+        #contiene un booleano che indica se QRemoteTimereg è in attesa di risposta
+        #dal processo
+        self._waiting = False
         self.connect(self.process, SIGNAL("finished(int)"), self._ready)
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"), self._ready)
         self.connect(self.process, SIGNAL("error(QProcess::ProcessError)"),
                      self._error)
-        self.login(achievouri=auth[0], user=auth[1], password=auth[2])
+        self.login([{"achievouri": auth[0], "user": auth[1], "password": auth[2]}])
 
-    def __getattr__(self, action):
+    def __getattr__(self, request):
         """
         Imposta per l'esecuzione le azioni definite in RemoteTimereg
         ed avvia sync()
         """
-        if action in RemoteTimereg.actions.keys() + ["q"]:
-            def _action(**kwargs):
-                self._actions_params.append([action,  self._encode(action, **kwargs)])
-                self._sync()
-            return _action
+        if request in RemoteTimereg.actions.keys() + ["q"]:
+            def _request(request_pack=None):
+                #controlla se è presente una richiesta dello stesso tipo tra le
+                #richieste pendenti
+                if request in self._pending_requests.keys():
+                    #controlla se quella in esecuzione è dello stesso tipo
+                    if self._current_action != None and self._current_action[0] == request:
+                        #resetta la risposta e blocca la richiesta
+                        self._response = []
+                        self._current_action = None
+                        print "QRemoteTimereg " + request + " abortita"
+                #in qualsiasi caso alla fine aggiunge la nuova richiesta al dizionario
+                print "QRemoteTimereg " + request + " accodata..."
+                self._pending_requests[request] = request_pack or []
+                #se il processo non ha richieste in esecuzione o non aspetta risposte
+                #viene iniziata una nuova scansione delle richieste pendenti
+                if not self._current_action and not self._waiting:
+                    self._sync()
+            return _request
         else:
             raise AttributeError
 
@@ -147,33 +171,46 @@ class QRemoteTimereg(QObject):
         for k, v in kwargs.items():
             kwargs[k] = unicode(v).strip().encode("utf-8") #se v è un QString
         qstring = urllib.urlencode(kwargs, doseq=True)
-        #debug("_encode "+qstring)
         return action + "?" + qstring
 
-    def _execute(self, qstring):
+    def _execute(self):
         """
-        Avvia il processo e invia la qstring.
-        Viene invocato da sync()
+        Avvia il processo e invia la stringa di richiesta.
+        Viene invocato da sync() e da ready().
         """
-        if self.process.state() == self.process.NotRunning:
-            if not hasattr(sys, "frozen") or not sys.frozen:
-                executable = sys.executable
-                params = []
-                if not __debug__:
-                    params += ["-O"]
-                pyuac_cli = os.path.join(os.path.dirname(__file__), "pyuac_cli.py")
-                params += [pyuac_cli]
-                self.process.start(executable, params+["--silent"])
+        #controlla se sono presenti azioni da eseguire
+        if self._current_action:
+            if len(self._pending_requests[self._current_action[0]]) > self._current_action[1]:
+                #avvia il processo e scrive il comando
+                if self.process.state() == self.process.NotRunning:
+                    self.process.start("pyuac_cli")
+                #costruisce la stringa da inviare al processo a partire dalle
+                #informazioni presenti in pending_requests e in current_action
+                qstring = self._encode(self._current_action[0],
+                                       **self._pending_requests[self._current_action[0]]
+                                       [self._current_action[1]])
+                self._current_action = (self._current_action[0], self._current_action[1] + 1)
+                print "QRemoteTimereg " + self._current_action[0] + " mandata in esecuzione al processo"
+                self.process.write(qstring+"\n")
+                #setta waiting a true per indicare che stiamo aspettando un
+                #messaggio dal processo
+                self._waiting = True
             else:
-                executable = os.path.join(os.path.dirname(sys.executable), "pyuac_cli")
-                params = ["--silent"]
-                self.process.start(executable, params)
-        if not self._waiting:
-            self.process.write(qstring+"\n")
-            self._waiting = True
-            return self._waiting
+                #nel caso siano terminate le azioni viene emesso il segnale di
+                #terminazione e viene restituita la risposta, dopodiché ripulisce
+                #tutto e scansiona per altre richieste chiamando la sync()
+                print "QRemoteTimereg " + self._current_action[0] + " terminata..."
+                print self._response
+                self.emit(SIGNAL(self._current_action[0] + "OK"), self._response)
+                del self._pending_requests[self._current_action[0]]
+                self._current_action = None
+                self._response = []
+                self._sync()
         else:
-            return False
+            #nel caso current_action sia settato a None vuol dire che l'azione corrente
+            #è stata abortita, perché è giunta una richiesta più nuova dello stesso tipo,
+            #quindi viene richiamato il metodo sync() per cercare ulteriori altre richieste
+            self._sync()
 
     def _sync(self):
         """
@@ -184,46 +221,42 @@ class QRemoteTimereg(QObject):
             timeregStarted
             timereportStarted
         """
-        #debug("%s <!-- Sync -->" % __name__)
-        for action, cmdline in self._actions_params:
-            if self._execute(cmdline):
-                self._actions_params.remove([action, cmdline])
-                self.emit(SIGNAL(action+"Started"))
-
-
+        if self._pending_requests.keys() != []:
+            action = self._pending_requests.keys().pop(0)
+            self._current_action = (action, 0)
+            self.emit(SIGNAL(action+"Started"))
+            self._execute()    
+    
     def _ready(self, exitcode=None):
-        """ <-- self.process, SIGNAL("finished(int)")
-            <-- self.process, SIGNAL("readyReadStandardOutput()")
-        Provvede a emettere i segnali adatti alla risposta ottenuta:
-            whoami[OK|Err](ElemetTree)
-            query[OK|Err](ElemetTree)
-            timereg[OK|Err](ElemetTree)
-            timereport[OK|Err](ElemetTree)
-            emptyResponse
         """
-        #debug("%s <!-- Ready(%s) -->" % (__name__, exitcode))
+        Slot collegato al QProcess, viene attivato quando il QProcess finisce la
+        sua esecuzione, per leggere la risposta e archiviarla sotto forma di
+        albero o sotto forma di stringa vuota nel caso di risposta vuota. Finita
+        l'archiviazione del messaggio di risposta questo metodo va a richiamare
+        _execute() per proseguire con la lista di richieste.
+        """
         if exitcode != None:
             self._error(5, exitcode)
-
+        #accoda la risposta parziale appena letta nella variabile _resp
         self._resp += str(self.process.readAllStandardOutput())
-        if self._resp.find("</response>") == -1:
+        #se la richiesta è completa ne calcola l'albero e lo accoda nella lista
+        #delle risposte
+        try:
+            eresp = ET.fromstring(self._resp)
+            self._waiting = False
+            print "QRemoteTimereg risposta completata"
+        #se la richiesta non è completa ritorna senza fare niente
+        except ExpatError:
+            print "QRemoteTimereg risposta incompleta"
             return
-
-        if self._resp not in ["", "\n"]:
-            try:
-                eresp = ET.fromstring(self._resp)
-            except ExpatError:
-                #debug("_ready @@@%s@@@" % self._resp)
-                raise
-            node = eresp.get("node")
-            msg = eresp.get("msg")
-            self.emit(SIGNAL(node+msg), eresp)
-        else:
-            self.emit(SIGNAL("emptyResponse"))
+        node = eresp.get("node")
+        msg = eresp.get("msg")
+        if self._current_action != None:
+            self._response.append(eresp)
+            print "QRemoteTimereg risposta accodata"
+        #cancella la variabile contenente la risposta
         self._resp = ""
-        self._waiting = False
-        #appena il processo ha terminato il lavoro controllo la coda con
-        self._sync()
+        self._execute()
 
     def _error(self, process_error, exitcode=None):
         """ <-- self.process, SIGNAL("error(QProcess::ProcessError)")
@@ -241,3 +274,22 @@ class QRemoteTimereg(QObject):
         msg += [errstr]
         #debug("\n".join(msg))
         self.emit(SIGNAL("processError"), process_error, exitcode, errstr)
+
+class QPythonProcess(QProcess):
+    """
+    Classe derivata da QProcess concepita per i processi python, mantenendo una
+    interfaccia simile a quella di QProcess ma evitando di dare attenzione
+    all'attributo "frozen".
+    """
+    
+    def start(self, process):
+        if not hasattr(sys, "frozen") or not sys.frozen:
+            executable = sys.executable
+            params = []
+            pyuac_cli = os.path.join(os.path.dirname(__file__), process + ".py")
+            params += [pyuac_cli]
+            QProcess.start(self, executable, params+["--silent"])
+        else:
+            executable = os.path.join(os.path.dirname(sys.executable), process)
+            params = ["--silent"]
+            QProcess.start(self, executable, params)

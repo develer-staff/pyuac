@@ -289,6 +289,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.ui.tlbTimereg durante l'attesa della risposta dal server.
         """
         self.ui.tlbTimereg.setEnabled(False)
+        QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
 
     def _updateDailyTimereport(self, eprojects):
         """
@@ -351,6 +352,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         registrate.
         """
         for project in eprojects:
+            QApplication.restoreOverrideCursor()
             if self._mode == "daily":
                 self._updateDailyTimereport(project)
             elif self._mode == "weekly":

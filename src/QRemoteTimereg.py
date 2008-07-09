@@ -108,7 +108,7 @@ class QRemoteTimereg(QObject):
     """
     def __init__(self, parent, auth):
         QObject.__init__(self, parent)
-        self.process = QProcess(self)
+        self.process = QPythonProcess(self)
         self._waiting = False
         self.auth = auth
         #dizionario con tipo di richiesta come chiave, e lista di azioni come valore
@@ -183,18 +183,7 @@ class QRemoteTimereg(QObject):
             if len(self._pending_requests[self._current_action[0]]) > self._current_action[1]:
                 #avvia il processo e scrive il comando
                 if self.process.state() == self.process.NotRunning:
-                    if not hasattr(sys, "frozen") or not sys.frozen:
-                        executable = sys.executable
-                        params = []
-                        if not __debug__:
-                            params += ["-O"]
-                        pyuac_cli = os.path.join(os.path.dirname(__file__), "pyuac_cli.py")
-                        params += [pyuac_cli]
-                        self.process.start(executable, params+["--silent"])
-                    else:
-                        executable = os.path.join(os.path.dirname(sys.executable), "pyuac_cli")
-                        params = ["--silent"]
-                        self.process.start(executable, params)
+                    self.process.start("pyuac_cli")
                 #costruisce la stringa da inviare al processo a partire dalle
                 #informazioni presenti in pending_requests e in current_action
                 qstring = self._encode(self._current_action[0],
@@ -286,3 +275,21 @@ class QRemoteTimereg(QObject):
         #debug("\n".join(msg))
         self.emit(SIGNAL("processError"), process_error, exitcode, errstr)
 
+class QPythonProcess(QProcess):
+    """
+    Classe derivata da QProcess concepita per i processi python, mantenendo una
+    interfaccia simile a quella di QProcess ma evitando di dare attenzione
+    all'attributo "frozen".
+    """
+    
+    def start(self, process):
+        if not hasattr(sys, "frozen") or not sys.frozen:
+            executable = sys.executable
+            params = []
+            pyuac_cli = os.path.join(os.path.dirname(__file__), process + ".py")
+            params += [pyuac_cli]
+            QProcess.start(self, executable, params+["--silent"])
+        else:
+            executable = os.path.join(os.path.dirname(sys.executable), process)
+            params = ["--silent"]
+            QProcess.start(self, executable, params)

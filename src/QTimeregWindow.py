@@ -43,7 +43,6 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self._setupGui()
 
     def _setupGui(self):
-        self._setInvisibleUi()
         if self._mode == "single":
             self._uiSingleMode()
         elif self._mode == "range":
@@ -72,12 +71,13 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         """
         Inizializza i valori delle componenti necessarie solamente in modalità 'single'.
         """
-        self.ui.dateGroupBox.setVisible(True)
+        self.ui.stackedWidget.setCurrentIndex(0)
     
     def _uiRangeMode(self):
         """
         Connette le componenti necessarie solamente in modalità 'range' e ne inizializza i valori.
         """
+        self.ui.stackedWidget.setCurrentIndex(1)
         self.connect(self.ui.dateFromDateEdit, SIGNAL("dateChanged(const QDate&)"), 
                         self._updateDaysLabel)
         self.connect(self.ui.dateToDateEdit, SIGNAL("dateChanged(const QDate&)"), 
@@ -106,12 +106,12 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                         self._updateDaysLabel)
         for i, checkBox in enumerate(checkBoxes):
             checkBox.setText(unicode(QDate.longDayName(i + 1)).capitalize())
-        self.ui.daterangeGroupBox.setVisible(True)
 
     def _uiMonthlyMode(self):
         """
         Connette le componenti necessarie solamente in modalità 'monthly' e ne inizializza i valori.
         """
+        self.ui.stackedWidget.setCurrentIndex(2)
         checkBoxes = []
         checkBoxes.append(self.ui.monMonthCheckBox)
         checkBoxes.append(self.ui.tueMonthCheckBox)
@@ -122,7 +122,6 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         checkBoxes.append(self.ui.sunMonthCheckBox)
         for i, checkBox in enumerate(checkBoxes):
             checkBox.setText(unicode(QDate.longDayName(i + 1)).capitalize())
-        self.ui.monthlyGroupBox.setVisible(True)
         #self.connect(self.ui.hoursSpinBox, SIGNAL("valueChanged(int)"),
                      #self._spinboxHoursActivated)
         #Rende invisibili le componenti per la scelta del numero di ore
@@ -132,11 +131,6 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                      self._comboTimeWorkedActivated)
         for i in range(12):
             self.ui.monthComboBox.addItem(QDate.longMonthName(i + 1), QVariant(i + 1))
-    
-    def _setInvisibleUi(self):
-        self.ui.dateGroupBox.setVisible(False)
-        self.ui.daterangeGroupBox.setVisible(False)
-        self.ui.monthlyGroupBox.setVisible(False)
     
     def _connectSlots(self):
         self.connect(self.ui.editSmartQuery, SIGNAL("textEdited(QString)"),

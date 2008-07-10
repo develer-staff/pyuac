@@ -224,12 +224,10 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
 
     def _slotNewTimeCalculator(self):
         if not self.calculator or sip.isdeleted(self.calculator):
-            print "creating time calculator"
             self.calculator = TimeCalculator()
             self.calculator.setAttribute(Qt.WA_DeleteOnClose)
             self.calculator.show()
         else:
-            print "activating time calculator"
             self.calculator.activateWindow()
             self.calculator.raise_()
 

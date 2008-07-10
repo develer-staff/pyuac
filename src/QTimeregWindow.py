@@ -385,7 +385,8 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
 
     def _updateDaysLabel(self):
         """
-        Aggiorna il numero di giorni lavorativi e di giorni totali che appare a lato delle dateEdit, in modalità 'range'
+        Aggiorna il numero di giorni lavorativi e di giorni totali che appare a lato delle dateEdit, in modalità
+        'range'
         """
         working, total = daysnumber(self.ui.dateFromDateEdit.date(), self.ui.dateToDateEdit.date(), self._getDays())
         self.ui.daysLabel.setText("Working days: %d, Total days: %d" %(working, total))
@@ -414,11 +415,13 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         return tuple(days)
 
     def _timeregStarted(self):
-        pass
+        self._disableAll()
+        QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
 
     def _registrationDone(self, eresp):
         #self._registrations -= 1
         #if not self._registrations:
+        QApplication.restoreOverrideCursor()
         self.emit(SIGNAL("registrationDone"), self._baseproject)
         self._endingRegistrations()
     

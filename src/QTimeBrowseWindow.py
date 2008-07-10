@@ -369,8 +369,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         :param eprojects: lista di ElementTree, contiene la risposta dal server con una lista di ore
         registrate.
         """
+        QApplication.restoreOverrideCursor()
         for project in eprojects:
-            QApplication.restoreOverrideCursor()
             if self._mode == "daily":
                 self._updateDailyTimereport(project)
             elif self._mode == "weekly":

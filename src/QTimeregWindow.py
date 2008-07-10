@@ -122,8 +122,8 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         checkBoxes.append(self.ui.sunMonthCheckBox)
         for i, checkBox in enumerate(checkBoxes):
             checkBox.setText(unicode(QDate.longDayName(i + 1)).capitalize())
-        #self.connect(self.ui.hoursSpinBox, SIGNAL("valueChanged(int)"),
-                     #self._spinboxHoursActivated)
+        self.connect(self.ui.hoursSpinBox, SIGNAL("valueChanged(int)"),
+                     self._spinboxHoursActivated)
         #Rende invisibili le componenti per la scelta del numero di ore
         self.ui.labelTimeWorked.setVisible(False)
         self.ui.comboTimeWorked.setVisible(False)
@@ -226,7 +226,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self.ui.labelActivity.setEnabled(p.get("act") != None)
         
         if self._mode == "monthly":
-            self.ui.hoursSpinBox.setValue(int(p.get("hmtime").split(":")[0] or 0))
+            self.ui.hoursSpinBox.setValue(int(p.get("in_hmtime").split(":")[0] or 0))
         else:    
             idx = self.ui.comboTimeWorked.findText(p.get("hmtime") or "00:00")
             self.ui.comboTimeWorked.setCurrentIndex(idx)

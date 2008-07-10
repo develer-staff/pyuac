@@ -199,7 +199,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         Aggiorna lo stato interno in funzione dei progetti
         restituiti dalla ricerca in Achievo:
         """
-
+        QApplication.restoreOverrideCursor()
         self._response_projects = projects[0]
         if len(self._response_projects) != 0:
             self._baseproject.merge(self._response_projects)
@@ -215,29 +215,30 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self._disableAll()
         idx = self.ui.comboProject.findText(p.get("prj") or "")
         self.ui.comboProject.setCurrentIndex(idx)
-        self.ui.labelProject.setEnabled(p.get("prj") != None)
+        #self.ui.labelProject.setEnabled(p.get("prj") != None)
 
         idx = self.ui.comboPhase.findText(p.get("pha") or "")
         self.ui.comboPhase.setCurrentIndex(idx)
-        self.ui.labelPhase.setEnabled(p.get("pha") != None)
+        self.ui.labelPhase.setEnabled(p.get("prj") != None)
 
         idx = self.ui.comboActivity.findText(p.get("act") or "")
         self.ui.comboActivity.setCurrentIndex(idx)
-        self.ui.labelActivity.setEnabled(p.get("act") != None)
+        self.ui.labelActivity.setEnabled(p.get("pha") != None)
         
         if self._mode == "monthly":
             self.ui.hoursSpinBox.setValue(int(p.get("in_hmtime").split(":")[0] or 0))
         else:    
             idx = self.ui.comboTimeWorked.findText(p.get("hmtime") or "00:00")
             self.ui.comboTimeWorked.setCurrentIndex(idx)
-            self.ui.labelTimeWorked.setEnabled(p.get("hmtime") != "00:00")
+            self.ui.labelTimeWorked.setEnabled(True)
             
         self.ui.txtRemark.setPlainText((p.get("remark") or "").strip())
-        self.ui.labelRemark.setEnabled(p.get("remark") != None)
+        self.ui.labelRemark.setEnabled(True)
 
         self.ui.btnSave.setEnabled(p.isComplete())
 
         #deselezione lru
+        self.ui.labelProject.setEnabled(self._all_ppa.keys() != [])
         self.ui.comboPPAlru.setCurrentIndex(0)
         self.ui.btnCancel.setEnabled(True)
         self.ui.btnDelete.setEnabled(True)
@@ -417,6 +418,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
 
     def _timeregStarted(self):
         self._disableAll()
+        QApplication.restoreOverrideCursor()
         QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
 
     def _registrationDone(self, eresp):
@@ -443,6 +445,8 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         pass
 
     def _searchStarted(self):
+        QApplication.restoreOverrideCursor()
+        QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
         self._disableAll()
 
     def _comboProjectActivated(self, combotext):

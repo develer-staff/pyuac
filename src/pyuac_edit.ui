@@ -39,7 +39,7 @@
        <number>1</number>
       </property>
       <property name="currentIndex" >
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page" >
        <property name="geometry" >
@@ -47,7 +47,7 @@
          <x>0</x>
          <y>0</y>
          <width>644</width>
-         <height>102</height>
+         <height>84</height>
         </rect>
        </property>
        <property name="sizePolicy" >
@@ -719,6 +719,9 @@
       </item>
       <item>
        <widget class="QPushButton" name="btnCancel" >
+        <property name="enabled" >
+         <bool>false</bool>
+        </property>
         <property name="maximumSize" >
          <size>
           <width>100</width>

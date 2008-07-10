@@ -239,7 +239,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
 
         #deselezione lru
         self.ui.comboPPAlru.setCurrentIndex(0)
-
+        self.ui.btnCancel.setEnabled(True)
         self.ui.btnDelete.setEnabled(True)
         self.ui.comboProject.setEnabled(True)
         self.ui.comboPhase.setEnabled(True)
@@ -254,6 +254,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self.ui.labelRemark.setEnabled(False)
         self.ui.btnSave.setEnabled(False)
         self.ui.btnDelete.setEnabled(False)
+        self.ui.btnCancel.setEnabled(False)
 
     def _updateComboBoxes(self, combo=None, combotext=None):
         """ <-- _updateGui() e dai combo

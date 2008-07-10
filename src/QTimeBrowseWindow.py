@@ -285,6 +285,11 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         la data corrente invia la query al server per aggiornare le viste alla nuova data.
         :param qdate: QDate contenente la nuova data da inserire nella query.
         """
+        #si effettua una restore prima del cambiamento del cursore poiché questa
+        #funzione è stata progettata per essere chiamata anche più volte consecutive.
+        #il restore vero e proprio viene eseguito una volta ricevuta la timereport
+        QApplication.restoreOverrideCursor()
+        QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
         self.notify(self.tr("Searching..."))
         #pulisce la tabella con la vista settimanale solamente nel caso si sia in modalità 'weekly'
         if self._mode == "weekly":
@@ -307,7 +312,6 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.ui.tlbTimereg durante l'attesa della risposta dal server.
         """
         self.ui.tlbTimereg.setEnabled(False)
-        QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
 
     def _updateDailyTimereport(self, eprojects):
         """
@@ -377,6 +381,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                 self._updateWeeklyTimereport(project)
             else:
                 assert False, "modo non gestito: %s" % self._mode
+
     
     def close(self):
         """

@@ -22,7 +22,7 @@ function isTime($time)
     if ($m && !ctype_digit($m))
         return false;
 
-    if ($h < 0 || $h >= 24)
+    if ($h < 0)
         return false;
 
     if ($m < 0 || $m >= 60)

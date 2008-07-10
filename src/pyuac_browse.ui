@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>803</width>
-    <height>588</height>
+    <width>472</width>
+    <height>419</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -20,9 +20,9 @@
    <property name="geometry" >
     <rect>
      <x>0</x>
-     <y>0</y>
-     <width>803</width>
-     <height>566</height>
+     <y>26</y>
+     <width>472</width>
+     <height>371</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_3" >
@@ -130,238 +130,324 @@
      </layout>
     </item>
     <item>
-     <widget class="QGroupBox" name="dailyGroup" >
-      <property name="title" >
-       <string>Daily view mode</string>
+     <widget class="QStackedWidget" name="stackedWidget" >
+      <property name="currentIndex" >
+       <number>0</number>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout" >
-       <item>
-        <layout class="QHBoxLayout" >
-         <property name="spacing" >
-          <number>6</number>
-         </property>
-         <property name="margin" >
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QPushButton" name="btnToday" >
-           <property name="sizePolicy" >
-            <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text" >
-            <string>Today</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_5" >
-           <property name="orientation" >
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0" >
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QDateEdit" name="dateEdit" >
-           <property name="displayFormat" >
-            <string>ddd dd/MMM/yyyy</string>
-           </property>
-           <property name="calendarPopup" >
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="QTableWidget" name="tableTimereg" >
-         <property name="editTriggers" >
-          <set>QAbstractItemView::NoEditTriggers</set>
-         </property>
-         <property name="alternatingRowColors" >
-          <bool>true</bool>
-         </property>
-         <property name="selectionMode" >
-          <enum>QAbstractItemView::SingleSelection</enum>
-         </property>
-         <property name="selectionBehavior" >
-          <enum>QAbstractItemView::SelectRows</enum>
-         </property>
-         <property name="cornerButtonEnabled" >
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="_4" >
-         <property name="spacing" >
-          <number>6</number>
-         </property>
-         <property name="margin" >
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="labelInfo" >
-           <property name="font" >
-            <font>
-             <italic>true</italic>
-            </font>
-           </property>
-           <property name="text" >
-            <string>Double click on a row to edit or delete</string>
-           </property>
-           <property name="alignment" >
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer" >
-           <property name="orientation" >
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0" >
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-      </layout>
-      <zorder>tableTimereg</zorder>
-      <zorder></zorder>
-      <zorder></zorder>
-     </widget>
-    </item>
-    <item>
-     <widget class="QGroupBox" name="weeklyGroup" >
-      <property name="title" >
-       <string>Weekly view mode</string>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2" >
-       <item>
-        <layout class="QHBoxLayout" name="_2" >
-         <property name="spacing" >
-          <number>6</number>
-         </property>
-         <property name="margin" >
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QPushButton" name="btnThisWeek" >
-           <property name="sizePolicy" >
-            <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text" >
-            <string>This week</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_5" >
-           <property name="orientation" >
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0" >
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="QTableWidget" name="tableWeekTimereg" >
-         <property name="editTriggers" >
-          <set>QAbstractItemView::NoEditTriggers</set>
-         </property>
-         <property name="alternatingRowColors" >
-          <bool>false</bool>
-         </property>
-         <property name="selectionMode" >
-          <enum>QAbstractItemView::SingleSelection</enum>
-         </property>
-         <property name="selectionBehavior" >
-          <enum>QAbstractItemView::SelectItems</enum>
-         </property>
-         <property name="cornerButtonEnabled" >
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="_5" >
-         <property name="spacing" >
-          <number>6</number>
-         </property>
-         <property name="margin" >
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="labelInfo_2" >
-           <property name="font" >
-            <font>
-             <italic>true</italic>
-            </font>
-           </property>
-           <property name="text" >
-            <string>Double click on a cell to edit or delete</string>
-           </property>
-           <property name="alignment" >
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer" >
-           <property name="orientation" >
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0" >
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-      </layout>
+      <widget class="QWidget" name="page" >
+       <property name="geometry" >
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>454</width>
+         <height>284</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_4" >
+        <item>
+         <widget class="QGroupBox" name="dailyGroup" >
+          <property name="title" >
+           <string>Daily view mode</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout" >
+           <item>
+            <layout class="QHBoxLayout" >
+             <property name="spacing" >
+              <number>6</number>
+             </property>
+             <property name="margin" >
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QPushButton" name="btnToday" >
+               <property name="sizePolicy" >
+                <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text" >
+                <string>Today</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_5" >
+               <property name="orientation" >
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0" >
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QDateEdit" name="dateEdit" >
+               <property name="displayFormat" >
+                <string>ddd dd/MMM/yyyy</string>
+               </property>
+               <property name="calendarPopup" >
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QTableWidget" name="tableTimereg" >
+             <property name="editTriggers" >
+              <set>QAbstractItemView::NoEditTriggers</set>
+             </property>
+             <property name="alternatingRowColors" >
+              <bool>true</bool>
+             </property>
+             <property name="selectionMode" >
+              <enum>QAbstractItemView::SingleSelection</enum>
+             </property>
+             <property name="selectionBehavior" >
+              <enum>QAbstractItemView::SelectRows</enum>
+             </property>
+             <property name="cornerButtonEnabled" >
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="_4" >
+             <property name="spacing" >
+              <number>6</number>
+             </property>
+             <property name="margin" >
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="labelInfo" >
+               <property name="font" >
+                <font>
+                 <italic>true</italic>
+                </font>
+               </property>
+               <property name="text" >
+                <string>Double click on a row to edit or delete</string>
+               </property>
+               <property name="alignment" >
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer" >
+               <property name="orientation" >
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0" >
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+          </layout>
+          <zorder>tableTimereg</zorder>
+          <zorder></zorder>
+          <zorder></zorder>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="page_2" >
+       <property name="geometry" >
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>454</width>
+         <height>284</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_3" >
+        <item>
+         <widget class="QGroupBox" name="weeklyGroup" >
+          <property name="title" >
+           <string>Weekly view mode</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_2" >
+           <item>
+            <layout class="QHBoxLayout" name="_2" >
+             <property name="spacing" >
+              <number>6</number>
+             </property>
+             <property name="margin" >
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QPushButton" name="btnThisWeek" >
+               <property name="sizePolicy" >
+                <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text" >
+                <string>This week</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_5" >
+               <property name="orientation" >
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0" >
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QTableWidget" name="tableWeekTimereg" >
+             <property name="editTriggers" >
+              <set>QAbstractItemView::NoEditTriggers</set>
+             </property>
+             <property name="alternatingRowColors" >
+              <bool>false</bool>
+             </property>
+             <property name="selectionMode" >
+              <enum>QAbstractItemView::SingleSelection</enum>
+             </property>
+             <property name="selectionBehavior" >
+              <enum>QAbstractItemView::SelectItems</enum>
+             </property>
+             <property name="cornerButtonEnabled" >
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="_5" >
+             <property name="spacing" >
+              <number>6</number>
+             </property>
+             <property name="margin" >
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="labelInfo_2" >
+               <property name="font" >
+                <font>
+                 <italic>true</italic>
+                </font>
+               </property>
+               <property name="text" >
+                <string>Double click on a cell to edit or delete</string>
+               </property>
+               <property name="alignment" >
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer" >
+               <property name="orientation" >
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0" >
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
-   <zorder></zorder>
-   <zorder></zorder>
-   <zorder>dailyGroup</zorder>
-   <zorder>weeklyGroup</zorder>
   </widget>
   <widget class="QStatusBar" name="statusBar" >
    <property name="geometry" >
     <rect>
      <x>0</x>
-     <y>566</y>
-     <width>803</width>
+     <y>397</y>
+     <width>472</width>
      <height>22</height>
     </rect>
    </property>
   </widget>
+  <widget class="QMenuBar" name="menuBar" >
+   <property name="geometry" >
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>472</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuTimeRegistration" >
+    <property name="title" >
+     <string>Time registration</string>
+    </property>
+    <widget class="QMenu" name="menuNewRegistration" >
+     <property name="title" >
+      <string>New Registration</string>
+     </property>
+     <addaction name="actionSingleRegistration" />
+     <addaction name="actionRangeRegistration" />
+     <addaction name="actionMonthlyRegistration" />
+    </widget>
+    <addaction name="menuNewRegistration" />
+    <addaction name="separator" />
+    <addaction name="actionQuit" />
+   </widget>
+   <widget class="QMenu" name="menuTools" >
+    <property name="title" >
+     <string>Tools</string>
+    </property>
+    <addaction name="actionTimeCalculator" />
+   </widget>
+   <addaction name="menuTimeRegistration" />
+   <addaction name="menuTools" />
+  </widget>
+  <action name="actionTimeCalculator" >
+   <property name="text" >
+    <string>Time calculator</string>
+   </property>
+  </action>
+  <action name="actionSingleRegistration" >
+   <property name="text" >
+    <string>Single registration</string>
+   </property>
+  </action>
+  <action name="actionRangeRegistration" >
+   <property name="text" >
+    <string>Range registration</string>
+   </property>
+  </action>
+  <action name="actionMonthlyRegistration" >
+   <property name="text" >
+    <string>Monthly registration</string>
+   </property>
+  </action>
+  <action name="actionQuit" >
+   <property name="text" >
+    <string>Quit</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

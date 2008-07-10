@@ -13,12 +13,14 @@ Modulo contenente il codice della MainWindow di pyuac (TimeBrowseWindow), della 
 """
 
 import os, sys
+import sip
 
 from collections import defaultdict
 
 from pyuac_utils import *
 from QRemoteTimereg import *
 from QTimeregWindow import *
+from QTimeCalculator import *
 
 class LoginDialog(QDialog, QAchievoWindow):
     """
@@ -69,6 +71,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
     def __init__(self, parent, auth=None, config=None):
         QMainWindow.__init__(self, parent)
         self.projects = None
+        self.calculator = None
         if config != None:
             self.login = LoginDialog(self, config)
             self.connect(self.login, SIGNAL("login"), self.__auth__)
@@ -119,6 +122,14 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                      self._slotChangeToDaily)
         self.connect(self.ui.btnWeekly, SIGNAL("clicked()"),
                      self._slotChangeToWeekly)
+        self.connect(self.ui.actionSingleRegistration, SIGNAL("triggered(bool)"),
+                     lambda: self._slotNewTimereg("single"))
+        self.connect(self.ui.actionRangeRegistration, SIGNAL("triggered(bool)"),
+                     lambda: self._slotNewTimereg("range"))
+        self.connect(self.ui.actionMonthlyRegistration, SIGNAL("triggered(bool)"),
+                     lambda: self._slotNewTimereg("monthly"))
+        self.connect(self.ui.actionTimeCalculator, SIGNAL("triggered(bool)"),
+                     self._slotNewTimeCalculator)
 
     def _changeDate(self, date):
         """
@@ -172,8 +183,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         """
         if self._mode != "weekly":
             self._mode = "weekly"
-            self.ui.dailyGroup.setVisible(False)
-            self.ui.weeklyGroup.setVisible(True)
+            self.ui.stackedWidget.setCurrentIndex(1)
             self._slotTimereport(self.ui.dateEdit.date())
         self.ui.btnDaily.setChecked(False)
         self.ui.btnWeekly.setChecked(True)
@@ -184,8 +194,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         """
         if self._mode != "daily":
             self._mode = "daily"
-            self.ui.dailyGroup.setVisible(True)
-            self.ui.weeklyGroup.setVisible(False)
+            self.ui.stackedWidget.setCurrentIndex(0)
             self._slotTimereport(self.ui.dateEdit.date())
         self.ui.btnDaily.setChecked(True)
         self.ui.btnWeekly.setChecked(False)
@@ -203,7 +212,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
 
     def _slotNewTimereg(self, mode="single"):
         """
-        Slot attivato quando viene utilizzato self.ui.tlbTimereg.
+        Slot attivato quando viene utilizzato self.ui.tlbTimereg o il menu.
         :param mode: modalità di inserimento ore ('single' o 'range')
         """
         selected_date = unicode(self.ui.dateEdit.date().toString("yyyy-MM-dd"))
@@ -212,6 +221,17 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         editwin = self._createTimeregWindow(mode)
         editwin.setupEdit(project_template)
         editwin.show()
+
+    def _slotNewTimeCalculator(self):
+        if not self.calculator or sip.isdeleted(self.calculator):
+            print "creating time calculator"
+            self.calculator = TimeCalculator()
+            self.calculator.setAttribute(Qt.WA_DeleteOnClose)
+            self.calculator.show()
+        else:
+            print "activating time calculator"
+            self.calculator.activateWindow()
+            self.calculator.raise_()
 
     def _slotTimeEdit(self, row, column):
         """
@@ -359,6 +379,22 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                 self._updateWeeklyTimereport(project)
             else:
                 assert False, "modo non gestito: %s" % self._mode
+    
+    def close(self):
+        """
+        Reimplementazione del metodo close per fare in modo che la time calculator
+        venga chiusa quando si chiude la finestra principale.
+        """
+        if self.calculator and not sip.isdeleted(self.calculator):
+            self.calculator.close()
+        QMainWindow.close(self)
+    
+    def closeEvent(self, close_event):
+        """
+        Reimplementazione del metodo closeEvent che redirige tutti gli eventi di
+        chiusura al metodo close reimplementato.
+        """
+        self.close()
 
 class TimeregMenu(QMenu):
     """

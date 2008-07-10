@@ -127,7 +127,6 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                      #self._spinboxHoursActivated)
         #Rende invisibili le componenti per la scelta del numero di ore
         self.ui.labelTimeWorked.setVisible(False)
-        self.ui.smartTimeEdit.setVisible(False)
         self.ui.comboTimeWorked.setVisible(False)
         self.disconnect(self.ui.comboTimeWorked, SIGNAL("activated(const QString&)"),
                      self._comboTimeWorkedActivated)
@@ -174,8 +173,6 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                      self._registrationDone)
         self.connect(self.remote, SIGNAL("timeregErr"),
                      self._timeregErr)
-        self.connect(self.ui.smartTimeEdit, SIGNAL("textEdited(QString)"),
-                     self._slotSmartTimeChanged)
 
     def _completerActivated(self, smartquery):
         smartquery = unicode(smartquery).strip()
@@ -203,17 +200,6 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         smartquery = unicode(smartquery).strip()
         self.remote.query([{"smartquery": smartquery}])
     
-    def _slotSmartTimeChanged(self):
-        smartime = self.ui.smartTimeEdit.text()
-        try:
-            lapse = parse_wtime(smartime)
-            lapse = lapse[: lapse.find(":", 3)]
-        except:
-            lapse = "0:00"
-        if len(smartime):
-            self.ui.comboTimeWorked.setCurrentIndex(self.ui.comboTimeWorked.findData(QVariant(hmtime2min(lapse))))
-            self._comboTimeWorkedActivated(self.ui.comboTimeWorked.itemText(self.ui.comboTimeWorked.currentIndex()))
-
     def _projectsChanged(self, projects):
         """ <-- self.remote, SIGNAL("queryOK")
         Aggiorna lo stato interno in funzione dei progetti

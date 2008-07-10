@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>641</width>
+    <width>631</width>
     <height>597</height>
    </rect>
   </property>
@@ -22,7 +22,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>641</width>
+     <width>631</width>
      <height>575</height>
     </rect>
    </property>
@@ -551,18 +551,6 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="smartTimeEdit" >
-           <property name="font" >
-            <font>
-             <pointsize>12</pointsize>
-            </font>
-           </property>
-           <property name="text" >
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QComboBox" name="comboTimeWorked" />
          </item>
         </layout>
@@ -662,7 +650,7 @@
     <rect>
      <x>0</x>
      <y>575</y>
-     <width>641</width>
+     <width>631</width>
      <height>22</height>
     </rect>
    </property>

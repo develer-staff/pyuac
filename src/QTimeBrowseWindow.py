@@ -72,6 +72,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         QMainWindow.__init__(self, parent)
         self.projects = None
         self.calculator = None
+        self._working_date = None
         if config != None:
             self.login = LoginDialog(self, config)
             self.connect(self.login, SIGNAL("login"), self.__auth__)
@@ -113,11 +114,13 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.connect(self.ui.btnPrev, SIGNAL("clicked()"),
                      lambda: self._changeDateDelta(-1))
         self.connect(self.ui.dateEdit, SIGNAL("dateChanged(const QDate&)"),
-                     self._slotTimereport)
+                     self._slotDateEditChanged)
         self.connect(self.ui.tableTimereg, SIGNAL("cellDoubleClicked(int,int)"),
                      self._slotTimeEdit)
         self.connect(self.ui.tableWeekTimereg, SIGNAL("cellDoubleClicked(int,int)"),
                      self._slotTimeEdit)
+        self.connect(self.ui.tableWeekTimereg, SIGNAL("cellClicked(int,int)"),
+                     self._slotWeeklyDateChanged)
         self.connect(self.ui.btnDaily, SIGNAL("clicked()"),
                      self._slotChangeToDaily)
         self.connect(self.ui.btnWeekly, SIGNAL("clicked()"),
@@ -136,9 +139,15 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         Modifica la data della vista corrente a partire da una nuova QDate.
         :param date: QDate contenente la nuova data.
         """
-        if self.ui.dateEdit.date() != date:
-            self.ui.dateEdit.setDate(date)
-        self._slotTimereport(date)
+        #se la data corrente è uguale alla nuova data non succede niente
+        if self._working_date != date:
+            self._working_date, tmp = date, self._working_date
+            if (self._mode == "daily" or self._mode == ""):
+                if self.ui.dateEdit.date() != self._working_date:
+                    self.ui.dateEdit.setDate(self._working_date)
+                self._slotTimereport(self._working_date)
+            elif self._mode == "weekly" and self._working_date not in getweek(tmp):
+                self._slotTimereport(self._working_date)
 
     def _changeDateDelta(self, direction):
         """
@@ -153,7 +162,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             numdays = direction
         elif self._mode == "weekly":
             numdays = 7 * direction
-        date = self.ui.dateEdit.date()
+        date = self._working_date
         date = date.addDays(numdays)
         self._changeDate(date)
 
@@ -167,7 +176,6 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self.ui.tableTimereg.setHorizontalHeaderItem(c, cellHead)
         self.ui.tableTimereg.horizontalHeader().setStretchLastSection(True)
         self.ui.tableWeekTimereg.setColumnCount(7)
-        #TODO: aggiungere alle label la data (o perlomeno giorno/mese)
         for c in range(7):
             cellHead = QTableWidgetItem()
             self.ui.tableWeekTimereg.setHorizontalHeaderItem(c, cellHead)
@@ -184,7 +192,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         if self._mode != "weekly":
             self._mode = "weekly"
             self.ui.stackedWidget.setCurrentIndex(1)
-            self._slotTimereport(self.ui.dateEdit.date())
+            self._slotTimereport(self._working_date)
         self.ui.btnDaily.setChecked(False)
         self.ui.btnWeekly.setChecked(True)
    
@@ -195,10 +203,16 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         if self._mode != "daily":
             self._mode = "daily"
             self.ui.stackedWidget.setCurrentIndex(0)
-            self._slotTimereport(self.ui.dateEdit.date())
+            self.ui.dateEdit.setDate(self._working_date)
+            self._slotTimereport(self._working_date)
         self.ui.btnDaily.setChecked(True)
         self.ui.btnWeekly.setChecked(False)
 
+    def _slotDateEditChanged(self, date):
+        self._changeDate(date)
+
+    def _slotWeeklyDateChanged(self, row, column):
+        self._working_date = [date for date in getweek(self._working_date)][column]
 
     def _createTimeregWindow(self, mode):
         """
@@ -215,7 +229,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         Slot attivato quando viene utilizzato self.ui.tlbTimereg o il menu.
         :param mode: modalità di inserimento ore ('single' o 'range')
         """
-        selected_date = unicode(self.ui.dateEdit.date().toString("yyyy-MM-dd"))
+        selected_date = unicode(self._working_date.toString("yyyy-MM-dd"))
         project_template = AchievoProject()
         project_template.set("activitydate", selected_date)
         editwin = self._createTimeregWindow(mode)
@@ -275,9 +289,9 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         :param eresp: ElementTree, contiene la risposta del server all'inserimento ore appena terminato.
         """
         newdate = QDate.fromString(str(eresp.get("activitydate")), "yyyy-MM-dd")
-        if newdate != self.ui.dateEdit.date():
-            self.ui.dateEdit.setDate(newdate)
-        self._slotTimereport(newdate)
+        if newdate != self._working_date:
+            self._changeDate(newdate)
+        self._slotTimereport(self._working_date)
 
     def _slotTimereport(self, qdate):
         """

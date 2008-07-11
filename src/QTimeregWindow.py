@@ -554,7 +554,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self.ui.dateFromDateEdit.setDate(self.ui.singleDateEdit.date())
         self.ui.dateToDateEdit.setDate(self.ui.singleDateEdit.date())
         self.ui.monthComboBox.setCurrentIndex(self.ui.monthComboBox.findData(
-            QVariant(self.ui.singleDateEdit.date().month())))
+            QVariant(self.ui.singleDateEdit.date().month())) - 1)
         self._updateSmartQuery(self._baseproject.getSmartQuery())
         self.notify(self.tr("Loading..."))
 

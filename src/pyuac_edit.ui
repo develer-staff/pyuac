@@ -39,7 +39,7 @@
        <number>1</number>
       </property>
       <property name="currentIndex" >
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="page" >
        <property name="geometry" >
@@ -116,7 +116,7 @@
          <x>0</x>
          <y>0</y>
          <width>644</width>
-         <height>102</height>
+         <height>84</height>
         </rect>
        </property>
        <property name="sizePolicy" >
@@ -275,7 +275,7 @@
                 <string/>
                </property>
                <property name="checked" >
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -285,7 +285,7 @@
                 <string/>
                </property>
                <property name="checked" >
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -297,6 +297,14 @@
        </layout>
       </widget>
       <widget class="QWidget" name="page_3" >
+       <property name="geometry" >
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>644</width>
+         <height>84</height>
+        </rect>
+       </property>
        <property name="sizePolicy" >
         <sizepolicy vsizetype="Maximum" hsizetype="Preferred" >
          <horstretch>0</horstretch>
@@ -427,7 +435,7 @@
                 <string/>
                </property>
                <property name="checked" >
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -437,7 +445,7 @@
                 <string/>
                </property>
                <property name="checked" >
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
               </widget>
              </item>

@@ -91,7 +91,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self._mode= ""
         self._setupGui()
         self._connectSlots()
-        self.ui.showMaximized()
+        self.ui.show()
 
     def _connectSlots(self):
         """

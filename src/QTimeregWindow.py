@@ -359,7 +359,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                         _base = project+" "+phase+" "
                         _completer = [_base + act for act in _ppa[project][phase].keys()]
                     else:
-                        if  self._mode != "monthly" and hmtime not in timerange(8, 15, 1):
+                        if  self._mode != "monthly" and hmtime not in timerange(24, 15, 1):
                             _base = project+" "+phase+" "+activity+" "
                             _completer = [_base + hmtime for hmtime in timerange(8, 15, 1)]
                         else:

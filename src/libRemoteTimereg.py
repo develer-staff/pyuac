@@ -12,7 +12,7 @@
 import urllib, urllib2, urlparse
 from pyuac_utils import *
 
-ACHIEVO_ENCODING = "ISO-8859-1"
+ACHIEVO_ENCODING = "UTF-8"
 
 class RemoteTimereg:
     """

@@ -12,7 +12,7 @@
 import urllib, urllib2, urlparse
 from pyuac_utils import *
 
-ACHIEVO_ENCODING = "UTF-8"
+ACHIEVO_ENCODING = "ISO-8859-15"
 
 class RemoteTimereg:
     """
@@ -90,11 +90,12 @@ class RemoteTimereg:
         for key, val in kwargs.items():
             if type(val) == list:
                 del kwargs[key]
-                kwargs[key+"[]"] = [v.encode(ACHIEVO_ENCODING) for v in val]
+                kwargs[key+"[]"] = [v.encode(ACHIEVO_ENCODING, "replace") for v in val]
             else:
-                kwargs[key] = val.encode(ACHIEVO_ENCODING)
+                kwargs[key] = val.encode(ACHIEVO_ENCODING, "replace")
         qstring = urllib.urlencode(params.items() + kwargs.items(), doseq=True)
         page = urllib2.urlopen(self._dispatchurl, qstring).read()
+        print >> sys.stderr, qstring
         try:
             return ET.fromstring(page)
         except ExpatError:

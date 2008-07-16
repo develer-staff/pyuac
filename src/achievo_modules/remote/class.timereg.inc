@@ -26,12 +26,12 @@ function is_valid_date($date)
 function xml_encode($var)
 {
     $var = stripslashes($var);
-    return htmlspecialchars($var, ENT_COMPAT, "iso-8859-1");
+    return htmlspecialchars($var, ENT_COMPAT, "iso-8859-15");
 }
 
 function make_xml($node, $msg, $results, $bodykey="")
 {
-    $res  = '<?xml version="1.0" encoding="iso-8859-1"?>'."\n";
+    $res  = '<?xml version="1.0" encoding="iso-8859-15"?>'."\n";
     $res .= '<response node="'.xml_encode($node).'" msg="'.xml_encode($msg).'" len="'.count($results).'">'."\n";
     foreach ($results as $r)
     {

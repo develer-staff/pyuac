@@ -1,5 +1,43 @@
 (+ user visible changes, * internal stuff)
 
+Changes since PyInstaller 1.3
+-----------------------------
+ + Add support for new absolute imports in Python 2.5 (thanks to Arve
+   Knudsen).
+ + Add import hooks for PyQt4 (thanks to Pascal Veret)
+ + Add import hooks for pyodbc (thanks to Don Dwiggins)
+ + Add import hooks for cElementTree (both native version and Python
+   2.5 version)
+ + Add import hooks per SQLAlchemy (thanks to Greg Copeland)
+ + Add import hooks for email in Python 2.5 (though it does not support
+   the old-style Python 2.4 syntax with Python 2.5).
+ + Add import hook for gadfly.
+ + Improve import hooks for PyGTK (thanks to Marco Bonifazi and foxx).
+ + Add fix for the very annoying "MSVCRT71 could not be extracted" bug,
+   which was caused by the DLL being packaged twice (thanks to Idris
+   Aykun).
+ * Removed C++-style comments from the bootloader for compatibility
+   with the AIX compiler.
+ + Fix support for .py files with DOS line endings under Linux (fixes
+   PyOpenGL).
+ + Fix support for PIL when imported without top-level package ("import
+   Image").
+ + Fix PyXML import hook under NT (thanks to Lorenzo Mancini)
+ * Improve correctness of the binary cache of UPX'd/strip'd files. This
+   fixes problems when switching between multiple versions of the
+   same third-party library (like e.g. wxPython allows to do).
+ + Fix a stupid bug with modules importing optparse (under Linux) (thanks
+   to Louai Al-Khanji).
+ + Under Python 2.4+, if an exception is raised while importing a module
+   inside a package, the module is now removed from the parent's
+   namespace (to match the behaviour of Python itself).
+ + Fix random race-condition at startup of one-file packages, that was
+   causing this exception to be generated: "PYZ entry 'encodings' (0j)
+   is not a valid code object".
+ + Fix problem when having unicode strings among path elements.
+ + Fix random exception ("bad file descriptor") with "prints" in non-console
+   mode (actually a pythonw "bug" that's fixed in Python 3.0).
+
 
 PyInstaller 1.3
 ---------------

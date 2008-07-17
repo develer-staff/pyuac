@@ -23,57 +23,87 @@
 
 import os, sys, glob, string
 import shutil
+
 try:
-    here=os.path.dirname(__file__)
+    here=os.path.dirname(os.path.abspath(__file__))
 except NameError:
-    here=os.path.dirname(sys.argv[0])
+    here=os.path.dirname(os.path.abspath(sys.argv[0]))
+os.chdir(here)
 PYTHON = sys.executable
 if sys.platform[:3] == 'win':
     if string.find(PYTHON, ' ') > -1:
         PYTHON='"%s"' % PYTHON
 
 def clean():
-    distdirs = glob.glob(os.path.join(here, 'disttest*'))
+    distdirs = glob.glob('disttest*')
     for dir in distdirs:
         try:
             shutil.rmtree(dir)
         except OSError, e:
             print e
-    builddirs = glob.glob(os.path.join(here, 'buildtest*'))
+    builddirs = glob.glob('buildtest*')
     for dir in builddirs:
         try:
             shutil.rmtree(dir)
         except OSError, e:
             print e
-    wfiles = glob.glob(os.path.join(here, 'warn*.txt'))
+    wfiles = glob.glob('warn*.txt')
     for file in wfiles:
         try:
             os.remove(file)
         except OSError, e:
             print e
 
-def runtests():
-    global here
-    sources = glob.glob(os.path.join(here, 'test*[0-9].py'))
+def runtests(alltests, filters=None):
+    info = "Executing PyInstaller tests in: %s" % os.getcwd()
+    print "*"*len(info)
+    print info
+    print "*"*len(info)
+    build_python = open("python_exe.build", "w")                                     
+    build_python.write(sys.executable)                                               
+    build_python.close()
+    if not filters:
+        tests = alltests
+    else:
+        tests = []
+        for part in filters:
+            tests += [t for t in alltests if part in t and t not in tests]
+    tests.sort(key=lambda x: (len(x), x)) # test1 < test10
     path = os.environ["PATH"]
-    for src in sources:
+    counter = dict(passed=[],failed=[])
+    for src in tests:
         print
-        print "################## EXECUTING TEST %s ################################" % src
+        print "################## BUILDING TEST %s #################################" % src
         print
         test = os.path.splitext(os.path.basename(src))[0]
         os.system('%s ../Build.py %s' % (PYTHON, test+".spec"))
         # Run the test in a clean environment to make sure they're really self-contained
         del os.environ["PATH"]
-        os.system('dist%s%s%s' % (test, os.sep, test))
+        print
+        print "################## EXECUTING TEST %s ################################" % src
+        print
+        res = os.system('dist%s%s%s.exe' % (test, os.sep, test))
         os.environ["PATH"] = path
-        print "################## FINISHING TEST %s  ################################" % src
+        if res == 0:
+            counter["passed"].append(src)
+            print "################## FINISHING TEST %s ################################" % src
+        else:
+            counter["failed"].append(src)
+            print "#################### TEST %s FAILED #################################" % src
+    print counter
 
 if __name__ == '__main__':
-    if len(sys.argv) == 1:
-        clean()
-        runtests()
-    if '--clean' in sys.argv:
-        clean()
-    if '--run' in sys.argv:
-        runtests()
-    raw_input("Press any key to exit")
+    normal_tests = glob.glob('test*[0-9].py')
+    interactive_tests = glob.glob('test*[0-9]i.py')
+    args = sys.argv[1:]
+    
+    if "-i" in args:
+        print "Running interactive tests"
+        tests = interactive_tests
+    else:
+        print "Running normal tests (-i for interactive tests)"
+        tests = normal_tests
+
+    clean()
+    runtests(tests)
+

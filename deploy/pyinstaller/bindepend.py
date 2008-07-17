@@ -34,6 +34,7 @@ import time
 import string
 import sys
 import re
+from glob import glob
 
 seen = {}
 _bpath = None
@@ -69,8 +70,18 @@ excludes = {'KERNEL32.DLL':1,
       'OPENGL32.DLL':1,
       'GLU32.DLL':1,
       'GLUB32.DLL':1,
-      '/usr/lib':1,
-      '/lib':1,}
+      'NETAPI32.DLL':1,
+      'PSAPI.DLL':1,
+      'MSVCP80.DLL':1,
+      'MSVCR80.DLL':1,
+      # regex excludes
+      '^/usr/lib':1,
+      '^/lib':1,
+      '^/lib/tls':1,
+      '^/System/Library/Frameworks':1,
+      }
+
+excludesRe = re.compile('|'.join(excludes.keys()), re.I)
 
 def getfullnameof(mod, xtrapath = None):
   """Return the full path name of MOD.
@@ -79,7 +90,8 @@ def getfullnameof(mod, xtrapath = None):
       XTRAPATH is a path or list of paths to search first.
       Return the full path name of MOD.
       Will search the full Windows search path, as well as sys.path"""
-  epath = getWindowsPath() + sys.path
+  # Search sys.path first!
+  epath = sys.path + getWindowsPath()
   if xtrapath is not None:
     if type(xtrapath) == type(''):
       epath.insert(0, xtrapath)
@@ -91,7 +103,7 @@ def getfullnameof(mod, xtrapath = None):
       return npth
   return ''
 
-def getImports1(pth):
+def _getImports_dumpbin(pth):
     """Find the binary dependencies of PTH.
 
         This implementation (not used right now) uses the MSVC utility dumpbin"""
@@ -110,7 +122,7 @@ def getImports1(pth):
         i = i + 1
     return rslt
 
-def getImports2x(pth):
+def _getImports_pe_x(pth):
     """Find the binary dependencies of PTH.
 
         This implementation walks through the PE header"""
@@ -175,7 +187,7 @@ def getImports2x(pth):
     #    print "E: bindepend cannot analyze %s - error walking thru pehdr" % pth
     return rslt
 
-def getImports2(path):
+def _getImports_pe(path):
     """Find the binary dependencies of PTH.
 
         This implementation walks through the PE header"""
@@ -255,27 +267,50 @@ def Dependencies(lTOC):
       continue
     #print "I: analyzing", pth
     seen[string.upper(nm)] = 1
+    for lib, npth in selectImports(pth):
+        if seen.get(string.upper(lib),0):
+            continue
+        lTOC.append((lib, npth, 'BINARY'))
+
+  return lTOC
+
+def selectImports(pth):
+    """Return the dependencies of a binary that should be included.
+
+    Return a list of pairs (name, fullpath)
+    """
+    rv = []
     dlls = getImports(pth)
     for lib in dlls:
-        #print "I: found", lib
         if not iswin and not cygwin:
+            # plain win case
             npth = lib
             dir, lib = os.path.split(lib)
             if excludes.get(dir,0):
                 continue
-        if excludes.get(string.upper(lib),0):
-            continue
-        if seen.get(string.upper(lib),0):
-            continue
-        if iswin or cygwin:
+        else:
+            # all other platforms
             npth = getfullnameof(lib, os.path.dirname(pth))
+        
+        # now npth is a candidate lib
+        # check again for excludes but with regex FIXME: split the list
+        if excludesRe.search(npth):
+            if 'libpython' not in npth and 'Python.framework' not in npth:
+                # skip libs not containing (libpython or Python.framework)
+                #print "I: skipping %20s <- %s" % (npth, pth)
+                continue
+            else:
+                #print "I: inserting %20s <- %s" % (npth, pth)
+                pass
+                
         if npth:
-            lTOC.append((lib, npth, 'BINARY'))
+            rv.append((lib, npth))
         else:
             print "E: lib not found:", lib, "dependency of", pth
-  return lTOC
 
-def getImports3(pth):
+    return rv
+
+def _getImports_ldd(pth):
     """Find the binary dependencies of PTH.
 
         This implementation is for ldd platforms"""
@@ -296,12 +331,32 @@ def getImports3(pth):
                       (name, lib, pth)
     return rslt
 
+def _getImports_otool(pth):
+    """Find the binary dependencies of PTH.
+
+        This implementation is for otool platforms"""
+    rslt = []
+    for line in os.popen('otool -L "%s"' % pth).readlines():
+        m = re.search(r"\s+(.*?)\s+\(.*\)", line)
+        if m:
+            lib = m.group(1)
+            if os.path.exists(lib):
+                rslt.append(lib)
+            else:
+                print 'E: cannot find path %s (needed by %s)' % \
+                      (lib, pth)
+
+    return rslt
+
 def getImports(pth):
-    """Forwards to either getImports2 or getImports3
+    """Forwards to the correct getImports implementation for the platform.
     """
     if sys.platform[:3] == 'win' or sys.platform == 'cygwin':
-        return getImports2(pth)
-    return getImports3(pth)
+        return _getImports_pe(pth)
+    elif sys.platform == 'darwin':
+        return _getImports_otool(pth)
+    else:
+        return _getImports_ldd(pth)
 
 def getWindowsPath():
     """Return the path that Windows will search for dlls."""
@@ -323,8 +378,64 @@ def getWindowsPath():
         _bpath.extend(string.split(os.environ.get('PATH', ''), os.pathsep))
     return _bpath
 
+def fixOsxPaths(moduleName):
+    for name, lib in selectImports(moduleName):
+        dest = os.path.join("@executable_path", name)
+        cmd = "install_name_tool -change %s %s %s" % (lib, dest, moduleName)
+        os.system(cmd)
+
+def findLibrary(name):
+    """Look for a library in the system.
+
+    Emulate the algorithm used by dlopen.
+
+    `name`must include the prefix, e.g. ``libpython2.4.so``
+    """
+    assert sys.platform == 'linux2', "Current implementation for Linux only"
+
+    lib = None
+
+    # Look in the LD_LIBRARY_PATH
+    lp = os.environ.get('LD_LIBRARY_PATH')
+    if lp:
+        for path in string.split(lp, os.pathsep):
+            libs = glob(os.path.join(path, name + '*'))
+            if libs:
+                lib = libs[0]
+                break
+
+    # Look in /etc/ld.so.cache
+    if lib is None:
+        expr = r'/[^\(\)\s]*%s\.[^\(\)\s]*' % re.escape(name)
+        m = re.search(expr, os.popen('/sbin/ldconfig -p 2>/dev/null').read())
+        if m:
+            lib = m.group(0)
+
+    # Look in the known safe paths
+    if lib is None:
+        for path in ['/lib', '/usr/lib']:
+            libs = glob(os.path.join(path, name + '*'))
+            if libs:
+                lib = libs[0]
+                break
+
+    # give up :(
+    if lib is None:
+        return None
+
+    # Resolve the file name into the soname
+    dir, file = os.path.split(lib)
+    return os.path.join(dir, getSoname(lib))
+
+def getSoname(filename):
+    """Return the soname of a library."""
+    cmd = "objdump -p -j .dynamic 2>/dev/null " + filename
+    m = re.search(r'\s+SONAME\s+([^\s]+)', os.popen(cmd).read())
+    if m: return m.group(1)
+
 if __name__ == "__main__":
-  if len(sys.argv) < 2:
-    print "Usage: python %s BINARYFILE" % sys.argv[0]
-    sys.exit(0)
-  print getImports(sys.argv[1])
+    if len(sys.argv) < 2:
+        print "Usage: python %s BINARYFILE" % sys.argv[0]
+        sys.exit(0)
+    print getImports(sys.argv[1])
+

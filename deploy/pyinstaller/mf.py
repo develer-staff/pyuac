@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
-import sys, string, os, imp, marshal
+import sys, string, os, imp, marshal, dircache
 
 #=======================Owners==========================#
 # An Owner does imports from a particular piece of turf
@@ -24,7 +24,27 @@ import sys, string, os, imp, marshal
 # Note that they replace the string in sys.path,
 # but str(sys.path[n]) should yield the original string.
 
-STRINGTYPE = type('')
+try:
+    STRINGTYPE = basestring
+except NameError:
+    STRINGTYPE = type("")
+
+if not os.environ.has_key('PYTHONCASEOK') and sys.version_info >= (2, 1):
+    def caseOk(filename):
+        files = dircache.listdir(os.path.dirname(filename))
+        return os.path.basename(filename) in files
+else:
+    def caseOk(filename):
+        return True
+
+def pyco():
+    """
+    Returns correct extension ending: 'c' or 'o'
+    """
+    if __debug__:
+        return 'c'
+    else:
+        return 'o'
 
 class Owner:
     def __init__(self, path):
@@ -52,10 +72,15 @@ class DirOwner(Owner):
                 attempt = pth+ext
                 try:
                     st = os.stat(attempt)
-                except:
+                except Exception, e:
+                    #print "DirOwner", e
                     pass
                 else:
+                    # Check case
+                    if not caseOk(attempt):
+                        continue
                     if typ == imp.C_EXTENSION:
+                        #print "DirOwner.getmod -> ExtensionModule(%s, %s)" % (nm, attempt)
                         return ExtensionModule(nm, attempt)
                     elif typ == imp.PY_SOURCE:
                         py = (attempt, st)
@@ -64,15 +89,15 @@ class DirOwner(Owner):
             if py or pyc:
                 break
         if py is None and pyc is None:
+            #print "DirOwner.getmod -> (py == pyc == None)"
             return None
         while 1:
+            # If we have no pyc or py is newer
             if pyc is None or py and pyc[1][8] < py[1][8]:
                 try:
-                    co = compile(open(py[0], 'r').read()+'\n', py[0], 'exec')
-                    if __debug__:
-                        pth = py[0] + 'c'
-                    else:
-                        pth = py[0] + 'o'
+                    stuff = open(py[0], 'r').read()+'\n'
+                    co = compile(string.replace(stuff, "\r\n", "\n"), py[0], 'exec')
+                    pth = py[0] + pyco()
                     break
                 except SyntaxError, e:
                     print "Syntax error in", py[0]
@@ -85,9 +110,10 @@ class DirOwner(Owner):
                     pth = pyc[0]
                     break
                 except (ValueError, EOFError):
-                    print "W: bad .pyc found (%s)" % pyc[0]
+                    print "W: bad .pyc found (%s), will use .py" % pyc[0]
                     pyc = None
             else:
+                #print "DirOwner.getmod while 1 -> None"
                 return None
         if not os.path.isabs(pth):
             pth = os.path.abspath(pth)
@@ -95,6 +121,7 @@ class DirOwner(Owner):
             mod = PkgModule(nm, pth, co)
         else:
             mod = PyModule(nm, pth, co)
+        #print "DirOwner.getmod -> %s" % mod
         return mod
 
 class PYZOwner(Owner):
@@ -156,7 +183,8 @@ class RegistryImportDirector(ImportDirector):
                 try:
                     #hkey = win32api.RegOpenKeyEx(root, subkey, 0, win32con.KEY_ALL_ACCESS)
                     hkey = win32api.RegOpenKeyEx(root, subkey, 0, win32con.KEY_READ)
-                except:
+                except Exception, e:
+                    #print "RegistryImportDirector", e
                     pass
                 else:
                     numsubkeys, numvalues, lastmodified = win32api.RegQueryInfoKey(hkey)
@@ -179,7 +207,8 @@ class RegistryImportDirector(ImportDirector):
                 return ExtensionModule(nm, fnm)
             elif typ == imp.PY_SOURCE:
                 try:
-                    co = compile(open(fnm, 'r').read()+'\n', fnm, 'exec')
+                    stuff = open(fnm, 'r').read()+'\n'
+                    co = compile(string.replace(stuff, "\r\n", "\n"), fnm, 'exec')
                 except SyntaxError, e:
                     print "Invalid syntax in %s" % py[0]
                     print e.args
@@ -208,7 +237,7 @@ class PathImportDirector(ImportDirector):
     def getmod(self, nm):
         mod = None
         for thing in self.path:
-            if type(thing) is STRINGTYPE:
+            if isinstance(thing, STRINGTYPE):
                 owner = self.shadowpath.get(thing, -1)
                 if owner == -1:
                     owner = self.shadowpath[thing] = self.makeOwner(thing)
@@ -229,7 +258,8 @@ class PathImportDirector(ImportDirector):
                 # this may cause an import, which may cause recursion
                 # hence the protection
                 owner = klass(path)
-            except:
+            except Exception, e:
+                #print "PathImportDirector", e
                 pass
             else:
                 break
@@ -252,6 +282,25 @@ UNTRIED = -1
 imptyps = ['top-level', 'conditional', 'delayed', 'delayed, conditional']
 import hooks
 
+if __debug__:
+    import sys
+    import UserDict
+    class LogDict(UserDict.UserDict):
+        count = 0
+        def __init__(self, *args):
+            UserDict.UserDict.__init__(self, *args)
+            LogDict.count += 1
+            self.logfile = open("logdict%s-%d.log" % (".".join(map(str, sys.version_info)),
+                                                      LogDict.count), "w")
+        def __setitem__(self, key, value):
+            self.logfile.write("%s: %s -> %s\n" % (key, self.data.get(key), value))
+            UserDict.UserDict.__setitem__(self, key, value)
+        def __delitem__(self, key):
+            self.logfile.write("  DEL %s\n" % key)
+            UserDict.UserDict.__delitem__(self, key)
+else:
+    LogDict = dict
+
 class ImportTracker:
     # really the equivalent of builtin import
     def __init__(self, xpath=None, hookspath=None, excludes=None):
@@ -260,7 +309,7 @@ class ImportTracker:
         if xpath:
             self.path = xpath
         self.path.extend(sys.path)
-        self.modules = {}
+        self.modules = LogDict()
         self.metapath = [
             BuiltinImportDirector(),
             FrozenImportDirector(),
@@ -369,7 +418,8 @@ class ImportTracker:
 
     def analyze_script(self, fnm):
         try:
-            co = compile(open(fnm, 'r').read()+'\n', fnm, 'exec')
+            stuff = open(fnm, 'r').read()+'\n'
+            co = compile(string.replace(stuff, "\r\n", "\n"), fnm, 'exec')
         except SyntaxError, e:
             print "Invalid syntax in %s" % fnm
             print e.args
@@ -382,24 +432,33 @@ class ImportTracker:
     def ispackage(self, nm):
         return self.modules[nm].ispackage()
 
-    def doimport(self, nm, parentnm, fqname):
+    def doimport(self, nm, ctx, fqname):
         # Not that nm is NEVER a dotted name at this point
+        assert ("." not in nm), nm
         if fqname in self.excludes:
             return None
-        if parentnm:
-            parent = self.modules[parentnm]
+        if ctx:
+            parent = self.modules[ctx]
             if parent.ispackage():
                 mod = parent.doimport(nm)
                 if mod:
+                    # insert the new module in the parent package
+                    # FIXME why?
                     setattr(parent, nm, mod)
             else:
+                # if parent is not a package, there is nothing more to do
                 return None
         else:
             # now we're dealing with an absolute import
+            # try to import nm using available directors
             for director in self.metapath:
                 mod = director.getmod(nm)
                 if mod:
                     break
+        # here we have `mod` from:
+        #   mod = parent.doimport(nm)
+        # or
+        #   mod = director.getmod(nm)
         if mod:
             mod.__name__ = fqname
             self.modules[fqname] = mod
@@ -427,7 +486,11 @@ class ImportTracker:
                     print "W: %s is changing it's name to %s" % (fqname, mod.__name__)
                     self.modules[mod.__name__] = mod
         else:
+            assert (mod == None), mod
             self.modules[fqname] = None
+        # should be equivalent using only one
+        # self.modules[fqname] = mod
+        # here
         return mod
     def getwarnings(self):
         warnings = self.warnings.keys()
@@ -456,6 +519,7 @@ class Module:
     typ = 'UNKNOWN'
     def __init__(self, nm):
         self.__name__ = nm
+        self.__file__ = None
         self._all = []
         self.imports = []
         self.warnings = []
@@ -466,6 +530,8 @@ class Module:
         pass
     def xref(self, nm):
         self._xref[nm] = 1
+    def __str__(self):
+        return "<Module %s %s %s>" % (self.__name__, self.__file__, self.imports)
 
 class BuiltinModule(Module):
     typ = 'BUILTIN'
@@ -485,10 +551,7 @@ class PyModule(Module):
         self.co = co
         self.__file__ = pth
         if os.path.splitext(self.__file__)[1] == '.py':
-            if __debug__:
-                self.__file__ = self.__file__ + 'c'
-            else:
-                self.__file__ = self.__file__ + 'o'
+            self.__file__ = self.__file__ + pyco()
         self.scancode()
     def scancode(self):
         self.imports, self.warnings, allnms = scan_code(self.co)
@@ -510,8 +573,12 @@ class PkgModule(PyModule):
         self._ispkg = 1
         pth = os.path.dirname(pth)
         self.__path__ = [ pth ]
-        self.subimporter = PathImportDirector(self.__path__)
+        self._update_director(force=True)
+    def _update_director(self, force=False):
+        if force or self.subimporter.path != self.__path__:
+            self.subimporter = PathImportDirector(self.__path__)
     def doimport(self, nm):
+        self._update_director()
         mod = self.subimporter.getmod(nm)
         if mod:
             mod.__name__ = self.__name__ + '.' + mod.__name__

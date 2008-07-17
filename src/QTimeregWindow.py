@@ -192,6 +192,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         Avvia la query al servizio remoto di achievo tramite la cli
         """
         smartquery = unicode(smartquery).strip()
+        self.ui.hoursSpinBox.blockSignals(True)
         self.remote.query([{"smartquery": smartquery}])
     
     def _projectsChanged(self, projects):
@@ -227,6 +228,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         
         if self._mode == "monthly":
             self.ui.hoursSpinBox.setValue(int(p.get("in_hmtime").split(":")[0] or 0))
+            self.ui.hoursSpinBox.blockSignals(False)
         else:    
             idx = self.ui.comboTimeWorked.findText(p.get("hmtime") or "00:00")
             self.ui.comboTimeWorked.setCurrentIndex(idx)

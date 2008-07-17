@@ -131,6 +131,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                      lambda: self._slotNewTimereg("range"))
         self.connect(self.ui.actionMonthlyRegistration, SIGNAL("triggered(bool)"),
                      lambda: self._slotNewTimereg("monthly"))
+        self.connect(self.ui.actionQuit, SIGNAL("triggered(bool)"),
+                     self.ui.close)
         self.connect(self.ui.actionTimeCalculator, SIGNAL("triggered(bool)"),
                      self._slotNewTimeCalculator)
 

@@ -5,4 +5,4 @@ del warnpyuac_onedir.txt
 python pyinstaller/configure.py
 python pyinstaller/Build.py pyuac_onedir.spec
 
-rem "c:\Programmi\Inno Setup 5\ISCC.exe" pyuac.iss
+"c:\Programmi\Inno Setup 5\ISCC.exe" pyuac.iss

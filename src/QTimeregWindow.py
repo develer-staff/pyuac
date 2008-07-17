@@ -474,11 +474,29 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             return
         self.ui.btnSave.setEnabled(False)
         if self._mode == "range":
-            self._rangeTimereg()
+            days = daysnumber(self.ui.dateFromDateEdit.date(), self.ui.dateToDateEdit.date(), self._getDays())[0]
+            ret = QMessageBox.warning(self, "TimeregWindow",
+                                      "Your changes will affect %d days, are you sure?\n" % days,
+                                      QMessageBox.Ok | QMessageBox.Cancel)
+            if ret == QMessageBox.Ok:
+                self._rangeTimereg()
+            else:
+                self.ui.btnSave.setEnabled(True)
         elif self._mode == "single":
             self._singleTimereg()
         elif self._mode == "monthly":
-            self._monthlyTimereg()
+            year = QDate.currentDate().year()
+            month = self.ui.monthComboBox.itemData(self.ui.monthComboBox.currentIndex()).toInt()[0]
+            startDay = QDate(year, month, 1)
+            endDay = QDate(year,month, 1).addMonths(1).addDays(-1)
+            days = daysnumber(startDay, endDay, self._getDays())[0]
+            ret = QMessageBox.warning(self, "TimeregWindow",
+                                      "Your changes will affect %d days, are you sure?\n" % days,
+                                      QMessageBox.Ok | QMessageBox.Cancel)
+            if ret == QMessageBox.Ok:
+                self._monthlyTimereg()
+            else:
+                self.ui.btnSave.setEnabled(True)
         else:
             assert False, "modo non gestito: %s" % self._mode
         self.notify(self.tr("Saving..."))
@@ -527,7 +545,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         year = QDate.currentDate().year()
         month = self.ui.monthComboBox.itemData(self.ui.monthComboBox.currentIndex()).toInt()[0]
         startDay = QDate(year, month, 1)
-        endDay = QDate(year,month + 1, 1).addDays(-1)
+        endDay = QDate(year,month, 1).addMonths(1).addDays(-1)
         days = daysnumber(startDay, endDay, self._getDays())[0]
         hours = [hour for hour in divide(self.ui.hoursSpinBox.value(), days)]
         request_pack = []

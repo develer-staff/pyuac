@@ -378,6 +378,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self.ui.tableWeekTimereg.setItem(r, c, item)
             self.ui.tableWeekTimereg.item(r, c).setTextAlignment(Qt.AlignHCenter)
             self.ui.tableWeekTimereg.resizeRowToContents(r)
+            self.ui.tableWeekTimereg.verticalHeader().setVisible(False)
         #TODO: sistemare la notify in modo che dia informazioni utili
         self.notify("From %s to %s" %("date", "date2"))
         #self.ui.tableTimereg.resizeRowsToContents()

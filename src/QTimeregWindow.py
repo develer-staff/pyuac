@@ -474,6 +474,23 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                                       QMessageBox.Ok | QMessageBox.Cancel)
             return ret
         return 1
+    
+    def _checkDate(self):
+        invalid = False
+        if self._mode == "single":
+            if self.ui.singleDateEdit.date() > QDate.currentDate():
+                invalid = True
+        if self._mode == "range":
+            if self.ui.dateFromDateEdit.date() > QDate.currentDate() \
+            or self.ui.dateToDateEdit.date() > QDate.currentDate():
+                invalid = True
+        if self._mode == "montly":
+            pass
+        if invalid:
+            QMessageBox.critical(self, "TimeregWindow",
+                                 "Selected date is invalid!",
+                                 QMessageBox.Cancel)
+        return not invalid
 
     def timereg(self):
         """
@@ -483,30 +500,31 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         if not self._baseproject.isComplete():
             self.notify(self.tr("Unable to save!"), 1000)
             return
-        self.ui.btnSave.setEnabled(False)
-        if self._mode == "range":
-            ret = self._multipleInsertionWarning(self.ui.dateFromDateEdit.date(),
-                                                 self.ui.dateToDateEdit.date(),
-                                                 self._getDays())
-            if ret == 1:
-                self._rangeTimereg()
+        if self._checkDate():
+            self.ui.btnSave.setEnabled(False)
+            if self._mode == "range":
+                ret = self._multipleInsertionWarning(self.ui.dateFromDateEdit.date(),
+                                                     self.ui.dateToDateEdit.date(),
+                                                     self._getDays())
+                if ret == 1:
+                    self._rangeTimereg()
+                else:
+                    self.ui.btnSave.setEnabled(True)
+            elif self._mode == "single":
+                self._singleTimereg()
+            elif self._mode == "monthly":
+                year = QDate.currentDate().year()
+                month = self.ui.monthComboBox.itemData(self.ui.monthComboBox.currentIndex()).toInt()[0]
+                startDay = QDate(year, month, 1)
+                endDay = QDate(year,month, 1).addMonths(1).addDays(-1)
+                ret = self._multipleInsertionWarning(startDay, endDay, self._getDays())
+                if ret == QMessageBox.Ok:
+                    self._monthlyTimereg()
+                else:
+                    self.ui.btnSave.setEnabled(True)
             else:
-                self.ui.btnSave.setEnabled(True)
-        elif self._mode == "single":
-            self._singleTimereg()
-        elif self._mode == "monthly":
-            year = QDate.currentDate().year()
-            month = self.ui.monthComboBox.itemData(self.ui.monthComboBox.currentIndex()).toInt()[0]
-            startDay = QDate(year, month, 1)
-            endDay = QDate(year,month, 1).addMonths(1).addDays(-1)
-            ret = self._multipleInsertionWarning(startDay, endDay, self._getDays())
-            if ret == QMessageBox.Ok:
-                self._monthlyTimereg()
-            else:
-                self.ui.btnSave.setEnabled(True)
-        else:
-            assert False, "modo non gestito: %s" % self._mode
-        self.notify(self.tr("Saving..."))
+                assert False, "modo non gestito: %s" % self._mode
+            self.notify(self.tr("Saving..."))
     
     def _timereg(self, request_pack):
         self.remote.timereg(request_pack)

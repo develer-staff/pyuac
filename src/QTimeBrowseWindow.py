@@ -379,6 +379,13 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self.ui.tableWeekTimereg.item(r, c).setTextAlignment(Qt.AlignHCenter)
             self.ui.tableWeekTimereg.resizeRowToContents(r)
             self.ui.tableWeekTimereg.verticalHeader().setVisible(False)
+        if QDate.currentDate() in getweek(self._working_date):
+            column = QDate.currentDate().dayOfWeek() -1
+            for row in range(self.ui.tableWeekTimereg.rowCount()):
+                if not self.ui.tableWeekTimereg.item(row, column):
+                    self.ui.tableWeekTimereg.setItem(row, column, QTableWidgetItem(""))
+                self.ui.tableWeekTimereg.item(row, column).setBackground(QBrush(QColor(255, 255, 0)))
+
         #TODO: sistemare la notify in modo che dia informazioni utili
         self.notify("From %s to %s" %("date", "date2"))
         #self.ui.tableTimereg.resizeRowsToContents()

@@ -466,6 +466,15 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
     def _spinboxHoursActivated(self, value):
         self._updateComboBoxes("Hours", str(value))
 
+    def _multipleInsertionWarning(self, start_day, end_day, days):
+        days = daysnumber(start_day, end_day, days)[0]
+        if days > 1:
+            ret = QMessageBox.warning(self, "TimeregWindow",
+                                      "Your changes will affect %d days, are you sure?\n" % days,
+                                      QMessageBox.Ok | QMessageBox.Cancel)
+            return ret
+        return 1
+
     def timereg(self):
         """
         Metodo chiamato per salvare le ore di lavoro: a sua volta richiama i metodi che elaborano i
@@ -476,11 +485,10 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             return
         self.ui.btnSave.setEnabled(False)
         if self._mode == "range":
-            days = daysnumber(self.ui.dateFromDateEdit.date(), self.ui.dateToDateEdit.date(), self._getDays())[0]
-            ret = QMessageBox.warning(self, "TimeregWindow",
-                                      "Your changes will affect %d days, are you sure?\n" % days,
-                                      QMessageBox.Ok | QMessageBox.Cancel)
-            if ret == QMessageBox.Ok:
+            ret = self._multipleInsertionWarning(self.ui.dateFromDateEdit.date(),
+                                                 self.ui.dateToDateEdit.date(),
+                                                 self._getDays())
+            if ret == 1:
                 self._rangeTimereg()
             else:
                 self.ui.btnSave.setEnabled(True)
@@ -491,10 +499,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             month = self.ui.monthComboBox.itemData(self.ui.monthComboBox.currentIndex()).toInt()[0]
             startDay = QDate(year, month, 1)
             endDay = QDate(year,month, 1).addMonths(1).addDays(-1)
-            days = daysnumber(startDay, endDay, self._getDays())[0]
-            ret = QMessageBox.warning(self, "TimeregWindow",
-                                      "Your changes will affect %d days, are you sure?\n" % days,
-                                      QMessageBox.Ok | QMessageBox.Cancel)
+            ret = self._multipleInsertionWarning(startDay, endDay, self._getDays())
             if ret == QMessageBox.Ok:
                 self._monthlyTimereg()
             else:

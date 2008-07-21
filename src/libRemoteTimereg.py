@@ -95,7 +95,6 @@ class RemoteTimereg:
                 kwargs[key] = val.encode(ACHIEVO_ENCODING, "replace")
         qstring = urllib.urlencode(params.items() + kwargs.items(), doseq=True)
         page = urllib2.urlopen(self._dispatchurl, qstring).read()
-        print >> sys.stderr, qstring
         try:
             return ET.fromstring(page)
         except ExpatError:
@@ -123,7 +122,17 @@ class RemoteTimereg:
             try:
                 p.set("hmtime", timeRound(p.get("in_hmtime")))
             except ValueError:
-                p.set("hmtime", "")
+                hmtime = p.get("in_hmtime")
+                if len(hmtime) == 0:
+                    hmtime = ""
+                else:
+                    if not ":" in p.get("in_hmtime"):
+                        hmtime += ":00"
+                    if len(hmtime.split(":")) < 2:
+                        hmtime += "00"
+                    if len(hmtime.split(":")[0]) < 2:
+                        hmtime = "0" + hmtime
+                p.set("hmtime", hmtime)
         return self._projects
 
     def timereport(self, date):

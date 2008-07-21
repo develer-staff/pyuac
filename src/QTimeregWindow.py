@@ -234,7 +234,15 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             p.set("hmtime", p.get("in_hmtime"))
             self.ui.hoursSpinBox.setValue(int(p.get("in_hmtime").split(":")[0] or 0))
             self.ui.hoursSpinBox.blockSignals(False)
-        else:    
+        else:
+            hmtime = p.get("hmtime")
+            if not hmtime:
+                hmtime = p.get("in_hmtime")
+                if not ":" in hmtime:
+                    hmtime += ":00"
+                if len(hmtime.split(":")[0]) < 2:
+                    hmtime = "0" + hmtime
+                p.set("hmtime", hmtime)
             idx = self.ui.comboTimeWorked.findText(p.get("hmtime") or "00:00")
             self.ui.comboTimeWorked.setCurrentIndex(idx)
             self.ui.labelTimeWorked.setEnabled(True)

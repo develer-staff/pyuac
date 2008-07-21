@@ -84,9 +84,9 @@ def parseSmartQuery(smartquery):
     Parse the provided string in a dictionary
 
     >>> parseSmartQuery("pro pha act 2:30 commento bla bla ")
-    {'in_prj': 'pro', 'in_hmtime': '2:30', 'in_remark': 'commento bla bla', 'in_act': 'act', 'in_pha': 'pha'}
+    {'in_prj': 'pro', 'in_hmtime': '02:30', 'in_remark': 'commento bla bla', 'in_act': 'act', 'in_pha': 'pha'}
     >>> parseSmartQuery("pro pha act 2 commento bla bla ")
-    {'in_prj': 'pro', 'in_hmtime': '2:00', 'in_remark': 'commento bla bla', 'in_act': 'act', 'in_pha': 'pha'}
+    {'in_prj': 'pro', 'in_hmtime': '02:00', 'in_remark': 'commento bla bla', 'in_act': 'act', 'in_pha': 'pha'}
     >>> parseSmartQuery("pro pha act commento bla bla ")
     {'in_prj': 'pro', 'in_hmtime': '', 'in_remark': 'commento bla bla', 'in_act': 'act', 'in_pha': 'pha'}
     >>> parseSmartQuery("pro2 pha act")
@@ -94,14 +94,14 @@ def parseSmartQuery(smartquery):
     >>> parseSmartQuery("pro pha")
     {'in_prj': 'pro', 'in_hmtime': '', 'in_remark': '', 'in_act': '', 'in_pha': 'pha'}
     >>> parseSmartQuery("pro 2:30 bla bla")
-    {'in_prj': 'pro', 'in_hmtime': '2:30', 'in_remark': 'bla bla', 'in_act': '', 'in_pha': ''}
+    {'in_prj': 'pro', 'in_hmtime': '02:30', 'in_remark': 'bla bla', 'in_act': '', 'in_pha': ''}
     >>> parseSmartQuery("")
     {'in_prj': '', 'in_hmtime': '', 'in_remark': '', 'in_act': '', 'in_pha': ''}
     >>> parseSmartQuery("pro pha act 120 commento")
     {'in_prj': 'pro', 'in_hmtime': '120:00', 'in_remark': 'commento', 'in_act': 'act', 'in_pha': 'pha'}    
     """
     res = {}
-    gethmtime = re.compile("\d+:?\d*")
+    gethmtime = re.compile("\s\d+:?\d*")
     getppa = re.compile("(?P<in_prj>[^\s]+|)\s*(?P<in_pha>[^\s]+|)\s*(?P<in_act>[^\s]+|)\s*(?P<in_remark>.*|)")
     parts = gethmtime.split(smartquery, 1)
     res = getppa.search(parts[0]).groupdict()
@@ -109,6 +109,8 @@ def parseSmartQuery(smartquery):
         res["in_hmtime"] = gethmtime.search(smartquery).group().strip()
         if ":" not in res["in_hmtime"]:
             res["in_hmtime"] += ":00"
+        if len(res["in_hmtime"].split(":")[0]) < 2:
+            res["in_hmtime"] = "0" + res["in_hmtime"]
     except AttributeError:
         res["in_hmtime"] = ""
     if len(parts) > 1:

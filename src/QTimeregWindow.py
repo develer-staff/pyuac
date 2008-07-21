@@ -202,6 +202,10 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         """
         QApplication.restoreOverrideCursor()
         self._response_projects = projects[0]
+        for elem in self._response_projects:
+            print elem
+            for k, v in elem.items():
+                print k, v
         if len(self._response_projects) != 0:
             self._baseproject.merge(self._response_projects)
         self._updateGui()

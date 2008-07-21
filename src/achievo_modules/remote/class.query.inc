@@ -31,9 +31,22 @@ function isTime($time)
     return true;
 }
 
+// Returns a peace of SQL that can be used in a WHERE clause to find $s in $field in a smart way.
 function smartLike($field, $s)
 {
-    return "LOWER($field) LIKE LOWER('%$s%')";
+    $field = strtolower($field);
+    $s = strtolower($s);
+
+    //fixme: this array is not exhaustive
+    $separators = array('', '%\_', '% ');
+    foreach ($separators as $sep)
+    {
+        $like .= "$field LIKE '$sep$s%'";
+        if ($sep != end($separators))
+	    $like .= " OR "; 
+    }
+
+    return $like;
 }
 
 function tokenize($s)

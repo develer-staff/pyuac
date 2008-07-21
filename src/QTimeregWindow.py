@@ -227,6 +227,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self.ui.labelActivity.setEnabled(p.get("pha") != None)
         
         if self._mode == "monthly":
+            p.set("hmtime", p.get("in_hmtime"))
             self.ui.hoursSpinBox.setValue(int(p.get("in_hmtime").split(":")[0] or 0))
             self.ui.hoursSpinBox.blockSignals(False)
         else:    
@@ -572,7 +573,13 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         startDay = QDate(year, month, 1)
         endDay = QDate(year,month, 1).addMonths(1).addDays(-1)
         days = daysnumber(startDay, endDay, self._getDays())[0]
-        hours = [hour for hour in divide(self.ui.hoursSpinBox.value(), days)]
+        try:
+            hours = [hour for hour in divide(self.ui.hoursSpinBox.value(), days)]
+        except ValueError:
+            ret = QMessageBox.critical(self, "TimeregWindow",
+                                      "Time registration must not exceed 24 hours/day!\n",
+                                      QMessageBox.Ok)
+            return
         request_pack = []
         for date in daterange(startDay, endDay, self._getDays()):
             activitydate = str(date.toString("yyyy-MM-dd"))
@@ -637,7 +644,7 @@ class AchievoProject:
 
     def isComplete(self):
         for key in self.keys:
-            if self.get(key) in [None, ""] and self.get("hmtime"):
+            if self.get(key) in [None, ""]:
                 return False
         return True
 

@@ -116,7 +116,7 @@
          <x>0</x>
          <y>0</y>
          <width>644</width>
-         <height>84</height>
+         <height>83</height>
         </rect>
        </property>
        <property name="sizePolicy" >
@@ -302,7 +302,7 @@
          <x>0</x>
          <y>0</y>
          <width>644</width>
-         <height>84</height>
+         <height>83</height>
         </rect>
        </property>
        <property name="sizePolicy" >
@@ -316,7 +316,7 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="QGroupBox" name="monthlyGroupBox" >
+         <widget class="QGroupBox" name="hoursGroupBox" >
           <property name="sizePolicy" >
            <sizepolicy vsizetype="Maximum" hsizetype="Preferred" >
             <horstretch>0</horstretch>
@@ -324,7 +324,7 @@
            </sizepolicy>
           </property>
           <property name="title" >
-           <string>Select month</string>
+           <string>Select range and hours</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2" >
            <item>
@@ -332,15 +332,36 @@
              <item>
               <widget class="QLabel" name="label" >
                <property name="text" >
-                <string>&amp;Month:</string>
+                <string>&amp;From:</string>
                </property>
                <property name="buddy" >
-                <cstring>monthComboBox</cstring>
+                <cstring>hoursFromDateEdit</cstring>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QComboBox" name="monthComboBox" />
+              <widget class="QDateEdit" name="hoursFromDateEdit" >
+               <property name="calendarPopup" >
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_3" >
+               <property name="text" >
+                <string>&amp;To:</string>
+               </property>
+               <property name="buddy" >
+                <cstring>hoursToDateEdit</cstring>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDateEdit" name="hoursToDateEdit" >
+               <property name="calendarPopup" >
+                <bool>true</bool>
+               </property>
+              </widget>
              </item>
              <item>
               <widget class="QLabel" name="label_2" >
@@ -380,7 +401,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_5" >
              <item>
-              <widget class="QCheckBox" name="monMonthCheckBox" >
+              <widget class="QCheckBox" name="monHoursCheckBox" >
                <property name="text" >
                 <string/>
                </property>
@@ -390,7 +411,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="tueMonthCheckBox" >
+              <widget class="QCheckBox" name="tueHoursCheckBox" >
                <property name="text" >
                 <string/>
                </property>
@@ -400,7 +421,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="wedMonthCheckBox" >
+              <widget class="QCheckBox" name="wedHoursCheckBox" >
                <property name="text" >
                 <string/>
                </property>
@@ -410,7 +431,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="thuMonthCheckBox" >
+              <widget class="QCheckBox" name="thuHoursCheckBox" >
                <property name="text" >
                 <string/>
                </property>
@@ -420,7 +441,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="friMonthCheckBox" >
+              <widget class="QCheckBox" name="friHoursCheckBox" >
                <property name="text" >
                 <string/>
                </property>
@@ -430,7 +451,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="satMonthCheckBox" >
+              <widget class="QCheckBox" name="satHoursCheckBox" >
                <property name="text" >
                 <string/>
                </property>
@@ -440,7 +461,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="sunMonthCheckBox" >
+              <widget class="QCheckBox" name="sunHoursCheckBox" >
                <property name="text" >
                 <string/>
                </property>

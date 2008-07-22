@@ -408,7 +408,7 @@
      </property>
      <addaction name="actionSingleRegistration" />
      <addaction name="actionRangeRegistration" />
-     <addaction name="actionMonthlyRegistration" />
+     <addaction name="actionHoursRegistration" />
     </widget>
     <addaction name="menuNewRegistration" />
     <addaction name="separator" />
@@ -438,9 +438,9 @@
     <string>Range registration</string>
    </property>
   </action>
-  <action name="actionMonthlyRegistration" >
+  <action name="actionHoursRegistration" >
    <property name="text" >
-    <string>Monthly registration</string>
+    <string>Hours registration</string>
    </property>
   </action>
   <action name="actionQuit" >

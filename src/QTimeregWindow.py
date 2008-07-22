@@ -17,7 +17,7 @@ from daterange import *
 LRU_LEN = 10
 
 #modalità che può assumere la finestra di dialogo
-MODES = ("single",  "range", "monthly")
+MODES = ("single",  "range", "hours")
 
 class TimeregWindow(QMainWindow, QAchievoWindow):
 
@@ -47,8 +47,8 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             self._uiSingleMode()
         elif self._mode == "range":
             self._uiRangeMode()
-        elif self._mode == "monthly":
-            self._uiMonthlyMode()
+        elif self._mode == "hours":
+            self._uiHoursMode()
         else:
             assert False, "modo non gestito: %s" % self._mode
         self.ui.comboTimeWorked.clear()
@@ -107,19 +107,19 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         for i, checkBox in enumerate(checkBoxes):
             checkBox.setText(unicode(QDate.longDayName(i + 1)).capitalize())
 
-    def _uiMonthlyMode(self):
+    def _uiHoursMode(self):
         """
-        Connette le componenti necessarie solamente in modalità 'monthly' e ne inizializza i valori.
+        Connette le componenti necessarie solamente in modalità 'hours' e ne inizializza i valori.
         """
         self.ui.stackedWidget.setCurrentIndex(2)
         checkBoxes = []
-        checkBoxes.append(self.ui.monMonthCheckBox)
-        checkBoxes.append(self.ui.tueMonthCheckBox)
-        checkBoxes.append(self.ui.wedMonthCheckBox)
-        checkBoxes.append(self.ui.thuMonthCheckBox)
-        checkBoxes.append(self.ui.friMonthCheckBox)
-        checkBoxes.append(self.ui.satMonthCheckBox)
-        checkBoxes.append(self.ui.sunMonthCheckBox)
+        checkBoxes.append(self.ui.monHoursCheckBox)
+        checkBoxes.append(self.ui.tueHoursCheckBox)
+        checkBoxes.append(self.ui.wedHoursCheckBox)
+        checkBoxes.append(self.ui.thuHoursCheckBox)
+        checkBoxes.append(self.ui.friHoursCheckBox)
+        checkBoxes.append(self.ui.satHoursCheckBox)
+        checkBoxes.append(self.ui.sunHoursCheckBox)
         for i, checkBox in enumerate(checkBoxes):
             checkBox.setText(unicode(QDate.longDayName(i + 1)).capitalize())
         self.connect(self.ui.hoursSpinBox, SIGNAL("valueChanged(int)"),
@@ -129,9 +129,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self.ui.comboTimeWorked.setVisible(False)
         self.disconnect(self.ui.comboTimeWorked, SIGNAL("activated(const QString&)"),
                      self._comboTimeWorkedActivated)
-        for i in range(12):
-            self.ui.monthComboBox.addItem(QDate.longMonthName(i + 1), QVariant(i + 1))
-    
+
     def _connectSlots(self):
         self.connect(self.ui.editSmartQuery, SIGNAL("textEdited(QString)"),
                      self._smartQueryEdited)
@@ -226,7 +224,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self.ui.comboActivity.setCurrentIndex(idx)
         self.ui.labelActivity.setEnabled(p.get("pha") != None)
         
-        if self._mode == "monthly":
+        if self._mode == "hours":
             p.set("hmtime", p.get("in_hmtime"))
             self.ui.hoursSpinBox.setValue(int(p.get("in_hmtime").split(":")[0] or 0))
             self.ui.hoursSpinBox.blockSignals(False)
@@ -282,10 +280,10 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             elif combo == "Activity":
                 _bp.set("in_act", combotext)
                 _bp.set("act", combotext)
-            elif self._mode != "monthly" and combo == "TimeWorked":
+            elif self._mode != "hours" and combo == "TimeWorked":
                 _bp.set("in_hmtime", combotext)
                 _bp.set("hmtime", combotext)
-            elif self._mode == "monthly" and combo == "Hours":
+            elif self._mode == "hours" and combo == "Hours":
                 _bp.set("in_hmtime", combotext)
                 _bp.set("hmtime", combotext)
             # se ho attivato un combo
@@ -362,14 +360,14 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                         _base = project+" "+phase+" "
                         _completer = [_base + act for act in _ppa[project][phase].keys()]
                     else:
-                        if  self._mode != "monthly" and hmtime not in timerange(24, 15, 1):
+                        if  self._mode != "hours" and hmtime not in timerange(24, 15, 1):
                             _base = project+" "+phase+" "+activity+" "
                             _completer = [_base + hmtime for hmtime in timerange(8, 15, 1)]
                         else:
                             _completer = []
 
             # se ho già scritto l'ora o il commento, lo aggiungo al completer
-            if self._mode == "monthly":
+            if self._mode == "hours":
                 for c, v in enumerate(_completer):
                     _completer[c] = " ".join([_completer[c], str(self.ui.hoursSpinBox.value() or "")]).strip()
             else:
@@ -409,14 +407,14 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             days.append(self.ui.friCheckBox.isChecked())
             days.append(self.ui.satCheckBox.isChecked())
             days.append(self.ui.sunCheckBox.isChecked())
-        elif self._mode == "monthly":
-            days.append(self.ui.monMonthCheckBox.isChecked())
-            days.append(self.ui.tueMonthCheckBox.isChecked())
-            days.append(self.ui.wedMonthCheckBox.isChecked())
-            days.append(self.ui.thuMonthCheckBox.isChecked())
-            days.append(self.ui.friMonthCheckBox.isChecked())
-            days.append(self.ui.satMonthCheckBox.isChecked())
-            days.append(self.ui.sunMonthCheckBox.isChecked())
+        elif self._mode == "hours":
+            days.append(self.ui.monHoursCheckBox.isChecked())
+            days.append(self.ui.tueHoursCheckBox.isChecked())
+            days.append(self.ui.wedHoursCheckBox.isChecked())
+            days.append(self.ui.thuHoursCheckBox.isChecked())
+            days.append(self.ui.friHoursCheckBox.isChecked())
+            days.append(self.ui.satHoursCheckBox.isChecked())
+            days.append(self.ui.sunHoursCheckBox.isChecked())
         return tuple(days)
 
     def _timeregStarted(self):
@@ -509,23 +507,23 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                                                      self._getDays())
                 if ret == 1:
                     self._rangeTimereg()
+                    self.notify(self.tr("Saving..."))
                 else:
                     self.ui.btnSave.setEnabled(True)
             elif self._mode == "single":
                 self._singleTimereg()
-            elif self._mode == "monthly":
-                year = QDate.currentDate().year()
-                month = self.ui.monthComboBox.itemData(self.ui.monthComboBox.currentIndex()).toInt()[0]
-                startDay = QDate(year, month, 1)
-                endDay = QDate(year,month, 1).addMonths(1).addDays(-1)
+                self.notify(self.tr("Saving..."))
+            elif self._mode == "hours":
+                startDay = self.ui.hoursFromDateEdit.date()
+                endDay = self.ui.hoursToDateEdit.date()
                 ret = self._multipleInsertionWarning(startDay, endDay, self._getDays())
                 if ret == QMessageBox.Ok:
-                    self._monthlyTimereg()
+                    self._hoursTimereg()
+                    self.notify(self.tr("Saving..."))
                 else:
                     self.ui.btnSave.setEnabled(True)
             else:
                 assert False, "modo non gestito: %s" % self._mode
-            self.notify(self.tr("Saving..."))
     
     def _timereg(self, request_pack):
         self.remote.timereg(request_pack)
@@ -564,14 +562,15 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             request_pack.append(params)
         self._timereg(request_pack)
     
-    def _monthlyTimereg(self):
+    def _hoursTimereg(self):
         """
         Metodo chiamato da timereg per registrare le ore dalla modalità 'montly'.
         """
-        year = QDate.currentDate().year()
-        month = self.ui.monthComboBox.itemData(self.ui.monthComboBox.currentIndex()).toInt()[0]
-        startDay = QDate(year, month, 1)
-        endDay = QDate(year,month, 1).addMonths(1).addDays(-1)
+        if self.ui.hoursFromDateEdit.date() > self.ui.hoursToDateEdit.date():
+            self.notify(self.tr("From date is after end date!"), 10000)
+            return
+        startDay = self.ui.hoursFromDateEdit.date()
+        endDay = self.ui.hoursToDateEdit.date()
         days = daysnumber(startDay, endDay, self._getDays())[0]
         try:
             hours = [hour for hour in divide(self.ui.hoursSpinBox.value(), days)]
@@ -603,8 +602,8 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         #copia la data in tutte le dateEdit, visibili e non.
         self.ui.dateFromDateEdit.setDate(self.ui.singleDateEdit.date())
         self.ui.dateToDateEdit.setDate(self.ui.singleDateEdit.date())
-        self.ui.monthComboBox.setCurrentIndex(self.ui.monthComboBox.findData(
-            QVariant(self.ui.singleDateEdit.date().month())) - 1)
+        self.ui.hoursFromDateEdit.setDate(self.ui.singleDateEdit.date())
+        self.ui.hoursToDateEdit.setDate(self.ui.singleDateEdit.date())
         self._updateSmartQuery(self._baseproject.getSmartQuery())
         self.notify(self.tr("Loading..."))
 

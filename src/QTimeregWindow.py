@@ -493,7 +493,8 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         days = daysnumber(start_day, end_day, days)[0]
         if days > 1:
             ret = QMessageBox.warning(self, "TimeregWindow",
-                                      "Your changes will affect %d days, are you sure?\n" % days,
+                                      "Your changes will affect %d days, from %s to %s...\nAre you sure?\n" % (days,
+                                      start_day.toString("dd-MM-yyyy"), end_day.toString("dd-MM-yyyy")),
                                       QMessageBox.Ok | QMessageBox.Cancel)
             return ret
         return 1
@@ -511,7 +512,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             pass
         if invalid:
             QMessageBox.critical(self, "TimeregWindow",
-                                 "Selected date is invalid!",
+                                 "Selected date(s) is/are invalid!",
                                  QMessageBox.Cancel)
         return not invalid
 

@@ -602,8 +602,10 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         #copia la data in tutte le dateEdit, visibili e non.
         self.ui.dateFromDateEdit.setDate(self.ui.singleDateEdit.date())
         self.ui.dateToDateEdit.setDate(self.ui.singleDateEdit.date())
-        self.ui.hoursFromDateEdit.setDate(self.ui.singleDateEdit.date())
-        self.ui.hoursToDateEdit.setDate(self.ui.singleDateEdit.date())
+        self.ui.hoursFromDateEdit.setDate(QDate(self.ui.singleDateEdit.date().year(),
+                                                self.ui.singleDateEdit.date().month(),
+                                                1).addMonths(-1))
+        self.ui.hoursToDateEdit.setDate(self.ui.hoursFromDateEdit.date().addMonths(1).addDays(-1))
         self._updateSmartQuery(self._baseproject.getSmartQuery())
         self.notify(self.tr("Loading..."))
 

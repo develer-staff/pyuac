@@ -91,6 +91,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self._mode= ""
         self._setupGui()
         self._connectSlots()
+        self.ui.resize(QSize(self.settings.value("size",QVariant(self.ui.sizeHint())).toSize()))
         self.ui.show()
 
     def _connectSlots(self):
@@ -427,6 +428,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         """
         if self.calculator and not sip.isdeleted(self.calculator):
             self.calculator.close()
+        self.settings.setValue("size", QVariant(self.ui.size()))
         QMainWindow.close(self)
     
     def closeEvent(self, close_event):

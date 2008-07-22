@@ -278,7 +278,6 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         #avvia la registrazione nella data corrente.
         else:
             self._slotWeeklyDateChanged(row, column)
-            self._slotNewTimereg()
             project = AchievoProject()
             project.set("activitydate", self._working_date.toString("yyyy-MM-dd"))
         #viene creata la TimeregWindow in modalità 'single'

@@ -135,21 +135,17 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                      self.ui.close)
         self.connect(self.ui.actionTimeCalculator, SIGNAL("triggered(bool)"),
                      self._slotNewTimeCalculator)
+        self.connect(self, SIGNAL("workingDateChanged"),
+                     self._slotWorkingDateChanged)
 
     def _changeDate(self, date):
         """
         Modifica la data della vista corrente a partire da una nuova QDate.
         :param date: QDate contenente la nuova data.
         """
-        #se la data corrente è uguale alla nuova data non succede niente
-        if self._working_date != date:
-            self._working_date, tmp = date, self._working_date
-            if (self._mode == "daily" or self._mode == ""):
-                if self.ui.dateEdit.date() != self._working_date:
-                    self.ui.dateEdit.setDate(self._working_date)
-                self._slotTimereport(self._working_date)
-            elif self._mode == "weekly" and self._working_date not in getweek(tmp):
-                self._slotTimereport(self._working_date)
+        tmp = self._working_date
+        self._working_date = date
+        self.emit(SIGNAL("workingDateChanged"), tmp)
 
     def _changeDateDelta(self, direction):
         """
@@ -205,16 +201,32 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         if self._mode != "daily":
             self._mode = "daily"
             self.ui.stackedWidget.setCurrentIndex(0)
+            self.ui.dateEdit.blockSignals(True)
             self.ui.dateEdit.setDate(self._working_date)
+            self.ui.dateEdit.blockSignals(False)
             self._slotTimereport(self._working_date)
         self.ui.btnDaily.setChecked(True)
         self.ui.btnWeekly.setChecked(False)
 
     def _slotDateEditChanged(self, date):
-        self._changeDate(date)
+        tmp = self._working_date
+        self._working_date = QDate(date)
+        self.emit(SIGNAL("workingDateChanged"), tmp)
+    
+    def _slotWorkingDateChanged(self, old_date):
+        if old_date != self._working_date:
+            if self._mode == "daily" or self._mode == "":
+                self.ui.dateEdit.blockSignals(True)
+                self.ui.dateEdit.setDate(self._working_date)
+                self.ui.dateEdit.blockSignals(False)
+                self._slotTimereport(self._working_date)
+            elif self._mode == "weekly" and not old_date in getweek(self._working_date):
+                self._slotTimereport(self._working_date)
 
     def _slotWeeklyDateChanged(self, row, column):
+        tmp = self._working_date
         self._working_date = [date for date in getweek(self._working_date)][column]
+        self.emit(SIGNAL("workingDateChanged"), tmp)
 
     def _createTimeregWindow(self, mode):
         """

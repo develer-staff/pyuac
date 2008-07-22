@@ -445,13 +445,13 @@ class TimeregMenu(QMenu):
         QMenu.__init__(self, parent)
         self._single = self.addAction("Single editing mode")
         self._range = self.addAction("Range editing mode")
-        self._monthly = self.addAction("Monthly editing mode")
+        self._hours = self.addAction("Hours editing mode")
         self.connect(self._single, SIGNAL("triggered(bool)"), 
                         self._singleTriggered)
         self.connect(self._range, SIGNAL("triggered(bool)"), 
                         self._rangeTriggered)
-        self.connect(self._monthly, SIGNAL("triggered(bool)"),
-                     self._monthlyTriggered)
+        self.connect(self._hours, SIGNAL("triggered(bool)"),
+                     self._hoursTriggered)
         self.connect(self,  SIGNAL("clicked()"), 
                         self._singleTriggered)
     
@@ -461,5 +461,5 @@ class TimeregMenu(QMenu):
     def _rangeTriggered(self):
         self.emit(SIGNAL("selected"), "range")
     
-    def _monthlyTriggered(self):
-        self.emit(SIGNAL("selected"), "monthly")
+    def _hoursTriggered(self):
+        self.emit(SIGNAL("selected"), "hours")

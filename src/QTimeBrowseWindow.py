@@ -350,24 +350,25 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         :param eprojects: ElementTree, contiene la risposta dal server con la lista di tutte le ore
         registrate nell'arco della giornata.
         """
-        self.ui.tableTimereg.setRowCount(len(eprojects))
-        total_time = 0
-        for r, p in enumerate(eprojects):
-            self.projects[0][r] = AchievoProject(p)
-            p = self.projects[0][r]
-            row = []
-            row.append(QTableWidgetItem(p.get("activitydate")))
-            row.append(QTableWidgetItem("%s / %s" % (p.get("prj"), p.get("pha"))))
-            row.append(QTableWidgetItem(p.get("act")))
-            hmtime = min2hmtime(int(p.get("time")))
-            p.set("hmtime", hmtime)
-            total_time += int(p.get("time"))
-            row.append(QTableWidgetItem(hmtime))
-            row.append(QTableWidgetItem("\n" + p.get("remark") + "\n"))
-            for c, cell in enumerate(row):
-                self.ui.tableTimereg.setItem(r, c, cell)
-                if c != 4:
-                    self.ui.tableTimereg.resizeColumnToContents(c)
+        for project in eprojects:
+            self.ui.tableTimereg.setRowCount(len(project))
+            total_time = 0
+            for r, p in enumerate(project):
+                self.projects[0][r] = AchievoProject(p)
+                p = self.projects[0][r]
+                row = []
+                row.append(QTableWidgetItem(p.get("activitydate")))
+                row.append(QTableWidgetItem("%s / %s" % (p.get("prj"), p.get("pha"))))
+                row.append(QTableWidgetItem(p.get("act")))
+                hmtime = min2hmtime(int(p.get("time")))
+                p.set("hmtime", hmtime)
+                total_time += int(p.get("time"))
+                row.append(QTableWidgetItem(hmtime))
+                row.append(QTableWidgetItem("\n" + p.get("remark") + "\n"))
+                for c, cell in enumerate(row):
+                    self.ui.tableTimereg.setItem(r, c, cell)
+                    if c != 4:
+                        self.ui.tableTimereg.resizeColumnToContents(c)
         self.notify(self.tr("Day total: ") + "%s" % min2hmtime(total_time))
         self.ui.tableTimereg.resizeRowsToContents()
         self.ui.tlbTimereg.setEnabled(True)
@@ -379,26 +380,41 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         :param eprojects: lista di ElementTree, contiene la risposta dal server con la lista di tutte
         le ore registrate nell'arco di una data giornata.
         """
-        if self.ui.tableWeekTimereg.rowCount() < len(eprojects):
-            self.ui.tableWeekTimereg.setRowCount(len(eprojects))
-        for r, p in enumerate(eprojects):
-            p = AchievoProject(p)
-            hmtime = min2hmtime(int(p.get("time")))
-            p.set("hmtime", hmtime)
-            item = QTableWidgetItem("\n".join([p.get("prj"), p.get("pha") + " / " + p.get("act"), hmtime]))
-            c = QDate.fromString(p.get("activitydate").replace("-", ""), "yyyyMMdd").dayOfWeek() - 1
-            self.projects[c][r] = p
-            self.ui.tableWeekTimereg.setItem(r, c, item)
-            self.ui.tableWeekTimereg.item(r, c).setTextAlignment(Qt.AlignHCenter)
-            self.ui.tableWeekTimereg.resizeRowToContents(r)
-            self.ui.tableWeekTimereg.verticalHeader().setVisible(False)
+        for project in eprojects:
+            if self.ui.tableWeekTimereg.rowCount() < len(project):
+                self.ui.tableWeekTimereg.setRowCount(len(project))
+            for r, p in enumerate(project):
+                p = AchievoProject(p)
+                hmtime = min2hmtime(int(p.get("time")))
+                p.set("hmtime", hmtime)
+                item = QTableWidgetItem("\n".join([p.get("prj"), p.get("pha") + " / " + p.get("act"), hmtime]))
+                c = QDate.fromString(p.get("activitydate").replace("-", ""), "yyyyMMdd").dayOfWeek() - 1
+                self.projects[c][r] = p
+                self.ui.tableWeekTimereg.setItem(r, c, item)
+                self.ui.tableWeekTimereg.item(r, c).setTextAlignment(Qt.AlignHCenter)
+                self.ui.tableWeekTimereg.resizeRowToContents(r)
+                self.ui.tableWeekTimereg.verticalHeader().setVisible(False)
+        self.ui.tableWeekTimereg.insertRow(self.ui.tableWeekTimereg.rowCount())
+        for day in self.projects.keys():
+            hours = 0
+            for prj in self.projects[day].keys():
+                hours += hmtime2min(self.projects[day][prj].get("hmtime"))
+            hours = min2hmtime(hours)
+            item = QTableWidgetItem("Total: %s" % hours)
+            self.ui.tableWeekTimereg.setItem(self.ui.tableWeekTimereg.rowCount() - 1,
+                                             day, item)
+            self.ui.tableWeekTimereg.item(self.ui.tableWeekTimereg.rowCount() - 1,
+                                          day).setTextAlignment(Qt.AlignHCenter)
+            self.ui.tableWeekTimereg.item(self.ui.tableWeekTimereg.rowCount() - 1,
+                                          day).setFont(QFont(QFont().defaultFamily(),
+                                                             15, QFont.Bold))
+            self.ui.tableWeekTimereg.resizeRowToContents(self.ui.tableWeekTimereg.rowCount() - 1)
         if QDate.currentDate() in getweek(self._working_date):
             column = QDate.currentDate().dayOfWeek() -1
             for row in range(self.ui.tableWeekTimereg.rowCount()):
                 if not self.ui.tableWeekTimereg.item(row, column):
                     self.ui.tableWeekTimereg.setItem(row, column, QTableWidgetItem(""))
                 self.ui.tableWeekTimereg.item(row, column).setBackground(QBrush(QColor(255, 255, 0)))
-
         #TODO: sistemare la notify in modo che dia informazioni utili
         self.notify("From %s to %s" %("date", "date2"))
         #self.ui.tableTimereg.resizeRowsToContents()
@@ -412,13 +428,12 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         registrate.
         """
         QApplication.restoreOverrideCursor()
-        for project in eprojects:
-            if self._mode == "daily":
-                self._updateDailyTimereport(project)
-            elif self._mode == "weekly":
-                self._updateWeeklyTimereport(project)
-            else:
-                assert False, "modo non gestito: %s" % self._mode
+        if self._mode == "daily":
+            self._updateDailyTimereport(eprojects)
+        elif self._mode == "weekly":
+            self._updateWeeklyTimereport(eprojects)
+        else:
+            assert False, "modo non gestito: %s" % self._mode
 
     
     def close(self):

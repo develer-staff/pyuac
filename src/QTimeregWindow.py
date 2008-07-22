@@ -78,31 +78,31 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         Connette le componenti necessarie solamente in modalità 'range' e ne inizializza i valori.
         """
         self.ui.stackedWidget.setCurrentIndex(1)
-        self.connect(self.ui.dateFromDateEdit, SIGNAL("dateChanged(const QDate&)"), 
+        self.connect(self.ui.rangeFromDateEdit, SIGNAL("dateChanged(const QDate&)"), 
                         self._updateDaysLabel)
-        self.connect(self.ui.dateToDateEdit, SIGNAL("dateChanged(const QDate&)"), 
+        self.connect(self.ui.rangeToDateEdit, SIGNAL("dateChanged(const QDate&)"), 
                         self._updateDaysLabel)
         checkBoxes = []
-        checkBoxes.append(self.ui.monCheckBox)
-        self.connect(self.ui.monCheckBox, SIGNAL("toggled(bool)"), 
+        checkBoxes.append(self.ui.monRangeCheckBox)
+        self.connect(self.ui.monRangeCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
-        checkBoxes.append(self.ui.tueCheckBox)
-        self.connect(self.ui.tueCheckBox, SIGNAL("toggled(bool)"), 
+        checkBoxes.append(self.ui.tueRangeCheckBox)
+        self.connect(self.ui.tueRangeCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
-        checkBoxes.append(self.ui.wedCheckBox)
-        self.connect(self.ui.wedCheckBox, SIGNAL("toggled(bool)"), 
+        checkBoxes.append(self.ui.wedRangeCheckBox)
+        self.connect(self.ui.wedRangeCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
-        checkBoxes.append(self.ui.thuCheckBox)
-        self.connect(self.ui.thuCheckBox, SIGNAL("toggled(bool)"), 
+        checkBoxes.append(self.ui.thuRangeCheckBox)
+        self.connect(self.ui.thuRangeCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
-        checkBoxes.append(self.ui.friCheckBox)
-        self.connect(self.ui.friCheckBox, SIGNAL("toggled(bool)"), 
+        checkBoxes.append(self.ui.friRangeCheckBox)
+        self.connect(self.ui.friRangeCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
-        checkBoxes.append(self.ui.satCheckBox)
-        self.connect(self.ui.satCheckBox, SIGNAL("toggled(bool)"), 
+        checkBoxes.append(self.ui.satRangeCheckBox)
+        self.connect(self.ui.satRangeCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
-        checkBoxes.append(self.ui.sunCheckBox)
-        self.connect(self.ui.sunCheckBox, SIGNAL("toggled(bool)"), 
+        checkBoxes.append(self.ui.sunRangeCheckBox)
+        self.connect(self.ui.sunRangeCheckBox, SIGNAL("toggled(bool)"), 
                         self._updateDaysLabel)
         for i, checkBox in enumerate(checkBoxes):
             checkBox.setText(unicode(QDate.longDayName(i + 1)).capitalize())
@@ -112,14 +112,32 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         Connette le componenti necessarie solamente in modalità 'hours' e ne inizializza i valori.
         """
         self.ui.stackedWidget.setCurrentIndex(2)
+        self.connect(self.ui.hoursFromDateEdit, SIGNAL("dateChanged(const QDate&)"), 
+                        self._updateDaysLabel)
+        self.connect(self.ui.hoursToDateEdit, SIGNAL("dateChanged(const QDate&)"), 
+                        self._updateDaysLabel)
         checkBoxes = []
         checkBoxes.append(self.ui.monHoursCheckBox)
+        self.connect(self.ui.monHoursCheckBox, SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
         checkBoxes.append(self.ui.tueHoursCheckBox)
+        self.connect(self.ui.tueHoursCheckBox, SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
         checkBoxes.append(self.ui.wedHoursCheckBox)
+        self.connect(self.ui.wedHoursCheckBox, SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
         checkBoxes.append(self.ui.thuHoursCheckBox)
+        self.connect(self.ui.thuHoursCheckBox, SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
         checkBoxes.append(self.ui.friHoursCheckBox)
+        self.connect(self.ui.friHoursCheckBox, SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
         checkBoxes.append(self.ui.satHoursCheckBox)
+        self.connect(self.ui.satHoursCheckBox, SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
         checkBoxes.append(self.ui.sunHoursCheckBox)
+        self.connect(self.ui.sunHoursCheckBox, SIGNAL("toggled(bool)"), 
+                        self._updateDaysLabel)
         for i, checkBox in enumerate(checkBoxes):
             checkBox.setText(unicode(QDate.longDayName(i + 1)).capitalize())
         self.connect(self.ui.hoursSpinBox, SIGNAL("valueChanged(int)"),
@@ -391,8 +409,14 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         Aggiorna il numero di giorni lavorativi e di giorni totali che appare a lato delle dateEdit, in modalità
         'range'
         """
-        working, total = daysnumber(self.ui.dateFromDateEdit.date(), self.ui.dateToDateEdit.date(), self._getDays())
-        self.ui.daysLabel.setText("Working days: %d, Total days: %d" %(working, total))
+        if self._mode == "range":
+            working, total = daysnumber(self.ui.rangeFromDateEdit.date(),
+                                        self.ui.rangeToDateEdit.date(), self._getDays())
+            self.ui.rangeDaysLabel.setText("Working days: %d, Total days: %d" %(working, total))
+        elif self._mode == "hours":
+            working, total = daysnumber(self.ui.hoursFromDateEdit.date(),
+                                        self.ui.hoursToDateEdit.date(), self._getDays())
+            self.ui.hoursDaysLabel.setText("Working days: %d, Total days: %d" %(working, total))
     
     def _getDays(self):
         """
@@ -400,13 +424,13 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         """
         days = []
         if self._mode == "range":
-            days.append(self.ui.monCheckBox.isChecked())
-            days.append(self.ui.tueCheckBox.isChecked())
-            days.append(self.ui.wedCheckBox.isChecked())
-            days.append(self.ui.thuCheckBox.isChecked())
-            days.append(self.ui.friCheckBox.isChecked())
-            days.append(self.ui.satCheckBox.isChecked())
-            days.append(self.ui.sunCheckBox.isChecked())
+            days.append(self.ui.monRangeCheckBox.isChecked())
+            days.append(self.ui.tueRangeCheckBox.isChecked())
+            days.append(self.ui.wedRangeCheckBox.isChecked())
+            days.append(self.ui.thuRangeCheckBox.isChecked())
+            days.append(self.ui.friRangeCheckBox.isChecked())
+            days.append(self.ui.satRangeCheckBox.isChecked())
+            days.append(self.ui.sunRangeCheckBox.isChecked())
         elif self._mode == "hours":
             days.append(self.ui.monHoursCheckBox.isChecked())
             days.append(self.ui.tueHoursCheckBox.isChecked())
@@ -480,8 +504,8 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             if self.ui.singleDateEdit.date() > QDate.currentDate():
                 invalid = True
         if self._mode == "range":
-            if self.ui.dateFromDateEdit.date() > QDate.currentDate() \
-            or self.ui.dateToDateEdit.date() > QDate.currentDate():
+            if self.ui.rangeFromDateEdit.date() > QDate.currentDate() \
+            or self.ui.rangeToDateEdit.date() > QDate.currentDate():
                 invalid = True
         if self._mode == "montly":
             pass
@@ -502,10 +526,10 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         if self._checkDate():
             self.ui.btnSave.setEnabled(False)
             if self._mode == "range":
-                ret = self._multipleInsertionWarning(self.ui.dateFromDateEdit.date(),
-                                                     self.ui.dateToDateEdit.date(),
+                ret = self._multipleInsertionWarning(self.ui.rangeFromDateEdit.date(),
+                                                     self.ui.rangeToDateEdit.date(),
                                                      self._getDays())
-                if ret == 1:
+                if ret == QMessageBox.Ok:
                     self._rangeTimereg()
                     self.notify(self.tr("Saving..."))
                 else:
@@ -547,11 +571,11 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         Metodo chiamato da timereg per registrare le ore dalla modalità 'range'.
         """
         #controllo che impedisce che le date inserite non siano consistenti
-        if self.ui.dateFromDateEdit.date() > self.ui.dateToDateEdit.date():
+        if self.ui.rangeFromDateEdit.date() > self.ui.rangeToDateEdit.date():
             self.notify(self.tr("From date is after end date!"), 10000)
             return
         request_pack = []
-        for date in daterange(self.ui.dateFromDateEdit.date(), self.ui.dateToDateEdit.date(), self._getDays()):
+        for date in daterange(self.ui.rangeFromDateEdit.date(), self.ui.rangeToDateEdit.date(), self._getDays()):
             activitydate = str(date.toString("yyyy-MM-dd"))
             p = self._baseproject
             params = dict([(k, p.get(k)) for k in "projectid phaseid activityid hmtime".split()])
@@ -600,8 +624,8 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             self.ui.btnDelete.setText(self.tr("Delete"))
         self.ui.singleDateEdit.setDate(QDate.fromString(self._baseproject.get("activitydate"), "yyyy-MM-dd"))
         #copia la data in tutte le dateEdit, visibili e non.
-        self.ui.dateFromDateEdit.setDate(self.ui.singleDateEdit.date())
-        self.ui.dateToDateEdit.setDate(self.ui.singleDateEdit.date())
+        self.ui.rangeFromDateEdit.setDate(self.ui.singleDateEdit.date())
+        self.ui.rangeToDateEdit.setDate(self.ui.singleDateEdit.date())
         self.ui.hoursFromDateEdit.setDate(QDate(self.ui.singleDateEdit.date().year(),
                                                 self.ui.singleDateEdit.date().month(),
                                                 1).addMonths(-1))

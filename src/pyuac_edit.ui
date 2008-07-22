@@ -158,12 +158,12 @@
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                </property>
                <property name="buddy" >
-                <cstring>dateFromDateEdit</cstring>
+                <cstring>rangeFromDateEdit</cstring>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QDateEdit" name="dateFromDateEdit" >
+              <widget class="QDateEdit" name="rangeFromDateEdit" >
                <property name="displayFormat" >
                 <string>ddd dd/MMM/yyyy</string>
                </property>
@@ -181,12 +181,12 @@
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                </property>
                <property name="buddy" >
-                <cstring>dateToDateEdit</cstring>
+                <cstring>rangeToDateEdit</cstring>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QDateEdit" name="dateToDateEdit" >
+              <widget class="QDateEdit" name="rangeToDateEdit" >
                <property name="displayFormat" >
                 <string>ddd dd/MMM/yyyy</string>
                </property>
@@ -209,7 +209,7 @@
               </spacer>
              </item>
              <item>
-              <widget class="QLabel" name="daysLabel" >
+              <widget class="QLabel" name="rangeDaysLabel" >
                <property name="text" >
                 <string/>
                </property>
@@ -220,7 +220,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_2" >
              <item>
-              <widget class="QCheckBox" name="monCheckBox" >
+              <widget class="QCheckBox" name="monRangeCheckBox" >
                <property name="text" >
                 <string/>
                </property>
@@ -230,7 +230,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="tueCheckBox" >
+              <widget class="QCheckBox" name="tueRangeCheckBox" >
                <property name="text" >
                 <string/>
                </property>
@@ -240,7 +240,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="wedCheckBox" >
+              <widget class="QCheckBox" name="wedRangeCheckBox" >
                <property name="text" >
                 <string/>
                </property>
@@ -250,7 +250,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="thuCheckBox" >
+              <widget class="QCheckBox" name="thuRangeCheckBox" >
                <property name="text" >
                 <string/>
                </property>
@@ -260,7 +260,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="friCheckBox" >
+              <widget class="QCheckBox" name="friRangeCheckBox" >
                <property name="text" >
                 <string/>
                </property>
@@ -270,7 +270,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="satCheckBox" >
+              <widget class="QCheckBox" name="satRangeCheckBox" >
                <property name="text" >
                 <string/>
                </property>
@@ -280,7 +280,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="sunCheckBox" >
+              <widget class="QCheckBox" name="sunRangeCheckBox" >
                <property name="text" >
                 <string/>
                </property>
@@ -395,6 +395,13 @@
                 </size>
                </property>
               </spacer>
+             </item>
+             <item>
+              <widget class="QLabel" name="hoursDaysLabel" >
+               <property name="text" >
+                <string/>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>
@@ -780,7 +787,7 @@
  <tabstops>
   <tabstop>btnSave</tabstop>
   <tabstop>comboPPAlru</tabstop>
-  <tabstop>dateFromDateEdit</tabstop>
+  <tabstop>rangeFromDateEdit</tabstop>
   <tabstop>comboProject</tabstop>
   <tabstop>comboPhase</tabstop>
   <tabstop>comboActivity</tabstop>

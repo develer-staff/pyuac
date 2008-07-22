@@ -132,7 +132,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget" >
       <property name="currentIndex" >
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="page" >
        <property name="geometry" >
@@ -266,8 +266,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>454</width>
-         <height>284</height>
+         <width>1156</width>
+         <height>565</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_3" >
@@ -325,7 +325,7 @@
               <enum>QAbstractItemView::SingleSelection</enum>
              </property>
              <property name="selectionBehavior" >
-              <enum>QAbstractItemView::SelectItems</enum>
+              <enum>QAbstractItemView::SelectColumns</enum>
              </property>
              <property name="cornerButtonEnabled" >
               <bool>false</bool>

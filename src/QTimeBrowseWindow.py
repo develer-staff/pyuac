@@ -372,6 +372,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                         self.ui.tableTimereg.resizeColumnToContents(c)
         self.notify(self.tr("Day total: ") + "%s" % min2hmtime(total_time))
         self.ui.tableTimereg.resizeRowsToContents()
+        self.ui.btnToday.setEnabled(not self._working_date == QDate.currentDate())
         self.ui.tlbTimereg.setEnabled(True)
 
     def _updateWeeklyTimereport(self, eprojects):
@@ -419,6 +420,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         #TODO: sistemare la notify in modo che dia informazioni utili
         self.notify("Search completed")
         #self.ui.tableTimereg.resizeRowsToContents()
+        self.ui.btnThisWeek.setEnabled(not self._working_date in getweek(QDate.currentDate()))
         self.ui.tlbTimereg.setEnabled(True)
 
     def _slotUpdateTimereport(self, eprojects):

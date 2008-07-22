@@ -279,6 +279,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         else:
             self._slotWeeklyDateChanged(row, column)
             self._slotNewTimereg()
+            project = AchievoProject()
+            project.set("activitydate", self._working_date.toString("yyyy-MM-dd"))
         #viene creata la TimeregWindow in modalità 'single'
         editwin = self._createTimeregWindow("single")
         #vengono impostati tutti i campi della TimeregWindow con i valori della registrazione corrente
@@ -416,7 +418,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                     self.ui.tableWeekTimereg.setItem(row, column, QTableWidgetItem(""))
                 self.ui.tableWeekTimereg.item(row, column).setBackground(QBrush(QColor(255, 255, 0)))
         #TODO: sistemare la notify in modo che dia informazioni utili
-        self.notify("From %s to %s" %("date", "date2"))
+        self.notify("Search completed")
         #self.ui.tableTimereg.resizeRowsToContents()
         self.ui.tlbTimereg.setEnabled(True)
 

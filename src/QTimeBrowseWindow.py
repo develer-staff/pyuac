@@ -358,15 +358,14 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             for r, p in enumerate(project):
                 self.projects[0][r] = AchievoProject(p)
                 p = self.projects[0][r]
-                row = []
-                row.append(QTableWidgetItem(p.get("activitydate")))
-                row.append(QTableWidgetItem("%s / %s" % (p.get("prj"), p.get("pha"))))
-                row.append(QTableWidgetItem(p.get("act")))
                 hmtime = min2hmtime(int(p.get("time")))
                 p.set("hmtime", hmtime)
                 total_time += int(p.get("time"))
-                row.append(QTableWidgetItem(hmtime))
-                row.append(QTableWidgetItem("\n" + p.get("remark") + "\n"))
+                row = (QTableWidgetItem(p.get("activitydate")),
+                       QTableWidgetItem("%s / %s" % (p.get("prj"), p.get("pha"))),
+                       QTableWidgetItem(p.get("act")),
+                       QTableWidgetItem(hmtime),
+                       QTableWidgetItem("\n" + p.get("remark") + "\n"))
                 for c, cell in enumerate(row):
                     self.ui.tableTimereg.setItem(r, c, cell)
                     if c != 4:

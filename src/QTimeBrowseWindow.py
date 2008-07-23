@@ -397,9 +397,9 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                 self.ui.tableWeekTimereg.resizeRowToContents(r)
                 self.ui.tableWeekTimereg.verticalHeader().setVisible(False)
         self.ui.tableWeekTimereg.insertRow(self.ui.tableWeekTimereg.rowCount())
-        for day in self.projects.keys():
+        for day in self.projects.iterkeys():
             hours = 0
-            for prj in self.projects[day].keys():
+            for prj in self.projects[day].iterkeys():
                 hours += hmtime2min(self.projects[day][prj].get("hmtime"))
             hours = min2hmtime(hours)
             item = QTableWidgetItem("Total: %s" % hours)

@@ -88,7 +88,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         :param auth: lista contenente in ordine achievouri,  username e password.
         """
         self.__setup__(auth, 'pyuac_browse.ui')
-        self._mode= ""
+        self._mode = ""
         self._setupGui()
         self._connectSlots()
         self.ui.resize(self.settings.value("size",QVariant(self.ui.sizeHint())).toSize())
@@ -185,7 +185,10 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self._changeDate(QDate.currentDate())
         self._menu = TimeregMenu(self)
         self.ui.tlbTimereg.setMenu(self._menu)
-        self._slotChangeToDaily()
+        if str(self.settings.value("mode", QVariant("weekly")).toString()) == "daily":
+            self._slotChangeToDaily()
+        elif str(self.settings.value("mode", QVariant("weekly")).toString()) == "weekly":
+            self._slotChangeToWeekly()
 
     def _slotChangeToWeekly(self):
         """
@@ -401,7 +404,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                 total_time += int(p.get("time"))
                 hmtime = min2hmtime(int(p.get("time")))
                 p.set("hmtime", hmtime)
-                item = QTableWidgetItem("\n".join([p.get("prj"), p.get("pha") + " / " + p.get("act"), hmtime]))
+                item = QTableWidgetItem("\n".join([p.get("prj"), p.get("pha") +
+                                                   " / " + p.get("act"), hmtime]))
                 self.projects[c][r] = p
                 table.setItem(r, c, item)
                 table.item(r, c).setTextAlignment(Qt.AlignHCenter)
@@ -420,14 +424,17 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                 table.setSpan(0, c, table.rowCount(), 1)
             else:
                 table.setSpan(len(day), c, table.rowCount() - len(day) - 1, 1)
-            table.verticalHeader().setResizeMode(table.rowCount() - 2, QHeaderView.Stretch)
+            table.verticalHeader().setResizeMode(table.rowCount() - 2,
+                                                 QHeaderView.Stretch)
         if QDate.currentDate() in getweek(self._working_date):
             column = QDate.currentDate().dayOfWeek() -1
             for row in range(table.rowCount()):
                 if not table.item(row, column):
                     table.setItem(row, column, QTableWidgetItem(""))
                 table.item(row, column).setBackground(QBrush(QColor(255, 255, 0)))
-        table.scrollToItem(table.item(len(self.projects[self._working_date.dayOfWeek() - 1]),self._working_date.dayOfWeek() - 1))
+        table.scrollToItem(table.item(len(self.projects[self._working_date.dayOfWeek() - 1]),
+                                      self._working_date.dayOfWeek() - 1))
+        table.selectColumn(self._working_date.dayOfWeek() - 1)
         #TODO: sistemare la notify in modo che dia informazioni utili
         self.notify("Search completed")
         #self.ui.tableTimereg.resizeRowsToContents()
@@ -459,6 +466,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self.calculator.close()
         self.settings.setValue("size", QVariant(self.ui.size()))
         self.settings.setValue("pos", QVariant(self.ui.pos()))
+        self.settings.setValue("mode", QVariant(self._mode))
         QMainWindow.close(self)
     
     def closeEvent(self, close_event):

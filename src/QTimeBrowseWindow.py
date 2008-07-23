@@ -170,16 +170,18 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         """
         Reimposta la gui ai volori di default (titoli colonne e data attuale).
         """
-        self.ui.tableTimereg.setColumnCount(5)
+        table = self.ui.tableTimereg
+        table.setColumnCount(5)
         for c, head in enumerate(("Date", "Project/Phase", "Activity", "Time", "Remark")):
             cellHead = QTableWidgetItem(head)
-            self.ui.tableTimereg.setHorizontalHeaderItem(c, cellHead)
-        self.ui.tableTimereg.horizontalHeader().setStretchLastSection(True)
-        self.ui.tableWeekTimereg.setColumnCount(7)
+            table.setHorizontalHeaderItem(c, cellHead)
+        table.horizontalHeader().setStretchLastSection(True)
+        tableWeek = self.ui.tableWeekTimereg
+        tableWeek.setColumnCount(7)
         for c in range(7):
             cellHead = QTableWidgetItem()
-            self.ui.tableWeekTimereg.setHorizontalHeaderItem(c, cellHead)
-            self.ui.tableWeekTimereg.horizontalHeader().setResizeMode(c, QHeaderView.Stretch)
+            tableWeek.setHorizontalHeaderItem(c, cellHead)
+            tableWeek.horizontalHeader().setResizeMode(c, QHeaderView.Stretch)
         self._changeDate(QDate.currentDate())
         self._menu = TimeregMenu(self)
         self.ui.tlbTimereg.setMenu(self._menu)
@@ -325,16 +327,18 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.notify(self.tr("Searching..."))
         #pulisce la tabella con la vista settimanale solamente nel caso si sia in modalità 'weekly'
         if self._mode == "weekly":
+            table = self.ui.tableWeekTimereg
             days = getweek(qdate)
-            self.ui.tableWeekTimereg.clearContents()
-            self.ui.tableWeekTimereg.setRowCount(0)
+            table.clearContents()
+            table.setRowCount(0)
             for c, day in enumerate(getweek(qdate)):
-                self.ui.tableWeekTimereg.horizontalHeaderItem(c).setText(QDate.longDayName(
-                                                day.dayOfWeek())[:3] + " " + day.toString("dd-MM-yyyy"))
+                table.horizontalHeaderItem(c).setText(QDate.longDayName(
+                        day.dayOfWeek())[:3] + " " + day.toString("dd-MM-yyyy"))
         #pulisce la tabella con la vista giornaliera colamente nel caso si sia in modalità 'daily'
         else:
+            table = self.ui.tableTimereg
             days = [self.ui.dateEdit.date()]
-            self.ui.tableTimereg.clearContents()
+            table.clearContents()
         self.projects = defaultdict(dict)
         self.remote.timereport([{"date": date.toString("yyyy-MM-dd")} for date in days])
 
@@ -352,8 +356,9 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         :param eprojects: ElementTree, contiene la risposta dal server con la lista di tutte le ore
         registrate nell'arco della giornata.
         """
+        table = self.ui.tableTimereg
         for project in eprojects:
-            self.ui.tableTimereg.setRowCount(len(project))
+            table.setRowCount(len(project))
             total_time = 0
             for r, p in enumerate(project):
                 self.projects[0][r] = AchievoProject(p)
@@ -367,11 +372,11 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                        QTableWidgetItem(hmtime),
                        QTableWidgetItem("\n" + p.get("remark") + "\n"))
                 for c, cell in enumerate(row):
-                    self.ui.tableTimereg.setItem(r, c, cell)
+                    table.setItem(r, c, cell)
                     if c != 4:
-                        self.ui.tableTimereg.resizeColumnToContents(c)
+                        table.resizeColumnToContents(c)
+        table.resizeRowsToContents()
         self.notify(self.tr("Day total: ") + "%s" % min2hmtime(total_time))
-        self.ui.tableTimereg.resizeRowsToContents()
         self.ui.btnToday.setEnabled(self._working_date != QDate.currentDate())
         self.ui.tlbTimereg.setEnabled(True)
 
@@ -382,9 +387,10 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         :param eprojects: lista di ElementTree, contiene la risposta dal server con la lista di tutte
         le ore registrate nell'arco di una data giornata.
         """
+        table = self.ui.tableWeekTimereg
         for project in eprojects:
-            if self.ui.tableWeekTimereg.rowCount() < len(project):
-                self.ui.tableWeekTimereg.setRowCount(len(project))
+            if table.rowCount() < len(project):
+                table.setRowCount(len(project))
             for r, p in enumerate(project):
                 p = AchievoProject(p)
                 hmtime = min2hmtime(int(p.get("time")))
@@ -392,31 +398,31 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                 item = QTableWidgetItem("\n".join([p.get("prj"), p.get("pha") + " / " + p.get("act"), hmtime]))
                 c = QDate.fromString(p.get("activitydate").replace("-", ""), "yyyyMMdd").dayOfWeek() - 1
                 self.projects[c][r] = p
-                self.ui.tableWeekTimereg.setItem(r, c, item)
-                self.ui.tableWeekTimereg.item(r, c).setTextAlignment(Qt.AlignHCenter)
-                self.ui.tableWeekTimereg.resizeRowToContents(r)
-                self.ui.tableWeekTimereg.verticalHeader().setVisible(False)
-        self.ui.tableWeekTimereg.insertRow(self.ui.tableWeekTimereg.rowCount())
+                table.setItem(r, c, item)
+                table.item(r, c).setTextAlignment(Qt.AlignHCenter)
+                table.resizeRowToContents(r)
+                table.verticalHeader().setVisible(False)
+        table.insertRow(table.rowCount())
         for day in self.projects.iterkeys():
             hours = 0
             for prj in self.projects[day].iterkeys():
                 hours += hmtime2min(self.projects[day][prj].get("hmtime"))
             hours = min2hmtime(hours)
             item = QTableWidgetItem("Total: %s" % hours)
-            self.ui.tableWeekTimereg.setItem(self.ui.tableWeekTimereg.rowCount() - 1,
-                                             day, item)
-            self.ui.tableWeekTimereg.item(self.ui.tableWeekTimereg.rowCount() - 1,
-                                          day).setTextAlignment(Qt.AlignHCenter)
-            self.ui.tableWeekTimereg.item(self.ui.tableWeekTimereg.rowCount() - 1,
-                                          day).setFont(QFont(QFont().defaultFamily(),
-                                                             15, QFont.Bold))
-            self.ui.tableWeekTimereg.resizeRowToContents(self.ui.tableWeekTimereg.rowCount() - 1)
+            table.setItem(table.rowCount() - 1,
+                          day, item)
+            table.item(table.rowCount() - 1,
+                       day).setTextAlignment(Qt.AlignHCenter)
+            table.item(table.rowCount() - 1,
+                       day).setFont(QFont(QFont().defaultFamily(),
+                                    15, QFont.Bold))
+            table.resizeRowToContents(table.rowCount() - 1)
         if QDate.currentDate() in getweek(self._working_date):
             column = QDate.currentDate().dayOfWeek() -1
-            for row in range(self.ui.tableWeekTimereg.rowCount()):
-                if not self.ui.tableWeekTimereg.item(row, column):
-                    self.ui.tableWeekTimereg.setItem(row, column, QTableWidgetItem(""))
-                self.ui.tableWeekTimereg.item(row, column).setBackground(QBrush(QColor(255, 255, 0)))
+            for row in range(table.rowCount()):
+                if not table.item(row, column):
+                    table.setItem(row, column, QTableWidgetItem(""))
+                table.item(row, column).setBackground(QBrush(QColor(255, 255, 0)))
         #TODO: sistemare la notify in modo che dia informazioni utili
         self.notify("Search completed")
         #self.ui.tableTimereg.resizeRowsToContents()

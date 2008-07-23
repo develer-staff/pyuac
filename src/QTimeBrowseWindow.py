@@ -415,11 +415,11 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                            c).setFont(QFont(QFont().defaultFamily(),
                                               15, QFont.Bold))
                 table.resizeRowToContents(table.rowCount() - 1)
-            #if len(day) == 0:
-            #    table.setSpan(0, c, table.rowCount(), 1)
-            #else:
-            #    table.setSpan(len(day), c, table.rowCount() - 1, 1)
-            #    print table.item(table.rowCount() - 1, c)
+            if len(day) == 0:
+                table.setSpan(0, c, table.rowCount(), 1)
+            else:
+                table.setSpan(len(day), c, table.rowCount() - len(day) - 1, 1)
+            table.verticalHeader().setResizeMode(table.rowCount() - 2, QHeaderView.Stretch)
         if QDate.currentDate() in getweek(self._working_date):
             column = QDate.currentDate().dayOfWeek() -1
             for row in range(table.rowCount()):

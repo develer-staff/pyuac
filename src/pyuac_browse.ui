@@ -311,6 +311,20 @@
                </property>
               </spacer>
              </item>
+             <item>
+              <widget class="QLabel" name="yearLabel" >
+               <property name="font" >
+                <font>
+                 <pointsize>20</pointsize>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text" >
+                <string/>
+               </property>
+              </widget>
+             </item>
             </layout>
            </item>
            <item>
@@ -325,7 +339,7 @@
               <enum>QAbstractItemView::SingleSelection</enum>
              </property>
              <property name="selectionBehavior" >
-              <enum>QAbstractItemView::SelectColumns</enum>
+              <enum>QAbstractItemView::SelectItems</enum>
              </property>
              <property name="cornerButtonEnabled" >
               <bool>false</bool>

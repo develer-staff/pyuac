@@ -332,9 +332,10 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             table.clearSpans()
             table.clearContents()
             table.setRowCount(0)
+            self.ui.yearLabel.setText([day for day in getweek(qdate)][0].toString("yyyy"))
             for c, day in enumerate(getweek(qdate)):
                 table.horizontalHeaderItem(c).setText(QDate.longDayName(day.dayOfWeek())[:3]
-                                                      + " " + day.toString("dd-MM-yyyy"))
+                                                      + " " + day.toString("dd MMM"))
         #pulisce la tabella con la vista giornaliera colamente nel caso si sia in modalità 'daily'
         else:
             table = self.ui.tableTimereg
@@ -407,7 +408,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                 table.resizeRowToContents(r)
                 table.verticalHeader().setVisible(False)
             if total_time > 0:
-                item = QTableWidgetItem("Total: " + min2hmtime(total_time))
+                item = QTableWidgetItem(min2hmtime(total_time))
                 table.setItem(table.rowCount() - 1, c, item)
                 table.item(table.rowCount() - 1,
                           c).setTextAlignment(Qt.AlignHCenter)
@@ -426,6 +427,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                 if not table.item(row, column):
                     table.setItem(row, column, QTableWidgetItem(""))
                 table.item(row, column).setBackground(QBrush(QColor(255, 255, 0)))
+        table.scrollToItem(table.item(len(self.projects[self._working_date.dayOfWeek() - 1]),self._working_date.dayOfWeek() - 1))
         #TODO: sistemare la notify in modo che dia informazioni utili
         self.notify("Search completed")
         #self.ui.tableTimereg.resizeRowsToContents()

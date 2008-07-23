@@ -329,11 +329,12 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         if self._mode == "weekly":
             table = self.ui.tableWeekTimereg
             days = getweek(qdate)
+            table.clearSpans()
             table.clearContents()
             table.setRowCount(0)
             for c, day in enumerate(getweek(qdate)):
-                table.horizontalHeaderItem(c).setText(QDate.longDayName(
-                        day.dayOfWeek())[:3] + " " + day.toString("dd-MM-yyyy"))
+                table.horizontalHeaderItem(c).setText(QDate.longDayName(day.dayOfWeek())[:3]
+                                                      + " " + day.toString("dd-MM-yyyy"))
         #pulisce la tabella con la vista giornaliera colamente nel caso si sia in modalità 'daily'
         else:
             table = self.ui.tableTimereg
@@ -388,35 +389,37 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         le ore registrate nell'arco di una data giornata.
         """
         table = self.ui.tableWeekTimereg
-        for project in eprojects:
-            if table.rowCount() < len(project):
-                table.setRowCount(len(project))
-            for r, p in enumerate(project):
-                p = AchievoProject(p)
+        #TODO: Trovare un modo migliore per cercare il massimo dei progetti per giorno.
+        lenlist = [len(prj) for prj in eprojects]
+        lenlist.sort()
+        table.setRowCount(lenlist.pop() + 2)
+        for c, day in enumerate(eprojects):
+            total_time = 0
+            for r, project in enumerate(day):
+                p = AchievoProject(project)
+                total_time += int(p.get("time"))
                 hmtime = min2hmtime(int(p.get("time")))
                 p.set("hmtime", hmtime)
                 item = QTableWidgetItem("\n".join([p.get("prj"), p.get("pha") + " / " + p.get("act"), hmtime]))
-                c = QDate.fromString(p.get("activitydate").replace("-", ""), "yyyyMMdd").dayOfWeek() - 1
                 self.projects[c][r] = p
                 table.setItem(r, c, item)
                 table.item(r, c).setTextAlignment(Qt.AlignHCenter)
                 table.resizeRowToContents(r)
                 table.verticalHeader().setVisible(False)
-        table.insertRow(table.rowCount())
-        for day in self.projects.iterkeys():
-            hours = 0
-            for prj in self.projects[day].iterkeys():
-                hours += hmtime2min(self.projects[day][prj].get("hmtime"))
-            hours = min2hmtime(hours)
-            item = QTableWidgetItem("Total: %s" % hours)
-            table.setItem(table.rowCount() - 1,
-                          day, item)
-            table.item(table.rowCount() - 1,
-                       day).setTextAlignment(Qt.AlignHCenter)
-            table.item(table.rowCount() - 1,
-                       day).setFont(QFont(QFont().defaultFamily(),
-                                    15, QFont.Bold))
-            table.resizeRowToContents(table.rowCount() - 1)
+            if total_time > 0:
+                item = QTableWidgetItem("Total: " + min2hmtime(total_time))
+                table.setItem(table.rowCount() - 1, c, item)
+                table.item(table.rowCount() - 1,
+                          c).setTextAlignment(Qt.AlignHCenter)
+                table.item(table.rowCount() - 1,
+                           c).setFont(QFont(QFont().defaultFamily(),
+                                              15, QFont.Bold))
+                table.resizeRowToContents(table.rowCount() - 1)
+            #if len(day) == 0:
+            #    table.setSpan(0, c, table.rowCount(), 1)
+            #else:
+            #    table.setSpan(len(day), c, table.rowCount() - 1, 1)
+            #    print table.item(table.rowCount() - 1, c)
         if QDate.currentDate() in getweek(self._working_date):
             column = QDate.currentDate().dayOfWeek() -1
             for row in range(table.rowCount()):

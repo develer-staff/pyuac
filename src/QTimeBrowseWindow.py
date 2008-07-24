@@ -361,6 +361,11 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             days = getweek(qdate)
             if QT_VERSION >= 263168:
                 table.clearSpans()
+            #else:
+            #    print table.rowCount(), table.columnCount()
+            #    for row in range(table.rowCount()):
+            #        for column in range(table.columnCount()):
+            #            table.setSpan(row, column, 1, 1)
             table.clearContents()
             table.setRowCount(0)
             self.ui.yearLabel.setText([day for day in getweek(qdate)][0].toString("yyyy"))

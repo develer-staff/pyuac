@@ -393,10 +393,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         le ore registrate nell'arco di una data giornata.
         """
         table = self.ui.tableWeekTimereg
-        #TODO: Trovare un modo migliore per cercare il massimo dei progetti per giorno.
-        lenlist = [len(prj) for prj in eprojects]
-        lenlist.sort()
-        table.setRowCount(lenlist.pop() + 2)
+        table.setRowCount(max([len(prj) for prj in eprojects]) + 2)
         for c, day in enumerate(eprojects):
             total_time = 0
             for r, project in enumerate(day):

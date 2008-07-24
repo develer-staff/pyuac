@@ -359,7 +359,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         if self._mode == "weekly":
             table = self.ui.tableWeekTimereg
             days = getweek(qdate)
-            table.clearSpans()
+            if QT_VERSION >= 263168:
+                table.clearSpans()
             table.clearContents()
             table.setRowCount(0)
             self.ui.yearLabel.setText([day for day in getweek(qdate)][0].toString("yyyy"))
@@ -423,7 +424,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         """
         #variabile di appoggio contenente la tabella settimanale
         table = self.ui.tableWeekTimereg
-        table.setRowCount(max([len(prj) for prj in eprojects]) + 2)
+        table.setRowCount(max(len(prj) for prj in eprojects) + 2)
         for c, day in enumerate(eprojects):
             total_time = 0
             for r, project in enumerate(day):
@@ -451,13 +452,14 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                                               15, QFont.Bold))
                 table.resizeRowToContents(table.rowCount() - 1)
             #viene settato lo span delle righe vuote.
-            if len(day) == 0:
-                table.setSpan(0, c, table.rowCount(), 1)
-            else:
-                table.setSpan(len(day), c, table.rowCount() - len(day) - 1, 1)
-            #la riga spannata viene espansa fino a coprire tutto lo spazio.
-            table.verticalHeader().setResizeMode(table.rowCount() - 2,
-                                                 QHeaderView.Stretch)
+            if QT_VERSION >= 263168:
+                if len(day) == 0:
+                    table.setSpan(0, c, table.rowCount(), 1)
+                else:
+                    table.setSpan(len(day), c, table.rowCount() - len(day) - 1, 1)
+                #la riga spannata viene espansa fino a coprire tutto lo spazio.
+                table.verticalHeader().setResizeMode(table.rowCount() - 2,
+                                                     QHeaderView.Stretch)
         #Si colora il giorno corrente, se visibile
         if QDate.currentDate() in getweek(self._working_date):
             column = QDate.currentDate().dayOfWeek() -1

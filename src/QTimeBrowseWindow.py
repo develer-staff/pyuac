@@ -185,9 +185,10 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self._changeDate(QDate.currentDate())
         self._menu = TimeregMenu(self)
         self.ui.tlbTimereg.setMenu(self._menu)
-        if str(self.settings.value("mode", QVariant("weekly")).toString()) == "daily":
+        mode = str(self.settings.value("mode", QVariant("weekly")).toString())
+        if mode == "daily":
             self._slotChangeToDaily()
-        elif str(self.settings.value("mode", QVariant("weekly")).toString()) == "weekly":
+        else:
             self._slotChangeToWeekly()
 
     def _slotChangeToWeekly(self):

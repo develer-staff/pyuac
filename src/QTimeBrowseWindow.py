@@ -456,7 +456,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                            c).setFont(QFont(QFont().defaultFamily(),
                                               15, QFont.Bold))
                 table.resizeRowToContents(table.rowCount() - 1)
-            #viene settato lo span delle righe vuote.
+            #viene settato lo span delle righe vuote solo nel caso la macchina
+            #ospitante possieda una versione di qt uguale o superiore alla 4.4.0
             if QT_VERSION >= 263168:
                 if len(day) == 0:
                     table.setSpan(0, c, table.rowCount(), 1)

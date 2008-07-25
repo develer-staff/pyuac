@@ -40,6 +40,7 @@ class LoginDialog(QDialog, QAchievoWindow):
         self.connect(self.ui, SIGNAL("accepted()"), self.login)
         self.connect(self.ui, SIGNAL("rejected()"), self.cancel)
         self.ui.editPassword.setFocus()
+        self.setModal(True)
         self.ui.show()
 
     def login(self):
@@ -73,30 +74,42 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
     def __init__(self, parent, auth=None, config=None):
         QMainWindow.__init__(self, parent)
         self.projects = None
+        self.remote = None
         self.calculator = None
+        self.login = None
         self._working_date = None
-        if config != None:
-            self.login = LoginDialog(self, config)
-            self.connect(self.login, SIGNAL("login"), self.__auth__)
-            self.connect(self.login, SIGNAL("cancel"), self._slotClose)
-        elif auth != None:
-            self.__auth__(auth)
-        else:
-            raise TypeError, "Provide auth or config"
-
-    def __auth__(self, auth):
-        """
-        Inizializza le componenti grafiche e imposta le variabili di istanza.
-        :param auth: lista contenente in ordine achievouri,  username e password.
-        """
         self.__setup__(auth, 'pyuac_browse.ui')
         self._mode = ""
         self._setupGui()
-        self._connectSlots()
         #dimensioni e posizione della finestra sono memorizzate
         self.ui.resize(self.settings.value("size",QVariant(self.ui.sizeHint())).toSize())
         self.move(self.settings.value("pos", QVariant(QPoint(200, 200))).toPoint());
         self.ui.show()
+        self._login(config)
+
+    def _login(self, config):
+        """
+        Istanzia la finestra di login e la mostra.
+        """
+        if config != None:
+            self.login = LoginDialog(self, config)
+            self.connect(self.login, SIGNAL("login"), self.__auth__)
+            self.connect(self.login, SIGNAL("cancel"), self._slotClose)
+
+    def __auth__(self, auth):
+        """
+        Imposta le credenzali di autenticazione e connette gli slots
+        :param auth: lista contenente in ordine achievouri,  username e password.
+        """
+        self.remote = QRemoteTimereg(self, auth)
+        self._connectSlots()
+        #l'ultima vista usata viene memorizzata e riproposta al successivo avvio
+        mode = str(self.settings.value("mode", QVariant("weekly")).toString())
+        if mode == "daily":
+            self._slotChangeToDaily()
+        else:
+            self._slotChangeToWeekly()
+        
 
     def _connectSlots(self):
         """
@@ -191,11 +204,11 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self._menu = TimeregMenu(self)
         self.ui.tlbTimereg.setMenu(self._menu)
         #l'ultima vista usata viene memorizzata e riproposta al successivo avvio
-        mode = str(self.settings.value("mode", QVariant("weekly")).toString())
-        if mode == "daily":
-            self._slotChangeToDaily()
-        else:
-            self._slotChangeToWeekly()
+        #mode = str(self.settings.value("mode", QVariant("weekly")).toString())
+        #if mode == "daily":
+        #    self._slotChangeToDaily()
+        #else:
+        #    self._slotChangeToWeekly()
 
     def _slotChangeToWeekly(self):
         """
@@ -472,7 +485,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             for row in range(table.rowCount()):
                 if not table.item(row, column):
                     table.setItem(row, column, QTableWidgetItem(""))
-                table.item(row, column).setBackground(QBrush(QColor(255, 255, 0)))
+                table.item(row, column).setBackground(QBrush(QColor(0xe7, 0xec, 0xf6)))
         table.scrollToItem(table.item(len(self.projects[self._working_date.dayOfWeek() - 1]),
                                       self._working_date.dayOfWeek() - 1))
         table.selectColumn(self._working_date.dayOfWeek() - 1)

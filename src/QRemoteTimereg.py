@@ -81,7 +81,7 @@ class QAchievoWindow:
 
     def _slotClose(self):
         #print "Closing..."
-        if "remote" in dir(self):
+        if "remote" in dir(self) and self.remote:
             self.remote.close()
         self.close()
 

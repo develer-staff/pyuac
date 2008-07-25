@@ -434,7 +434,15 @@
     </property>
     <addaction name="actionTimeCalculator" />
    </widget>
+   <widget class="QMenu" name="menuLogin" >
+    <property name="title" >
+     <string>Login</string>
+    </property>
+    <addaction name="actionLogin" />
+    <addaction name="actionDisconnect" />
+   </widget>
    <addaction name="menuTimeRegistration" />
+   <addaction name="menuLogin" />
    <addaction name="menuTools" />
   </widget>
   <action name="actionTimeCalculator" >
@@ -460,6 +468,16 @@
   <action name="actionQuit" >
    <property name="text" >
     <string>Quit</string>
+   </property>
+  </action>
+  <action name="actionLogin" >
+   <property name="text" >
+    <string>Login</string>
+   </property>
+  </action>
+  <action name="actionDisconnect" >
+   <property name="text" >
+    <string>Disconnect</string>
    </property>
   </action>
  </widget>

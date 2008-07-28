@@ -164,12 +164,22 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                      self._slotTimereportStarted)
         self.connect(self.remote, SIGNAL("timereportOK"),
                      self._slotUpdateTimereport)
-        self.connect(self.remote, SIGNAL("loginStarted"),
-                     self._slotLoginStarted)
         self.connect(self.remote, SIGNAL("loginOK"),
                      self._slotLoggedIn)
-        
+        #FIXME: utilizzare se possibile la connect della classe base per non
+        #generare due connessioni
+        self.connect(self.remote, SIGNAL("processError"),
+                     self._slotProcessError)
+    
+    def _slotProcessError(self, process_error, exitcode, errstr):
+        if exitcode == "CONNECTION_ERROR" and errstr.find("Authorization Required") != -1:
+            self._login()
+        else:
+            QAchievoWindow._slotProcessError(self, process_error, exitcode, errstr)
 
+    def _slotLoggedIn(self):
+        self.ui.setWindowTitle("%s - %s" % ("Achievo Time Browser", self.remote.auth[1]))
+    
     def _changeDate(self, date):
         """
         Modifica la data della vista corrente a partire da una nuova QDate.
@@ -216,7 +226,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self._changeDate(QDate.currentDate())
         self._menu = TimeregMenu(self)
         self.ui.tlbTimereg.setMenu(self._menu)
-        #l'ultima vista usata viene memorizzata e riproposta al successivo avvio
+        # l'ultima vista usata viene memorizzata e riproposta al successivo avvio
         #mode = str(self.settings.value("mode", QVariant("weekly")).toString())
         #if mode == "daily":
         #    self._slotChangeToDaily()
@@ -523,12 +533,6 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self._updateWeeklyTimereport(eprojects)
         else:
             assert False, "modo non gestito: %s" % self._mode
-    
-    def _slotLoginStarted(self):
-        print "login started"
-    
-    def _slotLoggedIn(self):
-        print "logged in as %s" % self.remote.auth[1]
     
     def close(self):
         """

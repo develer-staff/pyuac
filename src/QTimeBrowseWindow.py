@@ -15,6 +15,8 @@ Modulo contenente il codice della MainWindow di pyuac (TimeBrowseWindow), della 
 import os, sys
 import sip
 
+import getpass
+
 from collections import defaultdict
 
 from pyuac_utils import *
@@ -28,13 +30,12 @@ class LoginDialog(QDialog, QAchievoWindow):
     raccogliere le credenziali di accesso ad Achievo.
     """
 
-    def __init__(self, parent, config):
+    def __init__(self, parent):
         QDialog.__init__(self, parent)
         self.__setup__(_path='pyuac_auth.ui')
-        _achievouri = self.settings.value("achievouri",
-                                          QVariant(config["achievouri"])).toString()
+        _achievouri = self.settings.value("achievouri", QVariant("")).toString()
         _username = self.settings.value("username",
-                                        QVariant(config["username"])).toString()
+                                        QVariant(getpass.getuser())).toString()
         self.ui.editAchievoUri.setText(_achievouri)
         self.ui.editUsername.setText(_username)
         self.connect(self.ui, SIGNAL("accepted()"), self.login)
@@ -71,7 +72,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
     MainWindow di pyuac, contiene le tabelle con gli orari registrati.
     """
     
-    def __init__(self, parent, auth=None, config=None):
+    def __init__(self, parent, auth=None):
         QMainWindow.__init__(self, parent)
         self.projects = None
         self.remote = None
@@ -85,16 +86,15 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.ui.resize(self.settings.value("size",QVariant(self.ui.sizeHint())).toSize())
         self.move(self.settings.value("pos", QVariant(QPoint(200, 200))).toPoint());
         self.ui.show()
-        self._login(config)
+        self._login()
 
-    def _login(self, config):
+    def _login(self):
         """
         Istanzia la finestra di login e la mostra.
         """
-        if config != None:
-            self.login = LoginDialog(self, config)
-            self.connect(self.login, SIGNAL("login"), self.__auth__)
-            self.connect(self.login, SIGNAL("cancel"), self._slotClose)
+        self.login = LoginDialog(self)
+        self.connect(self.login, SIGNAL("login"), self.__auth__)
+        self.connect(self.login, SIGNAL("cancel"), self._slotClose)
 
     def __auth__(self, auth):
         """
@@ -456,8 +456,6 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                 table.setItem(r, c, item)
                 table.item(r, c).setTextAlignment(Qt.AlignHCenter)
                 table.resizeRowToContents(r)
-                #nasconde l'header verticale
-                table.verticalHeader().setVisible(False)
             #nel caso ci siano ore registrate nella giornata, in fondo alla tabella
             #viene inserito il campo con il totale di ore giornaliere.
             if total_time > 0:
@@ -488,6 +486,9 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                 table.item(row, column).setBackground(QBrush(QColor(0xe7, 0xec, 0xf6)))
         table.scrollToItem(table.item(len(self.projects[self._working_date.dayOfWeek() - 1]),
                                       self._working_date.dayOfWeek() - 1))
+        #nasconde l'header verticale
+        table.verticalHeader().setVisible(False)
+        #Seleziona la colonna del giorno corrente
         table.selectColumn(self._working_date.dayOfWeek() - 1)
         #TODO: sistemare la notify in modo che dia informazioni utili
         self.notify("Search completed")

@@ -8,14 +8,14 @@
 #
 # Author: Matteo Bertini <naufraghi@develer.com>
 
-import sys, getpass
+import sys
 
 ########################## Configuration ###############################
 
-config = {
-          "achievouri": "https://www.develer.com/groupware/",
-          "username": getpass.getuser(),
-          }
+#config = {
+#          "achievouri": "https://www.develer.com/groupware/",
+#          "username": getpass.getuser(),
+#          }
 
 #config = {"achievouri": "http://www.develer.com/~naufraghi/achievo/",
 #          "username": "matteo"}
@@ -28,7 +28,7 @@ class TimeregApplication(QApplication):
     def __init__(self, args):
         #print "TimeregApplication(QApplication).__init__"
         QApplication.__init__(self, args)
-        win = TimeBrowseWindow(None, config=config)
+        win = TimeBrowseWindow(None)
         sys.exit(self.exec_())
 
 if __name__ == "__main__":

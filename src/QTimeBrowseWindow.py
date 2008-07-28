@@ -89,7 +89,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.ui.show()
         self._login()
 
-    def _login(self, message):
+    def _login(self, message=None):
         """
         Istanzia la finestra di login e la mostra.
         """
@@ -107,7 +107,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         """
         if "remote" in dir(self):
             del self.remote
-        self.remote = QRemoteTimereg(self, auth)
+        self._setupAuth(auth)
         self._connectRemoteSlots()
         #l'ultima vista usata viene memorizzata e riproposta al successivo avvio
         mode = str(self.settings.value("mode", QVariant("weekly")).toString())
@@ -168,10 +168,6 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                      self._slotUpdateTimereport)
         self.connect(self.remote, SIGNAL("loginOK"),
                      self._slotLoggedIn)
-        #FIXME: utilizzare se possibile la connect della classe base per non
-        #generare due connessioni
-        self.connect(self.remote, SIGNAL("processError"),
-                     self._slotProcessError)
     
     def _slotProcessError(self, process_error, exitcode, errstr):
         if exitcode == "CONNECTION_ERROR" and errstr.find("Authorization Required") != -1:

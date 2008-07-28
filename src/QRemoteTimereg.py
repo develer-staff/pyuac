@@ -64,12 +64,14 @@ class QAchievoWindow:
         if _path != None:
             self.ui = QAchievoWindow.loadUi(_path, self)
         if auth != None:
-            self.remote = QRemoteTimereg(self, auth)
-            print self._slotProcessError
-            self.connect(self.remote, SIGNAL("processError"),
-                         self._slotProcessError)
+            self._setupAuth(auth)
         self.err = QErrorMessage(self)
         self.settings = ASettings("Develer", "PyUAC")
+
+    def _setupAuth(self, auth):
+        self.remote = QRemoteTimereg(self, auth)
+        self.connect(self.remote, SIGNAL("processError"),
+                     self._slotProcessError)
 
     def notify(self, msg, timeout=0):
         """

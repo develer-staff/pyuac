@@ -75,9 +75,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
     def __init__(self, parent, auth=None):
         QMainWindow.__init__(self, parent)
         self.projects = None
-        self.remote = None
         self.calculator = None
-        self.login = None
         self._working_date = None
         self.__setup__(auth, 'pyuac_browse.ui')
         self._mode = ""
@@ -85,6 +83,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         #dimensioni e posizione della finestra sono memorizzate
         self.ui.resize(self.settings.value("size",QVariant(self.ui.sizeHint())).toSize())
         self.move(self.settings.value("pos", QVariant(QPoint(200, 200))).toPoint());
+        self._connectSlots()
         self.ui.show()
         self._login()
 
@@ -92,17 +91,22 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         """
         Istanzia la finestra di login e la mostra.
         """
-        self.login = LoginDialog(self)
-        self.connect(self.login, SIGNAL("login"), self.__auth__)
-        self.connect(self.login, SIGNAL("cancel"), self._slotClose)
+        if "login" not in dir(self):
+            self.login = LoginDialog(self)
+            self.connect(self.login, SIGNAL("login"), self.__auth__)
+            self.connect(self.login, SIGNAL("cancel"), self._slotClose)
+        else:
+            self.login.show()
 
     def __auth__(self, auth):
         """
         Imposta le credenzali di autenticazione e connette gli slots
         :param auth: lista contenente in ordine achievouri,  username e password.
         """
+        if "remote" in dir(self):
+            del self.remote
         self.remote = QRemoteTimereg(self, auth)
-        self._connectSlots()
+        self._connectRemoteSlots()
         #l'ultima vista usata viene memorizzata e riproposta al successivo avvio
         mode = str(self.settings.value("mode", QVariant("weekly")).toString())
         if mode == "daily":
@@ -115,10 +119,6 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         """
         Connette i signal agli slot necessari.
         """
-        self.connect(self.remote, SIGNAL("timereportStarted"),
-                     self._slotTimereportStarted)
-        self.connect(self.remote, SIGNAL("timereportOK"),
-                     self._slotUpdateTimereport)
         self.connect(self._menu,  SIGNAL("selected"),
                         self._slotNewTimereg)
         self.connect(self.ui.tlbTimereg,  SIGNAL("clicked()"), 
@@ -153,9 +153,22 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                      self.ui.close)
         self.connect(self.ui.actionTimeCalculator, SIGNAL("triggered(bool)"),
                      self._slotNewTimeCalculator)
+        self.connect(self.ui.actionLogin, SIGNAL("triggered(bool)"),
+                     self._login)
         #segnale emesso quando la data di lavoro viene modificata.
         self.connect(self, SIGNAL("workingDateChanged"),
                      self._slotWorkingDateChanged)
+    
+    def _connectRemoteSlots(self):
+        self.connect(self.remote, SIGNAL("timereportStarted"),
+                     self._slotTimereportStarted)
+        self.connect(self.remote, SIGNAL("timereportOK"),
+                     self._slotUpdateTimereport)
+        self.connect(self.remote, SIGNAL("loginStarted"),
+                     self._slotLoginStarted)
+        self.connect(self.remote, SIGNAL("loginOK"),
+                     self._slotLoggedIn)
+        
 
     def _changeDate(self, date):
         """
@@ -510,6 +523,12 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self._updateWeeklyTimereport(eprojects)
         else:
             assert False, "modo non gestito: %s" % self._mode
+    
+    def _slotLoginStarted(self):
+        print "login started"
+    
+    def _slotLoggedIn(self):
+        print "logged in as %s" % self.remote.auth[1]
     
     def close(self):
         """

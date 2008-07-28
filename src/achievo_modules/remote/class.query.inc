@@ -38,7 +38,10 @@ function smartLike($field, $s)
     $s = strtolower($s);
 
     //fixme: this array is not exhaustive
-    $separators = array('', '%\_', '% ');
+    //fixme: it would be interesting to have also '% ' in this list but this would
+    //       generate ambiguous response to the client. See bug for "billable" and
+    //       "not billable" phases.
+    $separators = array('', '%\_');
     foreach ($separators as $sep)
     {
         $like .= "$field LIKE '$sep$s%'";

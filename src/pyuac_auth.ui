@@ -6,7 +6,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>191</height>
+    <height>198</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -19,12 +19,46 @@
    <property name="spacing" >
     <number>9</number>
    </property>
+   <item row="1" column="0" >
+    <widget class="QLabel" name="labelAchievoUri" >
+     <property name="text" >
+      <string>Achievo Uri:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="2" >
+    <widget class="QLineEdit" name="editAchievoUri" />
+   </item>
+   <item row="3" column="0" >
+    <widget class="QLabel" name="labelUsername" >
+     <property name="text" >
+      <string>Username:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1" >
+    <widget class="QLabel" name="labelPassowrd" >
+     <property name="text" >
+      <string>Password:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0" >
+    <widget class="QLineEdit" name="editUsername" />
+   </item>
    <item row="4" column="1" >
+    <widget class="QLineEdit" name="editPassword" >
+     <property name="echoMode" >
+      <enum>QLineEdit::Password</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1" >
     <spacer>
      <property name="orientation" >
       <enum>Qt::Vertical</enum>
      </property>
-     <property name="sizeHint" >
+     <property name="sizeHint" stdset="0" >
       <size>
        <width>20</width>
        <height>21</height>
@@ -32,44 +66,20 @@
      </property>
     </spacer>
    </item>
-   <item row="5" column="0" colspan="2" >
+   <item row="6" column="0" colspan="2" >
     <widget class="QDialogButtonBox" name="buttonBox" >
      <property name="standardButtons" >
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::NoButton|QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
     </widget>
-   </item>
-   <item row="1" column="0" colspan="2" >
-    <widget class="QLineEdit" name="editAchievoUri" />
-   </item>
-   <item row="3" column="1" >
-    <widget class="QLineEdit" name="editPassword" >
-     <property name="echoMode" >
-      <enum>QLineEdit::Password</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0" >
-    <widget class="QLineEdit" name="editUsername" />
    </item>
    <item row="0" column="0" >
-    <widget class="QLabel" name="labelAchievoUri" >
+    <widget class="QLabel" name="messageLabel" >
      <property name="text" >
-      <string>Achievo Uri:</string>
+      <string/>
      </property>
-    </widget>
-   </item>
-   <item row="2" column="0" >
-    <widget class="QLabel" name="labelUsername" >
-     <property name="text" >
-      <string>Username:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1" >
-    <widget class="QLabel" name="labelPassowrd" >
-     <property name="text" >
-      <string>Password:</string>
+     <property name="textFormat" >
+      <enum>Qt::RichText</enum>
      </property>
     </widget>
    </item>

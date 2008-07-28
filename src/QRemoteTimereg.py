@@ -65,6 +65,7 @@ class QAchievoWindow:
             self.ui = QAchievoWindow.loadUi(_path, self)
         if auth != None:
             self.remote = QRemoteTimereg(self, auth)
+            print self._slotProcessError
             self.connect(self.remote, SIGNAL("processError"),
                          self._slotProcessError)
         self.err = QErrorMessage(self)

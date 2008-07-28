@@ -30,7 +30,7 @@ class LoginDialog(QDialog, QAchievoWindow):
     raccogliere le credenziali di accesso ad Achievo.
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, message=None):
         QDialog.__init__(self, parent)
         self.__setup__(_path='pyuac_auth.ui')
         _achievouri = self.settings.value("achievouri", QVariant("")).toString()
@@ -38,6 +38,8 @@ class LoginDialog(QDialog, QAchievoWindow):
                                         QVariant(getpass.getuser())).toString()
         self.ui.editAchievoUri.setText(_achievouri)
         self.ui.editUsername.setText(_username)
+        if message:
+            self.messageLabel.setText(message)
         self.connect(self.ui, SIGNAL("accepted()"), self.login)
         self.connect(self.ui, SIGNAL("rejected()"), self.cancel)
         self.ui.editPassword.setFocus()
@@ -87,12 +89,12 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.ui.show()
         self._login()
 
-    def _login(self):
+    def _login(self, message):
         """
         Istanzia la finestra di login e la mostra.
         """
         if "login" not in dir(self):
-            self.login = LoginDialog(self)
+            self.login = LoginDialog(self, message)
             self.connect(self.login, SIGNAL("login"), self.__auth__)
             self.connect(self.login, SIGNAL("cancel"), self._slotClose)
         else:

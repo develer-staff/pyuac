@@ -38,13 +38,20 @@ class LoginDialog(QDialog, QAchievoWindow):
                                         QVariant(getpass.getuser())).toString()
         self.ui.editAchievoUri.setText(_achievouri)
         self.ui.editUsername.setText(_username)
-        if message:
-            self.messageLabel.setText('<font color="#FF0000">%s</font>' % message)
+        self.setMessage(message)
         self.connect(self.ui, SIGNAL("accepted()"), self.login)
         self.connect(self.ui, SIGNAL("rejected()"), self.cancel)
         self.ui.editPassword.setFocus()
         self.setModal(True)
         self.ui.show()
+
+    def setMessage(self, message):
+        if message:
+            self.messageLabel.setText('<font color="#FF0000">%s</font>' % message)
+            self.messageLabel.setVisible(True)
+        else:
+            self.messageLabel.setVisible(False)
+        
 
     def login(self):
         """
@@ -98,6 +105,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self.connect(self.login, SIGNAL("login"), self.__auth__)
             self.connect(self.login, SIGNAL("cancel"), self._slotClose)
         else:
+            self.login.setMessage(message)
             self.login.show()
 
     def __auth__(self, auth):
@@ -171,7 +179,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
     
     def _slotProcessError(self, process_error, exitcode, errstr):
         if exitcode == "CONNECTION_ERROR" and errstr.find("Authorization Required") != -1:
-            self._login("Provided auth invalid!")
+            self._login("Provided auth is invalid!")
         else:
             QAchievoWindow._slotProcessError(self, process_error, exitcode, errstr)
 

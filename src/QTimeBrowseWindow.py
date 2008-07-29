@@ -185,6 +185,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
 
     def _slotLoggedIn(self):
         self.ui.setWindowTitle("%s - %s" % ("Achievo Time Browser", self.remote.auth[1]))
+        self._slotTimereport(self._working_date)
     
     def _changeDate(self, date):
         """

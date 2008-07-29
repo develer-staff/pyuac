@@ -69,6 +69,8 @@ def timeRound(in_time, step_time=15):
     '02:45'
     >>> timeRound("13:10", 20)
     '13:20'
+    >>> timeRound("0:15")
+    '00:15'
     """
     in_time_tuple = time.strptime(in_time, "%H:%M")
     step = datetime.timedelta(minutes=step_time)
@@ -98,7 +100,7 @@ def parseSmartQuery(smartquery):
     >>> parseSmartQuery("")
     {'in_prj': '', 'in_hmtime': '', 'in_remark': '', 'in_act': '', 'in_pha': ''}
     >>> parseSmartQuery("pro pha act 120 commento")
-    {'in_prj': 'pro', 'in_hmtime': '120:00', 'in_remark': 'commento', 'in_act': 'act', 'in_pha': 'pha'}    
+    {'in_prj': 'pro', 'in_hmtime': '120:00', 'in_remark': 'commento', 'in_act': 'act', 'in_pha': 'pha'}
     """
     res = {}
     gethmtime = re.compile("\s\d+:?\d*")

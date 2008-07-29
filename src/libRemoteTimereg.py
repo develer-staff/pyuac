@@ -119,20 +119,18 @@ class RemoteTimereg:
 
         for p in self._projects[:1]:
             #TODO: move serverside using Achievo funcs
-            try:
-                p.set("hmtime", timeRound(p.get("in_hmtime")))
-            except ValueError:
-                hmtime = p.get("in_hmtime")
-                if len(hmtime) == 0:
-                    hmtime = ""
-                else:
-                    if not ":" in p.get("in_hmtime"):
-                        hmtime += ":00"
-                    if len(hmtime.split(":")) < 2:
-                        hmtime += "00"
-                    if len(hmtime.split(":")[0]) < 2:
-                        hmtime = "0" + hmtime
-                p.set("hmtime", hmtime)
+            hmtime = p.get("in_hmtime")
+            if hmtime:
+                if ":" not in hmtime:
+                    hmtime = "%s:00" % hmtime
+                if len(hmtime.split(":")[0]) < 2:
+                    hmtime = "0%s" % hmtime
+                if len(hmtime.split(":")[1]) < 2:
+                    hmtime = "%s:%02d" % (hmtime.split(":")[0], int(hmtime.split(":")[1] or "0"))
+                hmtime = timeRound(hmtime)
+            else:
+                hmtime = ""
+            p.set("hmtime", hmtime)
         return self._projects
 
     def timereport(self, date):

@@ -439,7 +439,6 @@
      <string>Login</string>
     </property>
     <addaction name="actionLogin" />
-    <addaction name="actionDisconnect" />
    </widget>
    <addaction name="menuTimeRegistration" />
    <addaction name="menuLogin" />

@@ -242,7 +242,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self.ui.labelActivity.setEnabled(p.get("pha") != None)
         
         if self._mode == "hours":
-            p.set("hmtime", p.get("in_hmtime"))
+            #p.set("hmtime", p.get("in_hmtime"))
             self.ui.hoursSpinBox.setValue(int(p.get("in_hmtime").split(":")[0] or 0))
             self.ui.hoursSpinBox.blockSignals(False)
         else:
@@ -377,7 +377,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                         _base = project+" "+phase+" "
                         _completer = [_base + act for act in _ppa[project][phase].keys()]
                     else:
-                        if  self._mode != "hours" and hmtime not in timerange(24, 15, 1):
+                        if  self._mode != "hours" and hmtime not in timerange(24, 15, 0):
                             _base = project+" "+phase+" "+activity+" "
                             _completer = [_base + hmtime for hmtime in timerange(8, 15, 1)]
                         else:
@@ -387,9 +387,6 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             if self._mode == "hours":
                 for c, v in enumerate(_completer):
                     _completer[c] = " ".join([_completer[c], str(self.ui.hoursSpinBox.value() or "")]).strip()
-            else:
-                for c, v in enumerate(_completer):
-                    _completer[c] = " ".join([_completer[c], _bp.get("hmtime") or ""]).strip()
             for c, v in enumerate(_completer):
                 _completer[c] = " ".join([_completer[c], _bp.get("remark") or ""]).strip()
 

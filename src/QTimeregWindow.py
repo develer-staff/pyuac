@@ -242,7 +242,6 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self.ui.labelActivity.setEnabled(p.get("pha") != None)
         
         if self._mode == "hours":
-            #p.set("hmtime", p.get("in_hmtime"))
             self.ui.hoursSpinBox.setValue(int(p.get("in_hmtime").split(":")[0] or 0))
             self.ui.hoursSpinBox.blockSignals(False)
         else:

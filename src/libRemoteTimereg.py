@@ -127,7 +127,8 @@ class RemoteTimereg:
                     hmtime = "0%s" % hmtime
                 if len(hmtime.split(":")[1]) < 2:
                     hmtime = "%s:%02d" % (hmtime.split(":")[0], int(hmtime.split(":")[1] or "0"))
-                hmtime = timeRound(hmtime)
+                if hmtime2min(hmtime) < hmtime2min("24:00"):
+                    hmtime = timeRound(hmtime)
             else:
                 hmtime = ""
             p.set("hmtime", hmtime)

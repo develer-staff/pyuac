@@ -348,10 +348,12 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             project = self.projects[column][row]
         #se si è in modalità 'weekly' e si doppioclicka su una cella vuota il programma
         #avvia la registrazione nella data corrente.
-        else:
+        elif self._working_date <= QDate.currentDate():
             self._slotWeeklyDateChanged(row, column)
             project = AchievoProject()
             project.set("activitydate", self._working_date.toString("yyyy-MM-dd"))
+        else:
+            return
         #viene creata la TimeregWindow in modalità 'single'
         editwin = self._createTimeregWindow("single")
         #vengono impostati tutti i campi della TimeregWindow con i valori della
@@ -507,7 +509,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                 #la riga spannata viene espansa fino a coprire tutto lo spazio.
                 table.verticalHeader().setResizeMode(table.rowCount() - 2,
                                                      QHeaderView.Stretch)
-        #Si colora il giorno corrente, se visibile
+        #Si colora il giorno corrente, se visibile e disabilita i giorni futuri
         if QDate.currentDate() in getweek(self._working_date):
             column = QDate.currentDate().dayOfWeek() -1
             #algoritmo che calcola il colore a partire dai colori della palette
@@ -522,12 +524,26 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                 if not table.item(row, column):
                     table.setItem(row, column, QTableWidgetItem(""))
                 table.item(row, column).setBackground(current_color)
+            for column in range(column + 1, table.columnCount()):
+                table.horizontalHeaderItem(column).setFlags(Qt.NoItemFlags)
+                for row in range(table.rowCount()):
+                    if not table.item(row, column):
+                        table.setItem(row, column, QTableWidgetItem(""))
+                    table.item(row, column).setFlags(Qt.NoItemFlags)
+        else:
+            if QDate.currentDate() < self._working_date:
+                for column in range(table.columnCount()):
+                    for row in range(table.rowCount()):
+                        if not table.item(row, column):
+                            table.setItem(row, column, QTableWidgetItem(""))
+                        table.item(row, column).setFlags(Qt.NoItemFlags)
         table.scrollToItem(table.item(len(self.projects[self._working_date.dayOfWeek() - 1]),
                                       self._working_date.dayOfWeek() - 1))
         #nasconde l'header verticale
         table.verticalHeader().setVisible(False)
         #Seleziona la colonna del giorno corrente
-        table.selectColumn(self._working_date.dayOfWeek() - 1)
+        if self._working_date <= QDate.currentDate():
+            table.selectColumn(self._working_date.dayOfWeek() - 1)
         #TODO: sistemare la notify in modo che dia informazioni utili
         self.notify("Search completed")
         #self.ui.tableTimereg.resizeRowsToContents()

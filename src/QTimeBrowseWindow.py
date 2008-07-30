@@ -176,6 +176,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                      self._slotUpdateTimereport)
         self.connect(self.remote, SIGNAL("loginOK"),
                      self._slotLoggedIn)
+        self.connect(self.remote, SIGNAL("progress"),
+                     self._slotProgress)
     
     def _slotProcessError(self, process_error, exitcode, errstr):
         if exitcode == "CONNECTION_ERROR" and errstr.find("Authorization Required") != -1:
@@ -230,6 +232,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             cellHead = QTableWidgetItem()
             tableWeek.setHorizontalHeaderItem(c, cellHead)
             tableWeek.horizontalHeader().setResizeMode(c, QHeaderView.Stretch)
+        self.ui.progressBar.setVisible(False)
         self._changeDate(QDate.currentDate())
         self._menu = TimeregMenu(self)
         self.ui.tlbTimereg.setMenu(self._menu)
@@ -431,6 +434,9 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         Slot attivato da self.remote, SIGNAL("timereportStarted"). Disabilita il
         pulsante self.ui.tlbTimereg durante l'attesa della risposta dal server.
         """
+        self.ui.progressBar.setValue(0)
+        if not self.ui.progressBar.isVisible():
+            self.ui.progressBar.setVisible(True)
         self.ui.tlbTimereg.setEnabled(False)
 
     def _updateDailyTimereport(self, eprojects):
@@ -562,8 +568,15 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self._updateDailyTimereport(eprojects)
         elif self._mode == "weekly":
             self._updateWeeklyTimereport(eprojects)
+            self.ui.progressBar.setVisible(False)
         else:
             assert False, "modo non gestito: %s" % self._mode
+    
+    def _slotProgress(self, progress):
+        #converte il float che viene passato dal QRemoteTimereg in interi, tenendo
+        #le 3 cifre più significative.
+        progress = int(progress * 100)
+        self.ui.progressBar.setValue(progress)
     
     def close(self):
         """

@@ -312,6 +312,29 @@
               </spacer>
              </item>
              <item>
+              <widget class="QProgressBar" name="progressBar" >
+               <property name="maximum" >
+                <number>100</number>
+               </property>
+               <property name="value" >
+                <number>0</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_6" >
+               <property name="orientation" >
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0" >
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
               <widget class="QLabel" name="yearLabel" >
                <property name="font" >
                 <font>

@@ -471,7 +471,7 @@
   </action>
   <action name="actionLogin" >
    <property name="text" >
-    <string>Login</string>
+    <string>New login...</string>
    </property>
   </action>
   <action name="actionDisconnect" >

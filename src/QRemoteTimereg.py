@@ -257,6 +257,10 @@ class QRemoteTimereg(QObject):
         if self._current_action != None:
             self._response.append(eresp)
             #print "QRemoteTimereg risposta accodata"
+        #emette un segnale indicando lo stato di avanzamento della richiesta.
+        self.emit(SIGNAL("progress"),
+                  float(self._current_action[1]) /
+                  len(self._pending_requests[self._current_action[0]]))
         #cancella la variabile contenente la risposta
         self._resp = ""
         self._execute()

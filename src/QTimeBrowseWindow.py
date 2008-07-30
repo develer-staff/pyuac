@@ -510,10 +510,18 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         #Si colora il giorno corrente, se visibile
         if QDate.currentDate() in getweek(self._working_date):
             column = QDate.currentDate().dayOfWeek() -1
+            #algoritmo che calcola il colore a partire dai colori della palette
+            highlight = QPalette().color(QPalette.Active, QPalette.Highlight)
+            highlight = (highlight.red(), highlight.green(), highlight.blue())
+            base = QPalette().color(QPalette.Active, QPalette.Base)
+            base = (base.red(), base.green(), base.blue())
+            current_color = QColor((highlight[0] + base[0]*2) / 3,
+                                   (highlight[1] + base[1]*2) / 3,
+                                   (highlight[2] + base[2]*2) / 3)
             for row in range(table.rowCount()):
                 if not table.item(row, column):
                     table.setItem(row, column, QTableWidgetItem(""))
-                table.item(row, column).setBackground(QBrush(QColor(0xe7, 0xec, 0xf6)))
+                table.item(row, column).setBackground(current_color)
         table.scrollToItem(table.item(len(self.projects[self._working_date.dayOfWeek() - 1]),
                                       self._working_date.dayOfWeek() - 1))
         #nasconde l'header verticale

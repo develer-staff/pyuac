@@ -526,26 +526,20 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             current_color = QColor((highlight[0] + base[0]*2) / 3,
                                    (highlight[1] + base[1]*2) / 3,
                                    (highlight[2] + base[2]*2) / 3)
+            for row in range(table.rowCount()):
+                if not table.item(row, column):
+                    table.setItem(row, column, QTableWidgetItem(""))
+                table.item(row, column).setBackground(current_color)
             # Aggiunto per retrocompatibilità con le Qt 4.3
             if QT_VERSION >= 0x40400:
-                for row in range(table.rowCount()):
-                    if not table.item(row, column):
-                        table.setItem(row, column, QTableWidgetItem(""))
-                    table.item(row, column).setBackground(current_color)
                 for column in range(column + 1, table.columnCount()):
-                    table.horizontalHeaderItem(column).setFlags(Qt.NoItemFlags)
-                    for row in range(table.rowCount()):
-                        if not table.item(row, column):
-                            table.setItem(row, column, QTableWidgetItem(""))
-                        table.item(row, column).setFlags(Qt.NoItemFlags)
+                    #table.horizontalHeaderItem(column).setFlags(Qt.NoItemFlags)
+                    self._setColumnCellFlags(column, Qt.NoItemFlags)
         # Aggiunto per retrocompatibilità con le Qt 4.3
         elif QT_VERSION >= 0x40400:
             if QDate.currentDate() < self._working_date:
                 for column in range(table.columnCount()):
-                    for row in range(table.rowCount()):
-                        if not table.item(row, column):
-                            table.setItem(row, column, QTableWidgetItem(""))
-                        table.item(row, column).setFlags(Qt.NoItemFlags)
+                    self._setColumnCellFlags(column, Qt.NoItemFlags)
         table.scrollToItem(table.item(len(self.projects[self._working_date.dayOfWeek() - 1]),
                                       self._working_date.dayOfWeek() - 1))
         # Nasconde l'header verticale
@@ -558,6 +552,13 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         #self.ui.tableTimereg.resizeRowsToContents()
         self.ui.btnThisWeek.setEnabled(self._working_date not in getweek(QDate.currentDate()))
         self.ui.tlbTimereg.setEnabled(True)
+
+    def _setColumnCellFlags(self, column, flags):
+        table = self.ui.tableWeekTimereg
+        for row in xrange(table.rowCount()):
+            if not table.item(row, column):
+                table.setItem(row, column, QTableWidgetItem(""))
+            table.item(row, column).setFlags(flags)
 
     def _slotUpdateTimereport(self, eprojects):
         """

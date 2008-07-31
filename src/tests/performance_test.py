@@ -17,45 +17,61 @@ import time
 
 class TestProcessPerformances():
     
-    def __init__(self, auth):
+    def __init__(self, auth, num=50):
         self._auth = auth
+        self._num = num
         self._remote = RemoteTimereg()
     
     def testLogin(self):
         print "Login"
-        initial_time = time.time()
-        self._remote.login(*self._auth)
-        final_time = time.time()
-        print final_time - initial_time
-    
+        timelist = []
+        for i in range(self._num):
+            initial_time = time.time()
+            self._remote.login(*self._auth)
+            final_time = time.time()
+            timelist.append(final_time - initial_time)
+        print sum(timelist)/self._num
+
     def testQuery(self):
         query = ""
         print "Query: %s" % query
-        initial_time = time.time()
-        self._remote.query(query)
-        final_time = time.time()
-        print final_time - initial_time
-    
+        timelist = []
+        for i in range(self._num):
+            initial_time = time.time()
+            self._remote.query(query)
+            final_time = time.time()
+            timelist.append(final_time - initial_time)
+        print sum(timelist)/self._num
+
     def testTimereport(self):
         date = "2008-07-25"
         print "Timereport: %s" % date
-        initial_time = time.time()
-        self._remote.timereport(date)
-        final_time = time.time()
-        print final_time - initial_time
+        timelist = []
+        for i in range(self._num):
+            initial_time = time.time()
+            self._remote.timereport(date)
+            final_time = time.time()
+            timelist.append(final_time - initial_time)
+        print sum(timelist)/self._num
         print "Weekly timereport"
-        initial_time = time.time()
-        for i in range(1, 8):
-            self._remote.timereport("2008-07-2%d" %i)
-        final_time = time.time()
-        print final_time - initial_time
+        timelist = []
+        for i in range(self._num):
+            initial_time = time.time()
+            for i in range(1, 8):
+                self._remote.timereport("2008-07-2%d" %i)
+            final_time = time.time()
+            timelist.append(final_time - initial_time)
+        print sum(timelist)/self._num
 
     def testWhoami(self):
         print "Whoami"
-        initial_time = time.time()
-        self._remote.whoami()
-        final_time = time.time()
-        print final_time - initial_time
+        timelist = []
+        for i in range(self._num):
+            initial_time = time.time()
+            self._remote.whoami()
+            final_time = time.time()
+            timelist.append(final_time - initial_time)
+        print sum(timelist)/self._num
 
 
 if __name__ == "__main__":

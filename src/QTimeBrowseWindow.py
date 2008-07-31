@@ -526,17 +526,20 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             current_color = QColor((highlight[0] + base[0]*2) / 3,
                                    (highlight[1] + base[1]*2) / 3,
                                    (highlight[2] + base[2]*2) / 3)
-            for row in range(table.rowCount()):
-                if not table.item(row, column):
-                    table.setItem(row, column, QTableWidgetItem(""))
-                table.item(row, column).setBackground(current_color)
-            for column in range(column + 1, table.columnCount()):
-                table.horizontalHeaderItem(column).setFlags(Qt.NoItemFlags)
+            # Aggiunto per retrocompatibilità con le Qt 4.3
+            if QT_VERSION >= 263168:
                 for row in range(table.rowCount()):
                     if not table.item(row, column):
                         table.setItem(row, column, QTableWidgetItem(""))
-                    table.item(row, column).setFlags(Qt.NoItemFlags)
-        else:
+                    table.item(row, column).setBackground(current_color)
+                for column in range(column + 1, table.columnCount()):
+                    table.horizontalHeaderItem(column).setFlags(Qt.NoItemFlags)
+                    for row in range(table.rowCount()):
+                        if not table.item(row, column):
+                            table.setItem(row, column, QTableWidgetItem(""))
+                        table.item(row, column).setFlags(Qt.NoItemFlags)
+        # Aggiunto per retrocompatibilità con le Qt 4.3
+        elif QT_VERSION >= 263168:
             if QDate.currentDate() < self._working_date:
                 for column in range(table.columnCount()):
                     for row in range(table.rowCount()):

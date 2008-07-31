@@ -407,7 +407,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         if self._mode == "weekly":
             table = self.ui.tableWeekTimereg
             days = getweek(qdate)
-            if QT_VERSION >= 263168:
+            if QT_VERSION >= 0x40400:
                 table.clearSpans()
             #else:
             #    print table.rowCount(), table.columnCount()
@@ -507,7 +507,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                 table.resizeRowToContents(table.rowCount() - 1)
             #viene settato lo span delle righe vuote solo nel caso la macchina
             #ospitante possieda una versione di qt uguale o superiore alla 4.4.0
-            if QT_VERSION >= 263168:
+            if QT_VERSION >= 0x40400:
                 if len(day) == 0:
                     table.setSpan(0, c, table.rowCount(), 1)
                 else:
@@ -527,7 +527,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                                    (highlight[1] + base[1]*2) / 3,
                                    (highlight[2] + base[2]*2) / 3)
             # Aggiunto per retrocompatibilità con le Qt 4.3
-            if QT_VERSION >= 263168:
+            if QT_VERSION >= 0x40400:
                 for row in range(table.rowCount()):
                     if not table.item(row, column):
                         table.setItem(row, column, QTableWidgetItem(""))
@@ -539,7 +539,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                             table.setItem(row, column, QTableWidgetItem(""))
                         table.item(row, column).setFlags(Qt.NoItemFlags)
         # Aggiunto per retrocompatibilità con le Qt 4.3
-        elif QT_VERSION >= 263168:
+        elif QT_VERSION >= 0x40400:
             if QDate.currentDate() < self._working_date:
                 for column in range(table.columnCount()):
                     for row in range(table.rowCount()):

@@ -89,7 +89,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.__setup__(auth, 'pyuac_browse.ui')
         self._mode = ""
         self._setupGui()
-        #dimensioni e posizione della finestra sono memorizzate
+        # Dimensioni e posizione della finestra sono memorizzate
         self.ui.resize(self.settings.value("size",QVariant(self.ui.sizeHint())).toSize())
         self.move(self.settings.value("pos", QVariant(QPoint(200, 200))).toPoint());
         self._connectSlots()
@@ -117,7 +117,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             del self.remote
         self._setupAuth(auth)
         self._connectRemoteSlots()
-        #l'ultima vista usata viene memorizzata e riproposta al successivo avvio
+        # L'ultima vista usata viene memorizzata e riproposta al successivo avvio
         mode = str(self.settings.value("mode", QVariant("weekly")).toString())
         if mode == "daily":
             self._slotChangeToDaily()
@@ -165,7 +165,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                      self._slotNewTimeCalculator)
         self.connect(self.ui.actionLogin, SIGNAL("triggered(bool)"),
                      self._login)
-        #segnale emesso quando la data di lavoro viene modificata.
+        # Segnale emesso quando la data di lavoro viene modificata.
         self.connect(self, SIGNAL("workingDateChanged"),
                      self._slotWorkingDateChanged)
     
@@ -236,7 +236,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self._changeDate(QDate.currentDate())
         self._menu = TimeregMenu(self)
         self.ui.tlbTimereg.setMenu(self._menu)
-        # l'ultima vista usata viene memorizzata e riproposta al successivo avvio
+        # L'ultima vista usata viene memorizzata e riproposta al successivo avvio
         #mode = str(self.settings.value("mode", QVariant("weekly")).toString())
         #if mode == "daily":
         #    self._slotChangeToDaily()
@@ -342,25 +342,25 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         :param row: intero, cordinata verticale della cella su cui si è clickato.
         :param column: intero, cordinata orizzontale della della su cui si è clickato.
         """
-        #modalità corrente: 'daily'
+        # Modalità corrente: 'daily'
         if self._mode == "daily":
             project = self.projects[0][row]
-        #modalità corrente: 'weekly'
+        # Modalità corrente: 'weekly'
         elif self._mode == "weekly" and column in self.projects.keys() \
                                                 and row in self.projects[column].keys():
             project = self.projects[column][row]
-        #se si è in modalità 'weekly' e si doppioclicka su una cella vuota il programma
-        #avvia la registrazione nella data corrente.
+        # Se si è in modalità 'weekly' e si doppioclicka su una cella vuota il programma
+        # avvia la registrazione nella data corrente.
         elif self._working_date <= QDate.currentDate():
             self._slotWeeklyDateChanged(row, column)
             project = AchievoProject()
             project.set("activitydate", self._working_date.toString("yyyy-MM-dd"))
         else:
             return
-        #viene creata la TimeregWindow in modalità 'single'
+        # Viene creata la TimeregWindow in modalità 'single'
         editwin = self._createTimeregWindow("single")
-        #vengono impostati tutti i campi della TimeregWindow con i valori della
-        #registrazione corrente
+        # Vengono impostati tutti i campi della TimeregWindow con i valori della
+        # registrazione corrente
         editwin.setupEdit(self._createProjectTemplate(project))
         editwin.show()
 
@@ -396,14 +396,14 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         le viste alla nuova data.
         :param qdate: QDate contenente la nuova data da inserire nella query.
         """
-        #si effettua una restore prima del cambiamento del cursore poiché questa
-        #funzione è stata progettata per essere chiamata anche più volte consecutive.
-        #il restore vero e proprio viene eseguito una volta ricevuta la timereport
+        # Si effettua una restore prima del cambiamento del cursore poiché questa
+        # funzione è stata progettata per essere chiamata anche più volte consecutive.
+        # il restore vero e proprio viene eseguito una volta ricevuta la timereport
         QApplication.restoreOverrideCursor()
         QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
         self.notify(self.tr("Searching..."))
-        #pulisce la tabella con la vista settimanale solamente nel caso si sia
-        #in modalità 'weekly'
+        # Pulisce la tabella con la vista settimanale solamente nel caso si sia
+        # in modalità 'weekly'
         if self._mode == "weekly":
             table = self.ui.tableWeekTimereg
             days = getweek(qdate)
@@ -420,8 +420,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             for c, day in enumerate(getweek(qdate)):
                 table.horizontalHeaderItem(c).setText(QDate.longDayName(day.dayOfWeek())[:3]
                                                       + " " + day.toString("dd MMM"))
-        #pulisce la tabella con la vista giornaliera colamente nel caso si sia in
-        #modalità 'daily'
+        # Pulisce la tabella con la vista giornaliera colamente nel caso si sia in
+        # modalità 'daily'
         else:
             table = self.ui.tableTimereg
             days = [self.ui.dateEdit.date()]
@@ -478,7 +478,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         :param eprojects: lista di ElementTree, contiene la risposta dal server
         con la lista di tutte le ore registrate nell'arco di una data giornata.
         """
-        #variabile di appoggio contenente la tabella settimanale
+        # Variabile di appoggio contenente la tabella settimanale
         table = self.ui.tableWeekTimereg
         table.setRowCount(max(len(prj) for prj in eprojects) + 2)
         for c, day in enumerate(eprojects):
@@ -494,8 +494,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                 table.setItem(r, c, item)
                 table.item(r, c).setTextAlignment(Qt.AlignHCenter)
                 table.resizeRowToContents(r)
-            #nel caso ci siano ore registrate nella giornata, in fondo alla tabella
-            #viene inserito il campo con il totale di ore giornaliere.
+            # Nel caso ci siano ore registrate nella giornata, in fondo alla tabella
+            # viene inserito il campo con il totale di ore giornaliere.
             if total_time > 0:
                 item = QTableWidgetItem(min2hmtime(total_time))
                 table.setItem(table.rowCount() - 1, c, item)
@@ -505,20 +505,20 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                            c).setFont(QFont(QFont().defaultFamily(),
                                               15, QFont.Bold))
                 table.resizeRowToContents(table.rowCount() - 1)
-            #viene settato lo span delle righe vuote solo nel caso la macchina
-            #ospitante possieda una versione di qt uguale o superiore alla 4.4.0
+            # Viene settato lo span delle righe vuote solo nel caso la macchina
+            # ospitante possieda una versione di qt uguale o superiore alla 4.4.0
             if QT_VERSION >= 0x40400:
                 if len(day) == 0:
                     table.setSpan(0, c, table.rowCount(), 1)
                 else:
                     table.setSpan(len(day), c, table.rowCount() - len(day) - 1, 1)
-                #la riga spannata viene espansa fino a coprire tutto lo spazio.
+                # La riga spannata viene espansa fino a coprire tutto lo spazio.
                 table.verticalHeader().setResizeMode(table.rowCount() - 2,
                                                      QHeaderView.Stretch)
-        #Si colora il giorno corrente, se visibile e disabilita i giorni futuri
+        # Si colora il giorno corrente, se visibile e disabilita i giorni futuri
         if QDate.currentDate() in getweek(self._working_date):
             column = QDate.currentDate().dayOfWeek() -1
-            #algoritmo che calcola il colore a partire dai colori della palette
+            # Algoritmo che calcola il colore a partire dai colori della palette
             highlight = QPalette().color(QPalette.Active, QPalette.Highlight)
             highlight = (highlight.red(), highlight.green(), highlight.blue())
             base = QPalette().color(QPalette.Active, QPalette.Base)
@@ -548,12 +548,12 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                         table.item(row, column).setFlags(Qt.NoItemFlags)
         table.scrollToItem(table.item(len(self.projects[self._working_date.dayOfWeek() - 1]),
                                       self._working_date.dayOfWeek() - 1))
-        #nasconde l'header verticale
+        # Nasconde l'header verticale
         table.verticalHeader().setVisible(False)
-        #Seleziona la colonna del giorno corrente
+        # Seleziona la colonna del giorno corrente
         if self._working_date <= QDate.currentDate():
             table.selectColumn(self._working_date.dayOfWeek() - 1)
-        #TODO: sistemare la notify in modo che dia informazioni utili
+        # TODO: sistemare la notify in modo che dia informazioni utili
         self.notify("Search completed")
         #self.ui.tableTimereg.resizeRowsToContents()
         self.ui.btnThisWeek.setEnabled(self._working_date not in getweek(QDate.currentDate()))
@@ -576,8 +576,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             assert False, "modo non gestito: %s" % self._mode
     
     def _slotProgress(self, progress):
-        #converte il float che viene passato dal QRemoteTimereg in interi, tenendo
-        #le 3 cifre più significative.
+        # Converte il float che viene passato dal QRemoteTimereg in interi, tenendo
+        # le 3 cifre più significative.
         progress = int(progress * 100)
         self.ui.progressBar.setValue(progress)
     

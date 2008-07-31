@@ -4,54 +4,66 @@
 # Copyright 2006 Develer S.r.l. (http://www.develer.com/)
 # All rights reserved.
 #
-# $Id:$
+# $Id$
 #
 # Author: Lorenzo Berni <duplo@develer.com>
 
-from libRemoteTimereg import *
-
 import sys
+sys.path.append("../")
+
+from libRemoteTimereg import *
 
 import time
 
-def _main(auth):
-    remote = RemoteTimereg()
-    t = time.time()
-    remote.login(*auth)
-    t2 = time.time()
-    print "login", t2 - t
-    t = time.time()
-    remote.query("")
-    t2 = time.time()
-    print "query", t2 - t
-    t = time.time()
-    remote.timereport("2008-07-25")
-    t2 = time.time()
-    print "timereport", t2 - t
-    t = time.time()
-    for i in range(1, 8):
-        remote.timereport("2008-0%d-25" % i)
-    t2 = time.time()
-    print "weekly timereport", t2 - t
-    t = time.time()
-    remote.whoami()
-    t2 = time.time()
-    print "whoami", t2 - t
+class TestProcessPerformances():
     
-    # TODO: Aggiungere il test di timereg
-        
-    # timesummary non funziona e dice che non abbiamo i permessi adeguati (ma è
-    # stata implementata?)
-    #t = time.time()
-    #remote.timesummary("2008-06-01", "2008-06-30")
-    #t2 = time.time()
-    #print "timesummary", t2 - t
+    def __init__(self, auth):
+        self._auth = auth
+        self._remote = RemoteTimereg()
+    
+    def testLogin(self):
+        print "Login"
+        initial_time = time.time()
+        self._remote.login(*self._auth)
+        final_time = time.time()
+        print final_time - initial_time
+    
+    def testQuery(self):
+        query = ""
+        print "Query: %s" % query
+        initial_time = time.time()
+        self._remote.query(query)
+        final_time = time.time()
+        print final_time - initial_time
+    
+    def testTimereport(self):
+        date = "2008-07-25"
+        print "Timereport: %s" % date
+        initial_time = time.time()
+        self._remote.timereport(date)
+        final_time = time.time()
+        print final_time - initial_time
+        print "Weekly timereport"
+        initial_time = time.time()
+        for i in range(1, 8):
+            self._remote.timereport("2008-07-2%d" %i)
+        final_time = time.time()
+        print final_time - initial_time
 
-    
-    
+    def testWhoami(self):
+        print "Whoami"
+        initial_time = time.time()
+        self._remote.whoami()
+        final_time = time.time()
+        print final_time - initial_time
+
 
 if __name__ == "__main__":
     if len(sys.argv[1:]) == 3:
-        _main(sys.argv[1:])
+        test = TestProcessPerformances(sys.argv[1:])
+        test.testLogin()
+        test.testQuery()
+        test.testTimereport()
+        test.testWhoami()
     else:
         print "Usage: performance_test.py achievouri user password"

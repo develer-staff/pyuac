@@ -10,76 +10,44 @@
 
 import sys
 sys.path.append("../")
+import time
 
 from libRemoteTimereg import *
-
-import time
 
 class TestProcessPerformances():
     
     def __init__(self, auth, num=50):
         self._auth = auth
-        self._num = num
+        if num > 0:
+            self._num = num
+        else:
+            num = 1
+        self._logged_in = False
         self._remote = RemoteTimereg()
     
-    def testLogin(self):
-        print "Login"
-        timelist = []
-        for i in range(self._num):
-            initial_time = time.time()
-            self._remote.login(*self._auth)
-            final_time = time.time()
-            timelist.append(final_time - initial_time)
-        print sum(timelist)/self._num
-
-    def testQuery(self):
-        query = ""
-        print "Query: %s" % query
-        timelist = []
-        for i in range(self._num):
-            initial_time = time.time()
-            self._remote.query(query)
-            final_time = time.time()
-            timelist.append(final_time - initial_time)
-        print sum(timelist)/self._num
-
-    def testTimereport(self):
-        date = "2008-07-25"
-        print "Timereport: %s" % date
-        timelist = []
-        for i in range(self._num):
-            initial_time = time.time()
-            self._remote.timereport(date)
-            final_time = time.time()
-            timelist.append(final_time - initial_time)
-        print sum(timelist)/self._num
-        print "Weekly timereport"
-        timelist = []
-        for i in range(self._num):
-            initial_time = time.time()
-            for i in range(1, 8):
-                self._remote.timereport("2008-07-2%d" %i)
-            final_time = time.time()
-            timelist.append(final_time - initial_time)
-        print sum(timelist)/self._num
-
-    def testWhoami(self):
-        print "Whoami"
-        timelist = []
-        for i in range(self._num):
-            initial_time = time.time()
-            self._remote.whoami()
-            final_time = time.time()
-            timelist.append(final_time - initial_time)
-        print sum(timelist)/self._num
-
-
+    def __getattr__(self, name):
+        if name in ["login", "timereport", "query", "whoami"]:
+            def wrapper(*paramlist, **paramdict):
+                print "Request type: %s\tAverage time:" % name,
+                if not self._logged_in:
+                    self._remote.login(*self._auth)
+                    self._logged_in = True
+                timelist = []
+                func = getattr(self._remote, name)
+                for i in range(self._num):
+                    initial_time = time.time()
+                    func(*paramlist, **paramdict)
+                    timelist.append(time.time() - initial_time)
+                average_time = sum(timelist) / self._num
+                print "%f sec" % average_time
+        return wrapper
+    
 if __name__ == "__main__":
     if len(sys.argv[1:]) == 3:
         test = TestProcessPerformances(sys.argv[1:])
-        test.testLogin()
-        test.testQuery()
-        test.testTimereport()
-        test.testWhoami()
+        test.login(*sys.argv[1:])
+        test.query("")
+        test.timereport("2008-07-25")
+        test.whoami()
     else:
         print "Usage: performance_test.py achievouri user password"

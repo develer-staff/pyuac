@@ -566,7 +566,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         if self._working_date <= QDate.currentDate():
             table.selectColumn(self._working_date.dayOfWeek() - 1)
         # TODO: sistemare la notify in modo che dia informazioni utili
-        self.notify("Search completed")
+        self.notify("Search completed", 5000)
         #self.ui.tableTimereg.resizeRowsToContents()
         self.ui.btnThisWeek.setEnabled(self._working_date not in getweek(QDate.currentDate()))
         self.ui.tlbTimereg.setEnabled(True)

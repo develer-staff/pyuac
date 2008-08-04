@@ -37,6 +37,14 @@ class LoginDialog(QDialog, QAchievoWindow):
         _username = self.settings.value("username",
                                         QVariant(getpass.getuser())).toString()
         self.ui.editAchievoUri.setText(_achievouri)
+        self.ui.editAchievoUri.setVisible(False)
+        self.adjustSize()
+        self._basic_min_size = self.layout().minimumSize()
+        self.ui.editAchievoUri.setVisible(True)
+        self.adjustSize()
+        self._extended_min_size = self.layout().minimumSize()
+        self._height_delta = self._extended_min_size.height() - self._basic_min_size.height()
+        print self._height_delta
         self.connect(self.ui.btnAdvanced, SIGNAL("toggled(bool)"), self.advancedToggled)
         if _achievouri:
             self.ui.btnAdvanced.toggle()
@@ -59,12 +67,14 @@ class LoginDialog(QDialog, QAchievoWindow):
     def advancedToggled(self, checked):
         if checked:
             self.ui.labelAchievoUri.setText("Achievo Uri")
+            self.setMinimumSize(self._extended_min_size)
             self.ui.editAchievoUri.setVisible(True)
-            self.ui.adjustSize()
+            self.resize(self.width(), self.height() + self._height_delta)
         else:
             self.ui.labelAchievoUri.setText("Advanced settings")
+            self.setMinimumSize(self._basic_min_size)
             self.ui.editAchievoUri.setVisible(False)
-            self.ui.adjustSize()
+            self.resize(self.width(), self.height() - self._height_delta)
 
 
     def login(self):

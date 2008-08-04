@@ -56,6 +56,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             self.ui.comboTimeWorked.addItem(htext, QVariant(hmtime2min(htext)))
         self.ui.setWindowTitle(self.tr("Time Registration") + " - %s" % self.remote.auth[1])
         self.ui.btnDelete.setText(self.tr("Reset"))
+        self.ui.btnSave.setDefault(True)
         self.ui.txtRemark.setPlainText("")
         self.ui.txtRemark.setReadOnly(True)
         self.ui.editSmartQuery.setText("")

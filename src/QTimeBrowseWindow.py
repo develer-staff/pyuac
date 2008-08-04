@@ -44,7 +44,6 @@ class LoginDialog(QDialog, QAchievoWindow):
         self.adjustSize()
         self._extended_min_size = self.layout().minimumSize()
         self._height_delta = self._extended_min_size.height() - self._basic_min_size.height()
-        print self._height_delta
         self.connect(self.ui.btnAdvanced, SIGNAL("toggled(bool)"), self.advancedToggled)
         if _achievouri:
             self.ui.btnAdvanced.toggle()
@@ -261,12 +260,6 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self._changeDate(QDate.currentDate())
         self._menu = TimeregMenu(self)
         self.ui.tlbTimereg.setMenu(self._menu)
-        # L'ultima vista usata viene memorizzata e riproposta al successivo avvio
-        #mode = str(self.settings.value("mode", QVariant("weekly")).toString())
-        #if mode == "daily":
-        #    self._slotChangeToDaily()
-        #else:
-        #    self._slotChangeToWeekly()
 
     def _slotChangeToWeekly(self):
         """

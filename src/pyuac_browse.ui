@@ -20,9 +20,9 @@
    <property name="geometry" >
     <rect>
      <x>0</x>
-     <y>26</y>
+     <y>27</y>
      <width>1174</width>
-     <height>652</height>
+     <height>649</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_3" >
@@ -266,8 +266,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1156</width>
-         <height>565</height>
+         <width>1166</width>
+         <height>569</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_3" >
@@ -294,7 +294,7 @@
                 </sizepolicy>
                </property>
                <property name="text" >
-                <string>This week</string>
+                <string>Today</string>
                </property>
               </widget>
              </item>
@@ -420,9 +420,9 @@
    <property name="geometry" >
     <rect>
      <x>0</x>
-     <y>678</y>
+     <y>676</y>
      <width>1174</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
   </widget>
@@ -432,7 +432,7 @@
      <x>0</x>
      <y>0</y>
      <width>1174</width>
-     <height>26</height>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuTimeRegistration" >

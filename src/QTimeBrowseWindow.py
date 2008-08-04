@@ -211,6 +211,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
 
     def _slotLoggedIn(self):
         self.ui.setWindowTitle("%s - %s" % ("Achievo Time Browser", self.remote.auth[1]))
+        self.ui.tlbTimereg.setEnabled(True)
         self._slotTimereport(self._working_date)
     
     def _changeDate(self, date):
@@ -461,7 +462,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.ui.progressBar.setValue(0)
         if not self.ui.progressBar.isVisible():
             self.ui.progressBar.setVisible(True)
-        self.ui.tlbTimereg.setEnabled(False)
+        #self.ui.tlbTimereg.setEnabled(False)
 
     def _updateDailyTimereport(self, eprojects):
         """
@@ -492,7 +493,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         table.resizeRowsToContents()
         self.notify(self.tr("Day total: ") + "%s" % min2hmtime(total_time))
         self.ui.btnToday.setEnabled(self._working_date != QDate.currentDate())
-        self.ui.tlbTimereg.setEnabled(True)
+        #self.ui.tlbTimereg.setEnabled(True)
 
     def _updateWeeklyTimereport(self, eprojects):
         """

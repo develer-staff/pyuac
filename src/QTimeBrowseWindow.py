@@ -37,6 +37,9 @@ class LoginDialog(QDialog, QAchievoWindow):
         _username = self.settings.value("username",
                                         QVariant(getpass.getuser())).toString()
         self.ui.editAchievoUri.setText(_achievouri)
+        self.connect(self.ui.btnAdvanced, SIGNAL("toggled(bool)"), self.advancedToggled)
+        if _achievouri:
+            self.ui.btnAdvanced.toggle()
         self.ui.editUsername.setText(_username)
         self.setMessage(message)
         self.connect(self.ui, SIGNAL("accepted()"), self.login)
@@ -52,6 +55,17 @@ class LoginDialog(QDialog, QAchievoWindow):
         else:
             self.messageLabel.setVisible(False)
         
+
+    def advancedToggled(self, checked):
+        if checked:
+            self.ui.labelAchievoUri.setText("Achievo Uri")
+            self.ui.editAchievoUri.setVisible(True)
+            self.ui.adjustSize()
+        else:
+            self.ui.labelAchievoUri.setText("Advanced settings")
+            self.ui.editAchievoUri.setVisible(False)
+            self.ui.adjustSize()
+
 
     def login(self):
         """

@@ -39,7 +39,8 @@ exe_cli = EXE(pyz_cli,
 coll = COLLECT( exe, exe_cli,
                a.binaries + [('pyuac_auth.ui', os.path.join('..', 'src', 'pyuac_auth.ui'), 'DATA'),
                              ('pyuac_browse.ui', os.path.join('..', 'src', 'pyuac_browse.ui'), 'DATA'),
-                             ('pyuac_edit.ui', os.path.join('..', 'src', 'pyuac_edit.ui'), 'DATA')],
+                             ('pyuac_edit.ui', os.path.join('..', 'src', 'pyuac_edit.ui'), 'DATA')
+                             ('time_calculator.ui', os.path.join('..', 'src', 'time_calculator.ui'), 'DATA')],
                strip=False,
                upx=False,
                name='distpyuac_onedir')

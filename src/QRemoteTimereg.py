@@ -254,6 +254,10 @@ class QRemoteTimereg(QObject):
             return
         node = eresp.get("node")
         msg = eresp.get("msg")
+        if msg == "Err":
+            debug(self._resp)
+            self.emit(SIGNAL("processError"), node, msg, self._resp)
+            return
         if self._current_action != None:
             self._response.append(eresp)
             #print "QRemoteTimereg risposta accodata"

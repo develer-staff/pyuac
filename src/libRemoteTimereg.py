@@ -152,9 +152,9 @@ class RemoteTimereg:
         """
         Registra un blocco di ore lavorate
         """
-        kwargs = {"projectid": projectid,
-                  "activityid": activityid,
-                  "phaseid": phaseid,
+        kwargs = {"projectid": "project.id=%s" % projectid,
+                  "activityid": "activity.id=%s" % activityid,
+                  "phaseid": "phase.id=%s" % phaseid,
                   "time[hours]": hmtime.split(":")[0],
                   "time[minutes]": hmtime.split(":")[1],
                   "activitydate": activitydate,

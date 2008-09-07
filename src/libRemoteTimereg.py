@@ -169,6 +169,7 @@ class RemoteTimereg:
             kwargs["atkprimkey"] = "hours.id=%s" % id
             #TODO: find out which is the one used by Achievo
             epage = self._urlDispatch("timereg", action="edit", **kwargs)
+        #sys.stderr.write("%s: %s\n" % ("timereg", kwargs))
         return epage
 
     def delete(self, id):

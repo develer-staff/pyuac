@@ -43,6 +43,7 @@ class RemoteTimereg:
         """
         self.user = user
         self.userid = 0
+        self.version = None
         self.password = password
         self._achievouri = achievouri
         self._loginurl = urllib.basejoin(self._achievouri, "index.php")
@@ -98,7 +99,7 @@ class RemoteTimereg:
         try:
             return ET.fromstring(page)
         except ExpatError:
-            #debug(page.decode(ACHIEVO_ENCODING))
+            debug(page.decode(ACHIEVO_ENCODING))
             raise ExpatError, page.decode(ACHIEVO_ENCODING)
 
     def whoami(self):
@@ -108,6 +109,8 @@ class RemoteTimereg:
         elogin = self._urlDispatch("whoami")
         if self.userid == 0:
             self.userid = elogin[0].get("id")
+        if self.version == None:
+            self.version = elogin[0].get("version", "1.2.1")
         return elogin
 
     def query(self, smartquery):
@@ -152,15 +155,20 @@ class RemoteTimereg:
         """
         Registra un blocco di ore lavorate
         """
-        kwargs = {"projectid": projectid,
-                  "activityid": activityid,
-                  "phaseid": phaseid,
+        kwargs = {"projectid": "project.id=%s" % projectid,
+                  "activityid": "activity.id=%s" % activityid,
+                  "phaseid": "phase.id=%s" % phaseid,
                   "time[hours]": hmtime.split(":")[0],
                   "time[minutes]": hmtime.split(":")[1],
                   "activitydate": activitydate,
                   "entrydate": time.strftime("%Y%m%d", time.gmtime()),
                   "remark": remark,
                   "userid": "person.id=%s" % self.userid}
+        ver = lambda v: map(int, v.split("."))
+        if ver(self.version) < ver("1.3.0"):
+            kwargs.update({"projectid": projectid,
+                           "activityid": activityid,
+                           "phaseid": phaseid})
         #TODO: The server should get the userid from the current session
         if id == None: # save new record
             epage = self._urlDispatch("timereg", action="save", **kwargs)
@@ -202,11 +210,11 @@ curl -v -b cookie -c cookie \
 """
 
 if __name__ == "__main__":
-    rl = RemoteTimereg("http://www.develer.com/~naufraghi/achievo/",
-                       "matteo", "matteo99")
-    rl.whoami()
-    rl.search("pr")
-    rl.search("pr me")
-    rl.search("pr me an")
-    rl.timeReport("2006-11-7")
-    rl.timeReport(["2006-11-7","2006-11-8"])
+    rl = RemoteTimereg()
+    rl.login("https://www.develer.com/~naufraghi/achievo_modstats/", "matteo", "demo")
+    print ET.tostring(rl.whoami())
+    rl.query("pr")
+    rl.query("pr me")
+    rl.query("pr me an")
+    rl.timereport("2006-11-7")
+    rl.timereport(["2006-11-7", "2006-11-8"])

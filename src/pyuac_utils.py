@@ -19,10 +19,8 @@ except ImportError:
     except ImportError:
         raise ImportError, "ElementTree (or py2.5) needed"
 
-def debug(msg, level="debug"):
+def debug(msg):
     if __debug__:
-        if type(msg) != str:
-            msg = msg.encode("utf-8")
         print msg
 
 def min2hmtime(mins):

@@ -114,17 +114,17 @@ class QRemoteTimereg(QObject):
         self.process = QPythonProcess(self)
         self._waiting = False
         self.auth = auth
-        #dizionario con tipo di richiesta come chiave, e lista di azioni come valore
+        # dizionario con tipo di richiesta come chiave, e lista di azioni come valore
         self._pending_requests = {}
-        #None se non ci sono azioni in esecuzione, altrimenti contiene il tipo
-        #della richiesta e l'indice dell'azione a cui il processo è arrivato
+        # None se non ci sono azioni in esecuzione, altrimenti contiene il tipo
+        # della richiesta e l'indice dell'azione a cui il processo è arrivato
         self._current_action = None
-        #contiene una lista delle risposte inviate dal server
+        # contiene una lista delle risposte inviate dal server
         self._response = []
-        #contiene una stringa che è parte di una risposta ottenuta da un processo.
+        # contiene una stringa che è parte di una risposta ottenuta da un processo.
         self._resp = ""
-        #contiene un booleano che indica se QRemoteTimereg è in attesa di risposta
-        #dal processo
+        # contiene un booleano che indica se QRemoteTimereg è in attesa di risposta
+        # dal processo
         self._waiting = False
         self.connect(self.process, SIGNAL("finished(int)"), self._ready)
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"), self._ready)
@@ -139,20 +139,20 @@ class QRemoteTimereg(QObject):
         """
         if request in RemoteTimereg.actions.keys() + ["q"]:
             def _request(request_pack=None):
-                #controlla se è presente una richiesta dello stesso tipo tra le
-                #richieste pendenti
+                # controlla se è presente una richiesta dello stesso tipo tra le
+                # richieste pendenti
                 if request in self._pending_requests.keys():
-                    #controlla se quella in esecuzione è dello stesso tipo
+                    # controlla se quella in esecuzione è dello stesso tipo
                     if self._current_action != None and self._current_action[0] == request:
-                        #resetta la risposta e blocca la richiesta
+                        # resetta la risposta e blocca la richiesta
                         self._response = []
                         self._current_action = None
-                        #print "QRemoteTimereg " + request + " abortita"
-                #in qualsiasi caso alla fine aggiunge la nuova richiesta al dizionario
-                #print "QRemoteTimereg " + request + " accodata..."
+                        #print "QRemoteTimereg %r abortita" % request
+                # in qualsiasi caso alla fine aggiunge la nuova richiesta al dizionario
+                #print "QRemoteTimereg %r accodata..." % request
                 self._pending_requests[request] = request_pack or []
-                #se il processo non ha richieste in esecuzione o non aspetta risposte
-                #viene iniziata una nuova scansione delle richieste pendenti
+                # se il processo non ha richieste in esecuzione o non aspetta risposte
+                # viene iniziata una nuova scansione delle richieste pendenti
                 if not self._current_action and not self._waiting:
                     self._sync()
             return _request
@@ -172,7 +172,7 @@ class QRemoteTimereg(QObject):
         originale
         """
         for k, v in kwargs.items():
-            kwargs[k] = unicode(v).strip().encode("utf-8") #se v è un QString
+            kwargs[k] = unicode(v).strip().encode("utf-8") # se v è un QString
         qstring = urllib.urlencode(kwargs, doseq=True)
         return action + "?" + qstring
 
@@ -181,28 +181,28 @@ class QRemoteTimereg(QObject):
         Avvia il processo e invia la stringa di richiesta.
         Viene invocato da sync() e da ready().
         """
-        #controlla se sono presenti azioni da eseguire
+        # controlla se sono presenti azioni da eseguire
         if self._current_action:
             if len(self._pending_requests[self._current_action[0]]) > self._current_action[1]:
-                #avvia il processo e scrive il comando
+                # avvia il processo e scrive il comando
                 if self.process.state() == self.process.NotRunning:
                     self.process.start("pyuac_cli")
-                #costruisce la stringa da inviare al processo a partire dalle
-                #informazioni presenti in pending_requests e in current_action
+                # costruisce la stringa da inviare al processo a partire dalle
+                # informazioni presenti in pending_requests e in current_action
                 qstring = self._encode(self._current_action[0],
                                        **self._pending_requests[self._current_action[0]]
                                        [self._current_action[1]])
                 self._current_action = (self._current_action[0], self._current_action[1] + 1)
-                #print "QRemoteTimereg " + self._current_action[0] + " mandata in esecuzione al processo"
+                #print "QRemoteTimereg %r mandata in esecuzione al processo" % self._current_action[0]
                 self.process.write(qstring+"\n")
-                #setta waiting a true per indicare che stiamo aspettando un
-                #messaggio dal processo
+                # setta waiting a true per indicare che stiamo aspettando un
+                # messaggio dal processo
                 self._waiting = True
             else:
-                #nel caso siano terminate le azioni viene emesso il segnale di
-                #terminazione e viene restituita la risposta, dopodiché ripulisce
-                #tutto e scansiona per altre richieste chiamando la sync()
-                #print "QRemoteTimereg " + self._current_action[0] + " terminata..."
+                # nel caso siano terminate le azioni viene emesso il segnale di
+                # terminazione e viene restituita la risposta, dopodiché ripulisce
+                # tutto e scansiona per altre richieste chiamando la sync()
+                #print "QRemoteTimereg %r terminata..." % self._current_action[0]
                 #print self._response
                 self.emit(SIGNAL(self._current_action[0] + "OK"), self._response)
                 del self._pending_requests[self._current_action[0]]
@@ -210,9 +210,9 @@ class QRemoteTimereg(QObject):
                 self._response = []
                 self._sync()
         else:
-            #nel caso current_action sia settato a None vuol dire che l'azione corrente
-            #è stata abortita, perché è giunta una richiesta più nuova dello stesso tipo,
-            #quindi viene richiamato il metodo sync() per cercare ulteriori altre richieste
+            # nel caso current_action sia settato a None vuol dire che l'azione corrente
+            # è stata abortita, perché è giunta una richiesta più nuova dello stesso tipo,
+            # quindi viene richiamato il metodo sync() per cercare ulteriori altre richieste
             self._sync()
 
     def _sync(self):
@@ -240,35 +240,35 @@ class QRemoteTimereg(QObject):
         """
         if exitcode != None:
             self._error(5, exitcode)
-        #accoda la risposta parziale appena letta nella variabile _resp
+        # accoda la risposta parziale appena letta nella variabile _resp
         self._resp += str(self.process.readAllStandardOutput())
-        #se la richiesta è completa ne calcola l'albero e lo accoda nella lista
-        #delle risposte
+        # se la richiesta è completa ne calcola l'albero e lo accoda nella lista
+        # delle risposte
         try:
             eresp = ET.fromstring(self._resp)
             self._waiting = False
             #print "QRemoteTimereg risposta completata"
-        #se la richiesta non è completa ritorna senza fare niente
+        # se la richiesta non è completa ritorna senza fare niente
         except ExpatError:
             #print "QRemoteTimereg risposta incompleta"
             return
         node = eresp.get("node")
         msg = eresp.get("msg")
         if msg == "Err":
-            #debug(self._resp)
+            debug(self._resp)
             err = str(self.process.readAllStandardError())
-            #debug(err)
+            debug(err)
             self.emit(SIGNAL("processError"), node, msg, self._resp + "\n" + err)
             return
         if self._current_action != None:
             self._response.append(eresp)
             #print "QRemoteTimereg risposta accodata"
-        #emette un segnale indicando lo stato di avanzamento della richiesta.
+        # emette un segnale indicando lo stato di avanzamento della richiesta.
         if self._current_action:
             self.emit(SIGNAL("progress"),
                       float(self._current_action[1]) /
                       len(self._pending_requests[self._current_action[0]]))
-        #cancella la variabile contenente la risposta
+        # cancella la variabile contenente la risposta
         self._resp = ""
         self._execute()
 
@@ -286,8 +286,9 @@ class QRemoteTimereg(QObject):
         msg  = ["Err(%s, %s):" % (process_error, exitcode)]
         msg += ["-"*20]
         msg += [errstr]
-        #debug("\n".join(msg))
+        debug("\n".join(msg))
         self.emit(SIGNAL("processError"), process_error, exitcode, errstr)
+
 
 class QPythonProcess(QProcess):
     """

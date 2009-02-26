@@ -95,7 +95,7 @@ class RemoteTimereg:
             else:
                 kwargs[key] = val.encode(ACHIEVO_ENCODING, "replace")
         qstring = urllib.urlencode(params.items() + kwargs.items(), doseq=True)
-        page = urllib2.urlopen(self._dispatchurl, qstring).read()
+        page = urllib2.urlopen(self._dispatchurl, qstring).read().strip()
         try:
             return ET.fromstring(page)
         except ExpatError:

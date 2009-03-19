@@ -29,7 +29,7 @@ class report extends atkNode
 			exit;
 		} else {
 			$projectid = $this->m_postvars["projectid"];
-			if(!preg_match("/^\d+$/", $projectid)) {
+			if(!preg_match('/^\d+$/', $projectid)) {
 				echo make_xml("hours", "Err");
 				exit;
 			}
@@ -49,7 +49,7 @@ class report extends atkNode
 			if(isset($this->m_postvars["from_date"])) {
 				$from_date = $this->m_postvars["from_date"];
 				$sql .= " and hours.activitydate >= '$from_date'";
-				if(!preg_match("/^\d{4}-\d{2}-\d{2}$/", $this->m_postvars["from_date"])) {
+				if(!preg_match('/^\d{4}-\d{2}-\d{2}$/', $this->m_postvars["from_date"])) {
 					echo make_xml("hours", "Err");
 					exit;
 				}
@@ -57,7 +57,7 @@ class report extends atkNode
 			if(isset($this->m_postvars["to_date"])) {
 				$to_date = $this->m_postvars["to_date"];
 				$sql .= " and hours.activitydate <= '$to_date'";
-				if(!preg_match("/^\d{4}-\d{2}-\d{2}$/", $this->m_postvars["to_date"])) {
+				if(!preg_match('/^\d{4}-\d{2}-\d{2}$/', $this->m_postvars["to_date"])) {
 					echo make_xml("hours", "Err");
 					exit;
 				}

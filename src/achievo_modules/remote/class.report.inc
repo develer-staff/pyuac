@@ -23,13 +23,13 @@ class report extends atkNode
 
         $db = &atkGetDb();
 		if(!isset($this->m_postvars["projectid"])) {
-			$sql = "SELECT project.id, project.name FROM project JOIN project_person ON project.id = project_person.projectid WHERE project_person.personid = {$g_user["id"]}";
+			$sql = "SELECT project.name FROM project JOIN project_person ON project.id = project_person.projectid WHERE project_person.personid = {$g_user["id"]}";
 			$results = $db->getRows($sql);
 			echo make_xml("project", "OK", $results);
 			exit;
 		} else {
 			$projectid = $this->m_postvars["projectid"];
-			if(!preg_match('/^\d+$/', $projectid)) {
+			if(!preg_match('/^\w+$/', $projectid)) {
 				echo make_xml("hours", "Err");
 				exit;
 			}
@@ -45,7 +45,7 @@ class report extends atkNode
 				person
 				on hours.userid = person.id
 				where
-				project.id = $projectid";
+				project.name = '$projectid'";
 			if(isset($this->m_postvars["from_date"])) {
 				$from_date = $this->m_postvars["from_date"];
 				$sql .= " and hours.activitydate >= '$from_date'";

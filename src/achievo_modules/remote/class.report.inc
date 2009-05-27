@@ -22,18 +22,20 @@ class report extends atkNode
         global $g_user;
 
         $db = &atkGetDb();
-		if(!isset($this->m_postvars["projectid"])) {
-			$sql = "SELECT project.name FROM project JOIN project_person ON project.id = project_person.projectid WHERE project_person.personid = {$g_user["id"]}";
+		if(!isset($this->m_postvars["projectids"])) {
+			$sql = "SELECT project.name FROM project JOIN project_person ON project.id = project_person.projectid WHERE project_person.personid = {$g_user["id"]} order by project.name";
 			$results = $db->getRows($sql);
 			echo make_xml("project", "OK", $results);
 			exit;
 		} else {
-			$projectid = $this->m_postvars["projectid"];
-			if(!preg_match('/^\w+$/', $projectid)) {
-				echo make_xml("hours", "Err");
-				exit;
+			$projectids = $this->m_postvars["projectids"];
+			foreach($projectids as $projectid) {
+				if(!preg_match('/^\w+$/', $projectid)) {
+					echo make_xml("hours", "Err");
+					exit;
+				}
 			}
-			$sql = "select hours.activitydate as date, hours.time, hours.remark, activity.name as activity, phase.name as phase, person.userid as user
+			$sql = "select project.name as project, hours.activitydate as date, hours.time, hours.remark, activity.name as activity, phase.name as phase, person.userid as user
 				from hours
 				join
 				phase on hours.phaseid = phase.id
@@ -45,7 +47,7 @@ class report extends atkNode
 				person
 				on hours.userid = person.id
 				where
-				project.name = '$projectid'";
+				project.name in ('" . implode("','", $projectids) . "')";
 			if(isset($this->m_postvars["from_date"])) {
 				$from_date = $this->m_postvars["from_date"];
 				$sql .= " and hours.activitydate >= '$from_date'";

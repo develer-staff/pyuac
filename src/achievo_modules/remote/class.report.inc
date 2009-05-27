@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * $Id: $
- * Author: Matteo Bertini <naufraghi@develer.com>
+ * Author: Lorenzo Berni <duplo@develer.com>
  */
 
 include_once (moduleDir("remote")."class.timereg.inc");

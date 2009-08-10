@@ -67,6 +67,7 @@ class report extends atkNode
 			$sql .= " order by date";
 			$result = $db->getRows($sql);
 			echo make_xml("hours", "OK", $result);
+
 			exit;
 		}
     }

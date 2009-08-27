@@ -47,7 +47,7 @@ class timereport extends atkNode
                     JOIN project ON phase.projectid = project.id
                 WHERE
                     userid = " . $g_user["id"] . " AND
-                    activitydate IN ('$datelist',0)
+                    activitydate IN ('$datelist','0')
                     ORDER BY activitydate DESC
         ";
         $results = $db->getRows($sql);

@@ -13,11 +13,10 @@ Modulo contenente il codice della MainWindow di pyuac (TimeBrowseWindow), della 
 """
 
 import os, sys
-import sip
-
 import getpass
-
 from collections import defaultdict
+
+import sip
 
 from pyuac_utils import *
 from QRemoteTimereg import *
@@ -61,7 +60,6 @@ class LoginDialog(QDialog, QAchievoWindow):
             self.messageLabel.setVisible(True)
         else:
             self.messageLabel.setVisible(False)
-        
 
     def advancedToggled(self, checked):
         if checked:
@@ -82,7 +80,7 @@ class LoginDialog(QDialog, QAchievoWindow):
         segnale 'login' passando una lista contenente achievouri, username e
         password (auth) dopodiché nasconde la finestra.
         """
-        self.settings.setValue("achievouri", QVariant(self.ui.editAchievoUri.text())) 
+        self.settings.setValue("achievouri", QVariant(self.ui.editAchievoUri.text()))
         self.settings.setValue("username", QVariant(self.ui.editUsername.text()))
         auth = [self.ui.editAchievoUri.text()]
         auth += [self.ui.editUsername.text()]
@@ -103,7 +101,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
     """
     MainWindow di pyuac, contiene le tabelle con gli orari registrati.
     """
-    
+
     def __init__(self, parent, auth=None):
         QMainWindow.__init__(self, parent)
         self.projects = None
@@ -146,7 +144,6 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self._slotChangeToDaily()
         else:
             self._slotChangeToWeekly()
-        
 
     def _connectSlots(self):
         """
@@ -191,7 +188,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         # Segnale emesso quando la data di lavoro viene modificata.
         self.connect(self, SIGNAL("workingDateChanged"),
                      self._slotWorkingDateChanged)
-    
+
     def _connectRemoteSlots(self):
         self.connect(self.remote, SIGNAL("timereportStarted"),
                      self._slotTimereportStarted)
@@ -201,7 +198,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                      self._slotLoggedIn)
         self.connect(self.remote, SIGNAL("progress"),
                      self._slotProgress)
-    
+
     def _slotProcessError(self, process_error, exitcode, errstr):
         if exitcode == "CONNECTION_ERROR" and errstr.find("Authorization Required") != -1:
             self._login("Provided auth is invalid!")
@@ -212,7 +209,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.ui.setWindowTitle("%s - %s" % ("Achievo Time Browser", self.remote.auth[1]))
         self.ui.tlbTimereg.setEnabled(True)
         self._slotTimereport(self._working_date)
-    
+
     def _changeDate(self, date):
         """
         Modifica la data della vista corrente a partire da una nuova QDate.
@@ -271,7 +268,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self._slotTimereport(self._working_date)
         self.ui.btnDaily.setChecked(False)
         self.ui.btnWeekly.setChecked(True)
-   
+
     def _slotChangeToDaily(self):
         """
         Imposta l'interfaccia per lavorare in modalità 'daily'.
@@ -293,7 +290,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         tmp = self._working_date
         self._working_date = QDate(date)
         self.emit(SIGNAL("workingDateChanged"), tmp)
-    
+
     def _slotWorkingDateChanged(self, old_date):
         """
         Slot attivato dal signal workingDateChanged, emesso ogni volta che viene
@@ -593,13 +590,13 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
             self.ui.progressBar.setVisible(False)
         else:
             assert False, "modo non gestito: %s" % self._mode
-    
+
     def _slotProgress(self, progress):
         # Converte il float che viene passato dal QRemoteTimereg in interi, tenendo
         # le 3 cifre più significative.
         progress = int(progress * 100)
         self.ui.progressBar.setValue(progress)
-    
+
     def close(self):
         """
         Reimplementazione del metodo close per fare in modo che la time calculator
@@ -611,7 +608,7 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
         self.settings.setValue("pos", QVariant(self.ui.pos()))
         self.settings.setValue("mode", QVariant(self._mode))
         QMainWindow.close(self)
-    
+
     def closeEvent(self, close_event):
         """
         Reimplementazione del metodo closeEvent che redirige tutti gli eventi di
@@ -623,26 +620,26 @@ class TimeregMenu(QMenu):
     """
     Classe derivata di QMenu contenente il menu contestuale di tlbTimereg.
     """
-    
+
     def __init__(self,  parent = None):
         QMenu.__init__(self, parent)
         self._single = self.addAction("Single editing mode")
         self._range = self.addAction("Range editing mode")
         self._hours = self.addAction("Hours editing mode")
-        self.connect(self._single, SIGNAL("triggered(bool)"), 
+        self.connect(self._single, SIGNAL("triggered(bool)"),
                         self._singleTriggered)
-        self.connect(self._range, SIGNAL("triggered(bool)"), 
+        self.connect(self._range, SIGNAL("triggered(bool)"),
                         self._rangeTriggered)
         self.connect(self._hours, SIGNAL("triggered(bool)"),
                      self._hoursTriggered)
-        self.connect(self,  SIGNAL("clicked()"), 
+        self.connect(self,  SIGNAL("clicked()"),
                         self._singleTriggered)
-    
+
     def _singleTriggered(self):
         self.emit(SIGNAL("selected"), "single")
-    
+
     def _rangeTriggered(self):
         self.emit(SIGNAL("selected"), "range")
-    
+
     def _hoursTriggered(self):
         self.emit(SIGNAL("selected"), "hours")

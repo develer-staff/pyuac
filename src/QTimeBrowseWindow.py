@@ -17,6 +17,7 @@ import getpass
 from collections import defaultdict
 
 import sip
+import keyring
 
 from pyuac_utils import *
 from QRemoteTimereg import *
@@ -51,6 +52,9 @@ class LoginDialog(QDialog, QAchievoWindow):
         self.connect(self.ui, SIGNAL("accepted()"), self.login)
         self.connect(self.ui, SIGNAL("rejected()"), self.cancel)
         self.ui.editPassword.setFocus()
+        pwd = keyring.get_password(str(_achievouri.toUtf8()), str(_username.toUtf8()))
+        if pwd:
+            self.ui.editPassword.setText(pwd)
         self.setModal(True)
         self.ui.show()
 
@@ -85,6 +89,7 @@ class LoginDialog(QDialog, QAchievoWindow):
         auth = [self.ui.editAchievoUri.text()]
         auth += [self.ui.editUsername.text()]
         auth += [self.ui.editPassword.text()]
+        keyring.set_password(*[str(x.toUtf8()) for x in auth])
         self.emit(SIGNAL("login"), auth)
         self.ui.editPassword.setText("")
         self.ui.hide()

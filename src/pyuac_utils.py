@@ -21,7 +21,7 @@ except ImportError:
 
 def debug(msg):
     if __debug__:
-        print msg
+        sys.stderr.write("DEBUG-START\n%s\nDEBUG-END\n" % msg)
 
 def min2hmtime(mins):
     """

@@ -508,7 +508,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             pass
         if invalid:
             QMessageBox.critical(self, "TimeregWindow",
-                                 "Selected date(s) is/are invalid!",
+                                 "Selected date(s) is/are invalid (in the future)!",
                                  QMessageBox.Cancel)
         return not invalid
 

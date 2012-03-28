@@ -215,6 +215,37 @@ curl -v -b cookie -c cookie \
         http://www.develer.com/~naufraghi/achievo/index.php?atklogout=1
 """
 
+example_edit = """
+https://www.develer.com/groupware/dispatch.php?
+atklevel=3&
+atkprevlevel=2&
+atkstackid=4e31a43913bfe&
+achievo=7tig5dkq0a8eat2027fuf6u883&
+atkescape=&
+#atkaction=update&
+atkprevaction=edit&
+atkfieldprefix=&
+#atknodetype=timereg.hours&
+#atkprimkey=hoursbase.id%3D%2753518%27&
+dayfilter=&
+#id=53518&
+virtual_time=0&
+#userid=person.id%3D%2732%27&
+#entrydate[year]=2011&
+#entrydate[month]=07&
+#entrydate[day]=28&
+#activitydate[day]=27&
+#activitydate[month]=7&
+#activitydate[year]=2011&
+#projectid=project.id%3D%2740%27&
+#phaseid=phase.id%3D%27152%27&
+#activityid=activity.id%3D%273%27&
+#remark=Convex+Hull%2C+Specchiate+e+piazzamento+invalido&
+#time[hours]=8&
+#time[minutes]=45&
+atknoclose=Save
+"""
+
 if __name__ == "__main__":
     rl = RemoteTimereg()
     rl.login("https://www.develer.com/~naufraghi/achievo_modstats/", "matteo", "demo")

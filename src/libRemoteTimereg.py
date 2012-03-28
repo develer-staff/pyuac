@@ -162,8 +162,12 @@ class RemoteTimereg:
                   "phaseid": "phase.id=%s" % phaseid,
                   "time[hours]": hmtime.split(":")[0],
                   "time[minutes]": hmtime.split(":")[1],
-                  "activitydate": activitydate,
-                  "entrydate": time.strftime("%Y%m%d", time.gmtime()),
+                  "activitydate[year]": activitydate.split("-")[0],
+                  "activitydate[month]": activitydate.split("-")[1],
+                  "activitydate[day]": activitydate.split("-")[2],
+                  "entrydate[year]": time.strftime("%Y", time.gmtime()),
+                  "entrydate[month]": time.strftime("%m", time.gmtime()),
+                  "entrydate[day]": time.strftime("%d", time.gmtime()),
                   "remark": remark,
                   "userid": "person.id=%s" % self.userid}
         ver = lambda v: map(int, v.split("."))
@@ -176,7 +180,7 @@ class RemoteTimereg:
             epage = self._urlDispatch("timereg", action="save", **kwargs)
         else: # update
             kwargs["id"] = id
-            kwargs["atkprimkey"] = "hoursbase.id=%s" % id
+            kwargs["atkprimkey"] = "hours.id='%s'" % id
             #TODO: find out which is the one used by Achievo
             epage = self._urlDispatch("timereg", action="edit", **kwargs)
         #sys.stderr.write("%s: %s\n" % ("timereg", kwargs))

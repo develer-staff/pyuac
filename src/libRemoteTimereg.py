@@ -95,12 +95,14 @@ class RemoteTimereg:
             else:
                 kwargs[key] = val.encode(ACHIEVO_ENCODING, "replace")
         qstring = urllib.urlencode(params.items() + kwargs.items(), doseq=True)
+        if __debug__:
+            debug("%s?%s" % (self._dispatchurl, qstring))
         page = urllib2.urlopen(self._dispatchurl, qstring).read().strip()
         try:
             return ET.fromstring(page)
-        except ExpatError:
+        except Exception:
             debug(page.decode(ACHIEVO_ENCODING))
-            raise ExpatError, page.decode(ACHIEVO_ENCODING)
+            raise Exception, page.decode(ACHIEVO_ENCODING)
 
     def whoami(self):
         """

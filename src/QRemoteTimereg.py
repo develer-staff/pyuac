@@ -245,13 +245,16 @@ class QRemoteTimereg(QObject):
         # se la richiesta è completa ne calcola l'albero e lo accoda nella lista
         # delle risposte
         try:
-            eresp = ET.fromstring(self._resp)
+            eresp = ET.fromstring(self._resp.strip())
             self._waiting = False
             #print "QRemoteTimereg risposta completata"
         # se la richiesta non è completa ritorna senza fare niente
         except ExpatError:
             #print "QRemoteTimereg risposta incompleta"
             return
+        except:
+            debug(self._resp)
+            raise
         node = eresp.get("node")
         msg = eresp.get("msg")
         if msg == "Err":

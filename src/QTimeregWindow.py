@@ -379,7 +379,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                     else:
                         if  self._mode != "hours" and hmtime not in timerange(24, 15, 0):
                             _base = project+" "+phase+" "+activity+" "
-                            _completer = [_base + hmtime for hmtime in timerange(8, 15, 1)]
+                            _completer = [(_base + hmtime + " ") for hmtime in timerange(8, 15, 1)]
                         else:
                             _completer = []
 

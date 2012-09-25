@@ -67,43 +67,43 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             self.ui.comboPPAlru.addItem(row["ppa-%s" % self.remote.auth[1]].toString())
         self.notify(self.tr("Type something in the smartquery field or use combos."))
         self._smartQueryEdited("")
-    
+
     def _uiSingleMode(self):
         """
         Inizializza i valori delle componenti necessarie solamente in modalità 'single'.
         """
         self.ui.stackedWidget.setCurrentIndex(0)
-    
+
     def _uiRangeMode(self):
         """
         Connette le componenti necessarie solamente in modalità 'range' e ne inizializza i valori.
         """
         self.ui.stackedWidget.setCurrentIndex(1)
-        self.connect(self.ui.rangeFromDateEdit, SIGNAL("dateChanged(const QDate&)"), 
+        self.connect(self.ui.rangeFromDateEdit, SIGNAL("dateChanged(const QDate&)"),
                         self._updateDaysLabel)
-        self.connect(self.ui.rangeToDateEdit, SIGNAL("dateChanged(const QDate&)"), 
+        self.connect(self.ui.rangeToDateEdit, SIGNAL("dateChanged(const QDate&)"),
                         self._updateDaysLabel)
         checkBoxes = []
         checkBoxes.append(self.ui.monRangeCheckBox)
-        self.connect(self.ui.monRangeCheckBox, SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.monRangeCheckBox, SIGNAL("toggled(bool)"),
                         self._updateDaysLabel)
         checkBoxes.append(self.ui.tueRangeCheckBox)
-        self.connect(self.ui.tueRangeCheckBox, SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.tueRangeCheckBox, SIGNAL("toggled(bool)"),
                         self._updateDaysLabel)
         checkBoxes.append(self.ui.wedRangeCheckBox)
-        self.connect(self.ui.wedRangeCheckBox, SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.wedRangeCheckBox, SIGNAL("toggled(bool)"),
                         self._updateDaysLabel)
         checkBoxes.append(self.ui.thuRangeCheckBox)
-        self.connect(self.ui.thuRangeCheckBox, SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.thuRangeCheckBox, SIGNAL("toggled(bool)"),
                         self._updateDaysLabel)
         checkBoxes.append(self.ui.friRangeCheckBox)
-        self.connect(self.ui.friRangeCheckBox, SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.friRangeCheckBox, SIGNAL("toggled(bool)"),
                         self._updateDaysLabel)
         checkBoxes.append(self.ui.satRangeCheckBox)
-        self.connect(self.ui.satRangeCheckBox, SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.satRangeCheckBox, SIGNAL("toggled(bool)"),
                         self._updateDaysLabel)
         checkBoxes.append(self.ui.sunRangeCheckBox)
-        self.connect(self.ui.sunRangeCheckBox, SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.sunRangeCheckBox, SIGNAL("toggled(bool)"),
                         self._updateDaysLabel)
         for i, checkBox in enumerate(checkBoxes):
             checkBox.setText(unicode(QDate.longDayName(i + 1)).capitalize())
@@ -113,31 +113,31 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         Connette le componenti necessarie solamente in modalità 'hours' e ne inizializza i valori.
         """
         self.ui.stackedWidget.setCurrentIndex(2)
-        self.connect(self.ui.hoursFromDateEdit, SIGNAL("dateChanged(const QDate&)"), 
+        self.connect(self.ui.hoursFromDateEdit, SIGNAL("dateChanged(const QDate&)"),
                         self._updateDaysLabel)
-        self.connect(self.ui.hoursToDateEdit, SIGNAL("dateChanged(const QDate&)"), 
+        self.connect(self.ui.hoursToDateEdit, SIGNAL("dateChanged(const QDate&)"),
                         self._updateDaysLabel)
         checkBoxes = []
         checkBoxes.append(self.ui.monHoursCheckBox)
-        self.connect(self.ui.monHoursCheckBox, SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.monHoursCheckBox, SIGNAL("toggled(bool)"),
                         self._updateDaysLabel)
         checkBoxes.append(self.ui.tueHoursCheckBox)
-        self.connect(self.ui.tueHoursCheckBox, SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.tueHoursCheckBox, SIGNAL("toggled(bool)"),
                         self._updateDaysLabel)
         checkBoxes.append(self.ui.wedHoursCheckBox)
-        self.connect(self.ui.wedHoursCheckBox, SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.wedHoursCheckBox, SIGNAL("toggled(bool)"),
                         self._updateDaysLabel)
         checkBoxes.append(self.ui.thuHoursCheckBox)
-        self.connect(self.ui.thuHoursCheckBox, SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.thuHoursCheckBox, SIGNAL("toggled(bool)"),
                         self._updateDaysLabel)
         checkBoxes.append(self.ui.friHoursCheckBox)
-        self.connect(self.ui.friHoursCheckBox, SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.friHoursCheckBox, SIGNAL("toggled(bool)"),
                         self._updateDaysLabel)
         checkBoxes.append(self.ui.satHoursCheckBox)
-        self.connect(self.ui.satHoursCheckBox, SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.satHoursCheckBox, SIGNAL("toggled(bool)"),
                         self._updateDaysLabel)
         checkBoxes.append(self.ui.sunHoursCheckBox)
-        self.connect(self.ui.sunHoursCheckBox, SIGNAL("toggled(bool)"), 
+        self.connect(self.ui.sunHoursCheckBox, SIGNAL("toggled(bool)"),
                         self._updateDaysLabel)
         for i, checkBox in enumerate(checkBoxes):
             checkBox.setText(unicode(QDate.longDayName(i + 1)).capitalize())
@@ -211,7 +211,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         smartquery = unicode(smartquery).strip()
         self.ui.hoursSpinBox.blockSignals(True)
         self.remote.query([{"smartquery": smartquery}])
-    
+
     def _projectsChanged(self, projects):
         """ <-- self.remote, SIGNAL("queryOK")
         Aggiorna lo stato interno in funzione dei progetti
@@ -241,7 +241,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         idx = self.ui.comboActivity.findText(p.get("act") or "")
         self.ui.comboActivity.setCurrentIndex(idx)
         self.ui.labelActivity.setEnabled(p.get("pha") != None)
-        
+
         if self._mode == "hours":
             self.ui.hoursSpinBox.setValue(int(p.get("in_hmtime").split(":")[0] or 0))
             self.ui.hoursSpinBox.blockSignals(False)
@@ -249,7 +249,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             idx = self.ui.comboTimeWorked.findText(p.get("hmtime") or "00:00")
             self.ui.comboTimeWorked.setCurrentIndex(idx)
             self.ui.labelTimeWorked.setEnabled(True)
-            
+
         self.ui.txtRemark.setPlainText((p.get("remark") or "").strip())
         self.ui.labelRemark.setEnabled(True)
 
@@ -413,7 +413,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             working, total = daysnumber(self.ui.hoursFromDateEdit.date(),
                                         self.ui.hoursToDateEdit.date(), self._getDays())
             self.ui.hoursDaysLabel.setText("Working days: %d, Total days: %d" %(working, total))
-    
+
     def _getDays(self):
         """
         Ritorna una tupla di booleani, dove True sta per lavorativo e False sta per non lavorativo.
@@ -448,7 +448,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         QApplication.restoreOverrideCursor()
         self.emit(SIGNAL("registrationDone"), self._baseproject)
         self._endingRegistrations()
-    
+
     def _endingRegistrations(self):
         username = self.remote.auth[1]
         lru = self.settings.getArray("lru", ["ppa-%s" % username])
@@ -461,7 +461,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self.settings.setArray("lru", lru)
         self._baseproject.reset()
         self._slotClose()
-    
+
     def _timeregErr(self):
         pass
 
@@ -494,7 +494,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                                       QMessageBox.Ok | QMessageBox.Cancel)
             return ret
         return 1
-    
+
     def _checkDate(self):
         invalid = False
         if self._mode == "single":
@@ -545,10 +545,10 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                     self.ui.btnSave.setEnabled(True)
             else:
                 assert False, "modo non gestito: %s" % self._mode
-    
+
     def _timereg(self, request_pack):
         self.remote.timereg(request_pack)
-    
+
     def _singleTimereg(self):
         """
         Metodo chiamato da timereg per registrare le ore dalla modalità 'single'.
@@ -562,7 +562,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
             params["id"] = self._baseproject.get("id")
         request_pack = [params]
         self._timereg(request_pack)
-    
+
     def _rangeTimereg(self):
         """
         Metodo chiamato da timereg per registrare le ore dalla modalità 'range'.
@@ -582,7 +582,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
                 params["id"] = self._baseproject.get("id")
             request_pack.append(params)
         self._timereg(request_pack)
-    
+
     def _hoursTimereg(self):
         """
         Metodo chiamato da timereg per registrare le ore dalla modalità 'montly'.
@@ -637,7 +637,7 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         else:
             self.notify(self.tr("Resetting..."))
             self._setupGui()
-    
+
 class AchievoProject:
     """
     Classe che decora il progetto xml con alcune metodi di utilità

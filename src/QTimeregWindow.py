@@ -63,8 +63,9 @@ class TimeregWindow(QMainWindow, QAchievoWindow):
         self.ui.editSmartQuery.setFocus()
         self.ui.comboPPAlru.clear()
         self.ui.comboPPAlru.addItem("")
-        for row in self.settings.getArray("lru", ["ppa-%s" % self.remote.auth[1]]):
-            self.ui.comboPPAlru.addItem(row["ppa-%s" % self.remote.auth[1]].toString())
+        lru_key = "ppa-%s" % self.remote.auth[1]
+        lru_items = [row[lru_key].toString() for row in self.settings.getArray("lru", [lru_key])]
+        self.ui.comboPPAlru.addItems(sorted(lru_items, key=lambda x: unicode(x)))
         self.notify(self.tr("Type something in the smartquery field or use combos."))
         self._smartQueryEdited("")
 

@@ -99,7 +99,7 @@ class QAchievoWindow:
             sep = ["-"*20]
             msg  = [process_error] + sep
             msg += [exitcode] + sep
-            msg += [errstr]  
+            msg += [errstr]
             self.err.showMessage(self.tr("Error contacting Achievo: ") + "\n".join(msg).replace("\n","<br>\n"))
 
 
@@ -228,8 +228,8 @@ class QRemoteTimereg(QObject):
             action = self._pending_requests.keys().pop(0)
             self._current_action = (action, 0)
             self.emit(SIGNAL(action+"Started"))
-            self._execute()    
-    
+            self._execute()
+
     def _ready(self, exitcode=None):
         """
         Slot collegato al QProcess, viene attivato quando il QProcess finisce la
@@ -299,7 +299,7 @@ class QPythonProcess(QProcess):
     interfaccia simile a quella di QProcess ma evitando di dare attenzione
     all'attributo "frozen".
     """
-    
+
     def start(self, process):
         if not hasattr(sys, "frozen") or not sys.frozen:
             executable = sys.executable

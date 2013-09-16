@@ -249,7 +249,7 @@ class QRemoteTimereg(QObject):
             self._waiting = False
             #print "QRemoteTimereg risposta completata"
         # se la richiesta non è completa ritorna senza fare niente
-        except ExpatError:
+        except ET.ParseError:
             #print "QRemoteTimereg risposta incompleta"
             return
         except:

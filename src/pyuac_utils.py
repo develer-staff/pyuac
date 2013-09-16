@@ -9,7 +9,6 @@
 # Author: Matteo Bertini <naufraghi@develer.com>
 
 import sys, re, datetime, time
-from xml.parsers.expat import ExpatError
 
 try:
     from xml.etree import ElementTree as ET

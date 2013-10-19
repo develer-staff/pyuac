@@ -205,7 +205,8 @@ class TimeBrowseWindow(QMainWindow, QAchievoWindow):
                      self._slotProgress)
 
     def _slotProcessError(self, process_error, exitcode, errstr):
-        if exitcode == "CONNECTION_ERROR" and errstr.find("Authorization Required") != -1:
+        if exitcode == "CONNECTION_ERROR" and \
+                (errstr.find("Authorization Required") != -1 or errstr.find("basic auth") != -1):
             self._login("Provided auth is invalid!")
         else:
             QAchievoWindow._slotProcessError(self, process_error, exitcode, errstr)

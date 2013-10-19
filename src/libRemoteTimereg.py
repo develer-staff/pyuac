@@ -11,8 +11,16 @@
 
 import urllib, urllib2, urlparse
 from pyuac_utils import *
+import saml_ecp
 
 ACHIEVO_ENCODING = "ISO-8859-15"
+
+# True se vogliamo autenticarci con SAML su Achievo
+USE_SAML = True
+
+# Indirizzo dell'IDP SAML di Develer 
+DEVELER_IDP = "https://login.develer.com/saml2/idp/SSOService.php"
+
 
 class RemoteTimereg:
     """
@@ -68,16 +76,20 @@ class RemoteTimereg:
         """
         Imposta l'autenticazione http e la gestione dei cookies
         """
-        passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        # WARN: basic-auth using a URI which is not a pure hostname is
-        # broken in Python 2.4.[0123]. This patch fixed it:
-        # http://svn.python.org/view/python/trunk/Lib/urllib2.py?rev=45815&r1=43556&r2=45815
-        host = urlparse.urlparse(self._achievouri)[1]
-        passman.add_password(None, host, self.user, self.password)
-        auth_handler = urllib2.HTTPBasicAuthHandler(passman)
-        cookie_handler = urllib2.HTTPCookieProcessor()
-        opener = urllib2.build_opener(auth_handler, cookie_handler)
-        urllib2.install_opener(opener)
+        if USE_SAML:
+            opener = saml_ecp.auth(DEVELER_IDP, self._achievouri, self.user, self.password)
+            urllib2.install_opener(opener)
+        else:
+            passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
+            # WARN: basic-auth using a URI which is not a pure hostname is
+            # broken in Python 2.4.[0123]. This patch fixed it:
+            # http://svn.python.org/view/python/trunk/Lib/urllib2.py?rev=45815&r1=43556&r2=45815
+            host = urlparse.urlparse(self._achievouri)[1]
+            passman.add_password(None, host, self.user, self.password)
+            auth_handler = urllib2.HTTPBasicAuthHandler(passman)
+            cookie_handler = urllib2.HTTPCookieProcessor()
+            opener = urllib2.build_opener(auth_handler, cookie_handler)
+            urllib2.install_opener(opener)
         self._auth_done = True
 
     def _urlDispatch(self, node, action="search", **kwargs):
